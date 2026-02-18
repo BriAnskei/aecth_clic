@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="aesth_clic.Views.Roles.SuperAdmin.Pages.PaymentManagement"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:aesth_clic.Views.Roles.SuperAdmin.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+
+        <Style x:Key="KpiCardStyle" TargetType="Border">
+            <Setter Property="Background"      Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush"     Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius"    Value="8" />
+            <Setter Property="Padding"         Value="20" />
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"         Value="13" />
+            <Setter Property="FontWeight"       Value="SemiBold" />
+            <Setter Property="Foreground"       Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="CharacterSpacing" Value="50" />
+        </Style>
+
+        <Style x:Key="KpiValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="28" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        </Style>
+
+        <Style x:Key="KpiLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="13" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="Margin"     Value="0,4,0,0" />
+        </Style>
+
+        <Style x:Key="TableHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"          Value="11" />
+            <Setter Property="FontWeight"        Value="SemiBold" />
+            <Setter Property="Foreground"        Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="CharacterSpacing"  Value="50" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="TableCellStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"          Value="13" />
+            <Setter Property="Foreground"        Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming"      Value="CharacterEllipsis" />
+        </Style>
+
+        <Style x:Key="TableSubCellStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"          Value="12" />
+            <Setter Property="Foreground"        Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming"      Value="CharacterEllipsis" />
+        </Style>
+
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding"         Value="8,6" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="MinWidth"        Value="0" />
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="#0078D4" />
+            <Setter Property="Foreground"      Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="16,8" />
+            <Setter Property="FontSize"        Value="13" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+        </Style>
+
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Padding="24" RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Page Header -->
+            <StackPanel Grid.Row="0" Spacing="2">
+                <TextBlock
+                    Text="Payment Management"
+                    FontSize="24"
+                    FontWeight="Bold"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                <TextBlock
+                    Text="Overview · Aesthetic Clinic ERP"
+                    FontSize="13"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
+            <!-- KPI Cards -->
+            <Grid Grid.Row="1" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Revenue -->
+                <Border Grid.Column="0" Style="{StaticResource KpiCardStyle}">
+                    <StackPanel Spacing="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8A4;" FontSize="16" Foreground="#0078D4" />
+                            <TextBlock Text="TOTAL REVENUE" Style="{StaticResource SectionHeaderStyle}" />
+                        </StackPanel>
+                        <TextBlock Text="₱348,000.00" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                        <TextBlock Text="Sum across all clients" Style="{StaticResource KpiLabelStyle}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Total Paid -->
+                <Border Grid.Column="1" Style="{StaticResource KpiCardStyle}">
+                    <StackPanel Spacing="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE73E;" FontSize="16" Foreground="#0EA47A" />
+                            <TextBlock Text="TOTAL PAID" Style="{StaticResource SectionHeaderStyle}" />
+                        </StackPanel>
+                        <TextBlock Text="₱271,500.00" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                        <TextBlock Text="Amount already collected" Style="{StaticResource KpiLabelStyle}" />
+                        <TextBlock Text="78% collection rate"
+                                   FontSize="12" Foreground="#0EA47A" Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Outstanding -->
+                <Border Grid.Column="2" Style="{StaticResource KpiCardStyle}">
+                    <StackPanel Spacing="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE783;" FontSize="16" Foreground="#D83B01" />
+                            <TextBlock Text="OUTSTANDING" Style="{StaticResource SectionHeaderStyle}" />
+                        </StackPanel>
+                        <TextBlock Text="₱76,500.00" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                        <TextBlock Text="Remaining balance due" Style="{StaticResource KpiLabelStyle}" />
+                        <TextBlock Text="3 clients with balance"
+                                   FontSize="12" Foreground="#D83B01" Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Clients -->
+                <Border Grid.Column="3" Style="{StaticResource KpiCardStyle}">
+                    <StackPanel Spacing="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE716;" FontSize="16" Foreground="#C239B3" />
+                            <TextBlock Text="CLIENTS" Style="{StaticResource SectionHeaderStyle}" />
+                        </StackPanel>
+                        <TextBlock Text="5" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                        <TextBlock Text="Registered client accounts" Style="{StaticResource KpiLabelStyle}" />
+                        <TextBlock Text="5 active this month"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Toolbar -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE8A9;" FontSize="14"
+                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBlock Text="5 clients"
+                               Style="{StaticResource SectionHeaderStyle}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+
+                <Button Grid.Column="1" Style="{StaticResource PrimaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE710;" FontSize="13" Foreground="White" />
+                        <TextBlock Text="Add Payment" Foreground="White" FontSize="13" FontWeight="SemiBold" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Table Card -->
+            <Border Grid.Row="3" Style="{StaticResource KpiCardStyle}" Padding="0">
+                <StackPanel>
+
+                    <!-- Table Header -->
+                    <Border Padding="20,14,20,14"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,0,1">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="CLIENT"       Style="{StaticResource TableHeaderStyle}" />
+                            <TextBlock Grid.Column="1" Text="CLINIC"       Style="{StaticResource TableHeaderStyle}" />
+                            <TextBlock Grid.Column="2" Text="TOTAL AMOUNT" Style="{StaticResource TableHeaderStyle}" />
+                            <TextBlock Grid.Column="3" Text="TOTAL PAID"   Style="{StaticResource TableHeaderStyle}" />
+                            <TextBlock Grid.Column="4" Text="BALANCE"      Style="{StaticResource TableHeaderStyle}" />
+                            <TextBlock Grid.Column="5" Text="STATUS"       Style="{StaticResource TableHeaderStyle}" />
+                            <TextBlock Grid.Column="6" Text="ACTIONS"      Style="{StaticResource TableHeaderStyle}" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 1: Maria Santos — Paid -->
+                    <Border Padding="20,14,20,14"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,0,1">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Maria Santos"     Style="{StaticResource TableCellStyle}" />
+                                <TextBlock Text="client@santos.ph" Style="{StaticResource TableSubCellStyle}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="Santos Glow Clinic" Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="2" Text="₱85,000.00"         Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="3" Text="₱85,000.00"         Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="4" Text="₱0.00"              Style="{StaticResource TableCellStyle}" Foreground="#0EA47A" />
+                            <Border Grid.Column="5" Background="#1A0EA47A" CornerRadius="4" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Paid" FontSize="11" FontWeight="SemiBold" Foreground="#0EA47A" />
+                            </Border>
+                            <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Add Payment">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="View History">
+                                    <FontIcon Glyph="&#xE8EC;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Generate Receipt">
+                                    <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 2: Juan dela Cruz — Partial -->
+                    <Border Padding="20,14,20,14"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,0,1">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Juan dela Cruz"   Style="{StaticResource TableCellStyle}" />
+                                <TextBlock Text="juan@delacruz.ph" Style="{StaticResource TableSubCellStyle}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="DLC Aesthetics Center" Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="2" Text="₱72,000.00"            Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="3" Text="₱50,000.00"            Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="4" Text="₱22,000.00"            Style="{StaticResource TableCellStyle}" Foreground="#D83B01" />
+                            <Border Grid.Column="5" Background="#1AE8A200" CornerRadius="4" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Partial" FontSize="11" FontWeight="SemiBold" Foreground="#C07800" />
+                            </Border>
+                            <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Add Payment">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="View History">
+                                    <FontIcon Glyph="&#xE8EC;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Generate Receipt">
+                                    <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 3: Ana Reyes — Unpaid -->
+                    <Border Padding="20,14,20,14"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,0,1">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Ana Reyes"          Style="{StaticResource TableCellStyle}" />
+                                <TextBlock Text="ana@reyesclinic.ph" Style="{StaticResource TableSubCellStyle}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="Reyes Skin &amp; Laser" Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="2" Text="₱60,000.00"             Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="3" Text="₱0.00"                  Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="4" Text="₱60,000.00"             Style="{StaticResource TableCellStyle}" Foreground="#D83B01" />
+                            <Border Grid.Column="5" Background="#1AD83B01" CornerRadius="4" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Unpaid" FontSize="11" FontWeight="SemiBold" Foreground="#D83B01" />
+                            </Border>
+                            <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Add Payment">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="View History">
+                                    <FontIcon Glyph="&#xE8EC;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Generate Receipt">
+                                    <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 4: Carlo Mendoza — Paid -->
+                    <Border Padding="20,14,20,14"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,0,1">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Carlo Mendoza"       Style="{StaticResource TableCellStyle}" />
+                                <TextBlock Text="carlo@mendozamed.ph" Style="{StaticResource TableSubCellStyle}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="Mendoza Medi-Spa" Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="2" Text="₱91,000.00"       Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="3" Text="₱91,000.00"       Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="4" Text="₱0.00"            Style="{StaticResource TableCellStyle}" Foreground="#0EA47A" />
+                            <Border Grid.Column="5" Background="#1A0EA47A" CornerRadius="4" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Paid" FontSize="11" FontWeight="SemiBold" Foreground="#0EA47A" />
+                            </Border>
+                            <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Add Payment">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="View History">
+                                    <FontIcon Glyph="&#xE8EC;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Generate Receipt">
+                                    <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 5: Liza Ocampo — Paid -->
+                    <Border Padding="20,14,20,14">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Liza Ocampo"          Style="{StaticResource TableCellStyle}" />
+                                <TextBlock Text="liza@ocampoclinic.ph" Style="{StaticResource TableSubCellStyle}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="Ocampo Beauty Hub" Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="2" Text="₱40,000.00"        Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="3" Text="₱45,500.00"        Style="{StaticResource TableCellStyle}" />
+                            <TextBlock Grid.Column="4" Text="₱0.00"             Style="{StaticResource TableCellStyle}" Foreground="#0EA47A" />
+                            <Border Grid.Column="5" Background="#1A0EA47A" CornerRadius="4" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Paid" FontSize="11" FontWeight="SemiBold" Foreground="#0EA47A" />
+                            </Border>
+                            <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Add Payment">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="View History">
+                                    <FontIcon Glyph="&#xE8EC;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                                <Button Style="{StaticResource ActionButtonStyle}" ToolTipService.ToolTip="Generate Receipt">
+                                    <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </ScrollViewer>
+</Page>

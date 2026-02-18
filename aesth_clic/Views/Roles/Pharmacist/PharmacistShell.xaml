@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="aesth_clic.Views.Roles.PharmacistShell"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:aesth_clic.Views.Roles"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <NavigationView
+        x:Name="NavView"
+        PaneTitle="Pharmacist"
+        IsSettingsVisible="False"
+        SelectionChanged="NavView_SelectionChanged"
+        Loaded="NavView_Loaded">
+
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Medicine Inventory" Icon="Shop"  Tag="MedicineInventory" />
+            <NavigationViewItem Content="Payment Management" Icon="Tag" Tag="PaymentManagement" />
+        </NavigationView.MenuItems>
+
+        <NavigationView.FooterMenuItems>
+            <NavigationViewItem
+                Content="Logout"
+                Icon="BackToWindow"
+                Tag="Logout"
+                SelectsOnInvoked="False"
+                Tapped="OnLogout" />
+        </NavigationView.FooterMenuItems>
+
+        <Frame x:Name="ContentFrame" />
+
+    </NavigationView>
+</Page>

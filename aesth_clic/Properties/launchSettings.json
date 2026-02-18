@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "aesth_clic (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "aesth_clic (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

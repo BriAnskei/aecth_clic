@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="aesth_clic.Views.Roles.SuperAdmin.Pages.UserManagement"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:aesth_clic.Views.Roles.SuperAdmin.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+
+        <Style x:Key="KpiCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="20" />
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="CharacterSpacing" Value="50" />
+        </Style>
+
+        <Style x:Key="KpiValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        </Style>
+
+        <Style x:Key="KpiLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+        </Style>
+
+        <Style x:Key="ColHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="CharacterSpacing" Value="50" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="CellTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+
+        <Style x:Key="CellSecondaryStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+
+    </Page.Resources>
+
+    <Grid Padding="24" RowSpacing="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*"    />
+        </Grid.RowDefinitions>
+
+        <!-- ══════════════════════════════════════
+             ROW 0 · Page Header
+        ══════════════════════════════════════ -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock
+                    Text="Client Management"
+                    FontSize="24"
+                    FontWeight="Bold"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                <TextBlock
+                    Text="Manage client (admin) accounts"
+                    FontSize="13"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
+            <Button
+                Grid.Column="1"
+                x:Name="AddUserButton"
+                Style="{StaticResource AccentButtonStyle}"
+                VerticalAlignment="Center"
+                Click="AddUserButton_Click"
+                Padding="16,8">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE710;" FontSize="14" />
+                    <TextBlock Text="Add Client" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- ══════════════════════════════════════
+             ROW 1 · KPI Summary Cards
+        ══════════════════════════════════════ -->
+        <Grid Grid.Row="1" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource KpiCardStyle}">
+                <StackPanel Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE716;" FontSize="16" Foreground="#0078D4" />
+                        <TextBlock Text="TOTAL CLIENTS" Style="{StaticResource SectionHeaderStyle}" />
+                    </StackPanel>
+                    <TextBlock x:Name="TxtTotalUsers" Text="0" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                    <TextBlock Text="All registered accounts" Style="{StaticResource KpiLabelStyle}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource KpiCardStyle}">
+                <StackPanel Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8FA;" FontSize="16" Foreground="#0EA47A" />
+                        <TextBlock Text="ACTIVE CLIENTS" Style="{StaticResource SectionHeaderStyle}" />
+                    </StackPanel>
+                    <TextBlock x:Name="TxtActiveUsers" Text="0" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                    <TextBlock Text="Currently active accounts" Style="{StaticResource KpiLabelStyle}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource KpiCardStyle}">
+                <StackPanel Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xEA8C;" FontSize="16" Foreground="#D83B01" />
+                        <TextBlock Text="INACTIVE CLIENTS" Style="{StaticResource SectionHeaderStyle}" />
+                    </StackPanel>
+                    <TextBlock x:Name="TxtInactiveUsers" Text="0" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                    <TextBlock Text="Deactivated accounts" Style="{StaticResource KpiLabelStyle}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ══════════════════════════════════════
+             ROW 2 · Search + Filter Toolbar
+        ══════════════════════════════════════ -->
+        <Grid Grid.Row="2" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260" />
+                <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="*"   />
+            </Grid.ColumnDefinitions>
+
+            <AutoSuggestBox
+                Grid.Column="0"
+                x:Name="SearchBox"
+                PlaceholderText="Search name, email, or clinic…"
+                QueryIcon="Find"
+                VerticalAlignment="Center"
+                TextChanged="SearchBox_TextChanged" />
+
+            <ComboBox
+                Grid.Column="1"
+                x:Name="StatusFilter"
+                PlaceholderText="All Status"
+                VerticalAlignment="Center"
+                SelectionChanged="StatusFilter_SelectionChanged">
+                <ComboBoxItem Content="All Status" Tag="All"      />
+                <ComboBoxItem Content="Active"     Tag="Active"   />
+                <ComboBoxItem Content="Inactive"   Tag="Inactive" />
+            </ComboBox>
+        </Grid>
+
+        <!-- ══════════════════════════════════════
+             ROW 3 · Clients Table
+        ══════════════════════════════════════ -->
+        <Border
+            Grid.Row="3"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*"    />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Column Headers -->
+                <Border
+                    Grid.Row="0"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    CornerRadius="8,8,0,0"
+                    Padding="20,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36"  />
+                            <ColumnDefinition Width="*"   />
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="90"  />
+                            <ColumnDefinition Width="190" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="#"           Style="{StaticResource ColHeaderStyle}" />
+                        <TextBlock Grid.Column="1" Text="NAME"        Style="{StaticResource ColHeaderStyle}" />
+                        <TextBlock Grid.Column="2" Text="EMAIL"       Style="{StaticResource ColHeaderStyle}" />
+                        <TextBlock Grid.Column="3" Text="PHONE"       Style="{StaticResource ColHeaderStyle}" />
+                        <TextBlock Grid.Column="4" Text="CLINIC NAME" Style="{StaticResource ColHeaderStyle}" />
+                        <TextBlock Grid.Column="5" Text="STATUS"      Style="{StaticResource ColHeaderStyle}" />
+                        <TextBlock Grid.Column="6" Text="ACTIONS"     Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Scrollable Client Rows -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="UserListControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="local:UserItem">
+                                <Border
+                                    BorderThickness="0,0,0,1"
+                                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                    Padding="20,0">
+                                    <Grid MinHeight="52">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="36"  />
+                                            <ColumnDefinition Width="*"   />
+                                            <ColumnDefinition Width="200" />
+                                            <ColumnDefinition Width="130" />
+                                            <ColumnDefinition Width="200" />
+                                            <ColumnDefinition Width="90"  />
+                                            <ColumnDefinition Width="190" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- # -->
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{x:Bind RowNumber}"
+                                                   Style="{StaticResource CellSecondaryStyle}" />
+
+                                        <!-- Name + Avatar -->
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                    Spacing="10" VerticalAlignment="Center">
+                                            <Border Width="32" Height="32" CornerRadius="16"
+                                                    Background="{x:Bind AvatarColor}">
+                                                <TextBlock
+                                                    Text="{x:Bind Initials}"
+                                                    FontSize="13" FontWeight="SemiBold"
+                                                    Foreground="White"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Text="{x:Bind FullName}"
+                                                       Style="{StaticResource CellTextStyle}"
+                                                       FontWeight="SemiBold" />
+                                        </StackPanel>
+
+                                        <!-- Email -->
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{x:Bind Email}"
+                                                   Style="{StaticResource CellSecondaryStyle}" />
+
+                                        <!-- Phone -->
+                                        <TextBlock Grid.Column="3"
+                                                   Text="{x:Bind Phone}"
+                                                   Style="{StaticResource CellSecondaryStyle}" />
+
+                                        <!-- Clinic Name -->
+                                        <StackPanel Grid.Column="4"
+                                                    Orientation="Horizontal"
+                                                    Spacing="6"
+                                                    VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE825;" FontSize="12"
+                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                      VerticalAlignment="Center" />
+                                            <TextBlock Text="{x:Bind ClinicName}"
+                                                       Style="{StaticResource CellSecondaryStyle}" />
+                                        </StackPanel>
+
+                                        <!-- Status Badge -->
+                                        <Border Grid.Column="5"
+                                                Background="{x:Bind StatusBadgeColor}"
+                                                CornerRadius="4" Padding="8,3"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center">
+                                            <TextBlock
+                                                Text="{x:Bind Status}"
+                                                FontSize="11" FontWeight="SemiBold"
+                                                Foreground="{x:Bind StatusBadgeText}" />
+                                        </Border>
+
+                                        <!-- Actions -->
+                                        <StackPanel Grid.Column="6"
+                                                    Orientation="Horizontal"
+                                                    Spacing="6"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center">
+
+                                            <!-- Edit -->
+                                            <Button
+                                                Tag="{x:Bind UserId}"
+                                                Click="EditUser_Click"
+                                                Padding="8,5"
+                                                ToolTipService.ToolTip="Edit client">
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                                    <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                                                    <TextBlock Text="Edit" FontSize="12" />
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Deactivate (Active clients only) -->
+                                            <Button
+                                                Tag="{x:Bind UserId}"
+                                                Click="DeactivateUser_Click"
+                                                Padding="8,5"
+                                                Visibility="{x:Bind DeactivateVisible}"
+                                                ToolTipService.ToolTip="Deactivate client">
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                                    <FontIcon Glyph="&#xEA8C;" FontSize="12" Foreground="#D83B01" />
+                                                    <TextBlock Text="Deactivate" FontSize="12" Foreground="#D83B01" />
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Delete (Inactive clients only) -->
+                                            <Button
+                                                Tag="{x:Bind UserId}"
+                                                Click="DeleteUser_Click"
+                                                Padding="8,5"
+                                                Visibility="{x:Bind DeleteVisible}"
+                                                ToolTipService.ToolTip="Delete client permanently"
+                                                Background="#FFF0F0">
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                                    <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="#C50F1F" />
+                                                    <TextBlock Text="Delete" FontSize="12" Foreground="#C50F1F" />
+                                                </StackPanel>
+                                            </Button>
+
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Footer -->
+                <Border
+                    Grid.Row="2"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    CornerRadius="0,0,8,8"
+                    Padding="20,10">
+                    <TextBlock
+                        x:Name="TxtRowCount"
+                        Text="Showing 0 clients"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </Border>
+
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════════════════════
+             ADD / EDIT CLIENT DIALOG
+        ══════════════════════════════════════ -->
+        <ContentDialog
+            x:Name="UserDialog"
+            Title="Add Client"
+            PrimaryButtonText="Save"
+            CloseButtonText="Cancel"
+            DefaultButton="Primary"
+            PrimaryButtonClick="UserDialog_PrimaryButtonClick">
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="460">
+                <StackPanel Spacing="16" Padding="0,4" Width="340">
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Full Name" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        <TextBox x:Name="FieldName" PlaceholderText="e.g. Maria Santos" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Email Address" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        <TextBox x:Name="FieldEmail" PlaceholderText="e.g. maria@clinic.com" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Phone Number" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        <TextBox x:Name="FieldPhone" PlaceholderText="e.g. 09XX-XXX-XXXX" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Clinic Name" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        <TextBox x:Name="FieldClinicName" PlaceholderText="e.g. Santos Aesthetic Clinic" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Password" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        <PasswordBox x:Name="FieldPassword" PlaceholderText="Enter password" />
+                    </StackPanel>
+
+                    <InfoBar
+                        x:Name="DialogValidationBar"
+                        IsOpen="False"
+                        Severity="Error"
+                        IsClosable="False" />
+
+                </StackPanel>
+            </ScrollViewer>
+        </ContentDialog>
+
+    </Grid>
+</Page>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="aesth_clic.Views.RoleSelectionPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:aesth_clic.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid>
+        <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="16"
+            Width="320">
+
+            <StackPanel HorizontalAlignment="Center" Spacing="4" Margin="0,0,0,24">
+                <TextBlock
+                    Text="✦ Aesthetic Clinic"
+                    FontSize="28"
+                    FontWeight="SemiBold"
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <TextBlock
+                    Text="Select your role to continue"
+                    FontSize="13"
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
+            <Button
+                Content="Super Admin"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Height="52"
+                Padding="20,0"
+                FontSize="14"
+                Click="OnRoleSelected"
+                Tag="SuperAdmin"
+                Style="{ThemeResource AccentButtonStyle}"/>
+
+            <Button
+                Content="Admin / Client"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Height="52"
+                Padding="20,0"
+                FontSize="14"
+                Click="OnRoleSelected"
+                Tag="AdminClient" />
+
+            <Button
+                Content="Doctor"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Height="52"
+                Padding="20,0"
+                FontSize="14"
+                Click="OnRoleSelected"
+                Tag="Doctor" />
+
+            <Button
+                Content="Receptionist"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Height="52"
+                Padding="20,0"
+                FontSize="14"
+                Click="OnRoleSelected"
+                Tag="Receptionist" />
+
+            <Button
+                Content="Pharmacist"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Height="52"
+                Padding="20,0"
+                FontSize="14"
+                Click="OnRoleSelected"
+                Tag="Pharmacist" />
+
+        </StackPanel>
+    </Grid>
+</Page>

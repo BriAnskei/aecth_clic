@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="aesth_clic.Views.Roles.SuperAdmin.Pages.TNC"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:aesth_clic.Views.Roles.SuperAdmin.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+
+        <Style x:Key="TncCardStyle" TargetType="Border">
+            <Setter Property="Background"       Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush"      Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness"  Value="1" />
+            <Setter Property="CornerRadius"     Value="8" />
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"         Value="13" />
+            <Setter Property="FontWeight"       Value="SemiBold" />
+            <Setter Property="Foreground"       Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="CharacterSpacing" Value="50" />
+        </Style>
+
+        <Style x:Key="EntryTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"          Value="14" />
+            <Setter Property="FontWeight"        Value="SemiBold" />
+            <Setter Property="Foreground"        Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="DescriptionStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"     Value="13" />
+            <Setter Property="Foreground"   Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight"   Value="20" />
+        </Style>
+
+        <Style x:Key="EditTitleBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize"   Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="MaxLength"  Value="120" />
+        </Style>
+
+        <Style x:Key="EditDescBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize"      Value="13" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="TextWrapping"  Value="Wrap" />
+            <Setter Property="MinHeight"     Value="100" />
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="#0078D4" />
+            <Setter Property="Foreground"      Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="16,8" />
+            <Setter Property="FontSize"        Value="13" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="SubtleButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent" />
+            <Setter Property="BorderBrush"     Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="14,7" />
+            <Setter Property="FontSize"        Value="13" />
+        </Style>
+
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Padding="24" RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Page Header -->
+            <StackPanel Grid.Row="0" Spacing="2">
+                <TextBlock
+                    Text="Terms &amp; Conditions"
+                    FontSize="24"
+                    FontWeight="Bold"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                <TextBlock
+                    Text="Manage · Aesthetic Clinic ERP"
+                    FontSize="13"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
+            <!-- Toolbar -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE8A9;" FontSize="14"
+                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBlock x:Name="TxtEntryCount"
+                               Text="4 entries"
+                               Style="{StaticResource SectionHeaderStyle}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        x:Name="BtnAddNew"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="BtnAddNew_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE710;" FontSize="13" Foreground="White" />
+                        <TextBlock Text="Add New TNC" Foreground="White"
+                                   FontSize="13" FontWeight="SemiBold" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Accordion List -->
+            <StackPanel Grid.Row="2"
+                        x:Name="TncList"
+                        Spacing="10" />
+
+        </Grid>
+    </ScrollViewer>
+</Page>
