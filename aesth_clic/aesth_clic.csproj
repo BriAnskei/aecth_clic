@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -21,6 +21,7 @@
     <None Remove="Views\Roles\Admin\Pages\TermsAndConditions.xaml" />
     <None Remove="Views\Roles\Admin\Pages\UsersManagement.xaml" />
     <None Remove="Views\Roles\DoctorShell.xaml" />
+    <None Remove="Views\Roles\Doctor\Pages\PatientManament.xaml" />
     <None Remove="Views\Roles\PharmacistShell.xaml" />
     <None Remove="Views\Roles\ReceptionistShell.xaml" />
     <None Remove="Views\Roles\SuperAdminShell.xaml" />
@@ -60,9 +61,13 @@
     <Folder Include="Controller\" />
     <Folder Include="Service\" />
     <Folder Include="Views\Roles\Admin\Modal\" />
-    <Folder Include="Views\Roles\Doctor\" />
     <Folder Include="Views\Roles\Receptionist\" />
     <Folder Include="Views\Roles\Pharmacist\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Pages\PatientManament.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Admin\Pages\TermsAndConditions.xaml">
