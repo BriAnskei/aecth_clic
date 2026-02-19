@@ -21,7 +21,10 @@
     <None Remove="Views\Roles\Admin\Pages\TermsAndConditions.xaml" />
     <None Remove="Views\Roles\Admin\Pages\UsersManagement.xaml" />
     <None Remove="Views\Roles\DoctorShell.xaml" />
+    <None Remove="Views\Roles\Doctor\Pages\AppointmentManagement.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\PatientManament.xaml" />
+    <None Remove="Views\Roles\Doctor\Pages\ProcedureManagement.xaml" />
+    <None Remove="Views\Roles\Doctor\Pages\ServiceMenu.xaml" />
     <None Remove="Views\Roles\PharmacistShell.xaml" />
     <None Remove="Views\Roles\ReceptionistShell.xaml" />
     <None Remove="Views\Roles\SuperAdminShell.xaml" />
@@ -59,10 +62,31 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controller\" />
+    <Folder Include="Model\" />
     <Folder Include="Service\" />
     <Folder Include="Views\Roles\Admin\Modal\" />
     <Folder Include="Views\Roles\Receptionist\" />
     <Folder Include="Views\Roles\Pharmacist\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Pages\ServiceMenu.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Pages\ProcedureManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Pages\AppointmentManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Pages\PatientProcedures.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Doctor\Pages\PatientManament.xaml">
