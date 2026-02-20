@@ -210,7 +210,7 @@
                             <ColumnDefinition Width="130" />
                             <ColumnDefinition Width="200" />
                             <ColumnDefinition Width="90"  />
-                            <ColumnDefinition Width="190" />
+                            <ColumnDefinition Width="60"  />
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" Text="#"           Style="{StaticResource ColHeaderStyle}" />
@@ -240,7 +240,7 @@
                                             <ColumnDefinition Width="130" />
                                             <ColumnDefinition Width="200" />
                                             <ColumnDefinition Width="90"  />
-                                            <ColumnDefinition Width="190" />
+                                            <ColumnDefinition Width="60"  />
                                         </Grid.ColumnDefinitions>
 
                                         <!-- # -->
@@ -287,65 +287,84 @@
                                                        Style="{StaticResource CellSecondaryStyle}" />
                                         </StackPanel>
 
-                                        <!-- Status Badge -->
-                                        <Border Grid.Column="5"
-                                                Background="{x:Bind StatusBadgeColor}"
-                                                CornerRadius="4" Padding="8,3"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Center">
-                                            <TextBlock
-                                                Text="{x:Bind Status}"
-                                                FontSize="11" FontWeight="SemiBold"
-                                                Foreground="{x:Bind StatusBadgeText}" />
-                                        </Border>
+                                  
+                                        <!-- Status -->
+                                        <TextBlock
+                                         Grid.Column="5"
+                                         Text="{x:Bind Status}"
+                                         FontSize="11" FontWeight="SemiBold"
+                                         Foreground="{x:Bind StatusBadgeText}"
+                                        VerticalAlignment="Center" />
+                                        
+                                        
+                                        <!-- Actions · Kebab Menu -->
+                                        <Button
+                                            Grid.Column="6"
+                                            Tag="{x:Bind UserId}"
+                                            Click="KebabMenu_Click"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Padding="8,4"
+                                            ToolTipService.ToolTip="More actions"
+                                            Style="{StaticResource SubtleButtonStyle}">
+                                            <FontIcon Glyph="&#xE712;" FontSize="16" />
+                                            <Button.Flyout>
+                                                <MenuFlyout Placement="BottomEdgeAlignedRight">
 
-                                        <!-- Actions -->
-                                        <StackPanel Grid.Column="6"
-                                                    Orientation="Horizontal"
-                                                    Spacing="6"
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center">
+                                                    <!-- Edit -->
+                                                    <MenuFlyoutItem
+                                                        Text="Edit"
+                                                        Tag="{x:Bind UserId}"
+                                                        Click="EditUser_Click">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE70F;" />
+                                                        </MenuFlyoutItem.Icon>
+                                                    </MenuFlyoutItem>
 
-                                            <!-- Edit -->
-                                            <Button
-                                                Tag="{x:Bind UserId}"
-                                                Click="EditUser_Click"
-                                                Padding="8,5"
-                                                ToolTipService.ToolTip="Edit client">
-                                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                                    <FontIcon Glyph="&#xE70F;" FontSize="12" />
-                                                    <TextBlock Text="Edit" FontSize="12" />
-                                                </StackPanel>
-                                            </Button>
+                                                    <!-- Manage Modules -->
+                                                    <MenuFlyoutItem
+                                                        Text="Manage Modules"
+                                                        Tag="{x:Bind UserId}"
+                                                        Click="ManageModules_Click">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xEA37;" />
+                                                        </MenuFlyoutItem.Icon>
+                                                    </MenuFlyoutItem>
 
-                                            <!-- Deactivate (Active clients only) -->
-                                            <Button
-                                                Tag="{x:Bind UserId}"
-                                                Click="DeactivateUser_Click"
-                                                Padding="8,5"
-                                                Visibility="{x:Bind DeactivateVisible}"
-                                                ToolTipService.ToolTip="Deactivate client">
-                                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                                    <FontIcon Glyph="&#xEA8C;" FontSize="12" Foreground="#D83B01" />
-                                                    <TextBlock Text="Deactivate" FontSize="12" Foreground="#D83B01" />
-                                                </StackPanel>
-                                            </Button>
+                                                    <MenuFlyoutSeparator />
 
-                                            <!-- Delete (Inactive clients only) -->
-                                            <Button
-                                                Tag="{x:Bind UserId}"
-                                                Click="DeleteUser_Click"
-                                                Padding="8,5"
-                                                Visibility="{x:Bind DeleteVisible}"
-                                                ToolTipService.ToolTip="Delete client permanently"
-                                                Background="#FFF0F0">
-                                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                                    <FontIcon Glyph="&#xE74D;" FontSize="12" Foreground="#C50F1F" />
-                                                    <TextBlock Text="Delete" FontSize="12" Foreground="#C50F1F" />
-                                                </StackPanel>
-                                            </Button>
+                                                    <!-- Deactivate (Active only) -->
+                                                    <MenuFlyoutItem
+                                                        Text="Deactivate"
+                                                        Tag="{x:Bind UserId}"
+                                                        Visibility="{x:Bind DeactivateVisible}"
+                                                        Click="DeactivateUser_Click">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xEA8C;" Foreground="#D83B01" />
+                                                        </MenuFlyoutItem.Icon>
+                                                        <MenuFlyoutItem.Foreground>
+                                                            <SolidColorBrush Color="#D83B01" />
+                                                        </MenuFlyoutItem.Foreground>
+                                                    </MenuFlyoutItem>
 
-                                        </StackPanel>
+                                                    <!-- Delete (Inactive only) -->
+                                                    <MenuFlyoutItem
+                                                        Text="Delete"
+                                                        Tag="{x:Bind UserId}"
+                                                        Visibility="{x:Bind DeleteVisible}"
+                                                        Click="DeleteUser_Click">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE74D;" Foreground="#C50F1F" />
+                                                        </MenuFlyoutItem.Icon>
+                                                        <MenuFlyoutItem.Foreground>
+                                                            <SolidColorBrush Color="#C50F1F" />
+                                                        </MenuFlyoutItem.Foreground>
+                                                    </MenuFlyoutItem>
+
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
+
                                     </Grid>
                                 </Border>
                             </DataTemplate>

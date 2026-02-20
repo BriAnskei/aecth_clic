@@ -26,11 +26,11 @@
         </Style>
 
         <Style x:Key="TncDescStyle" TargetType="TextBlock">
-            <Setter Property="FontSize"      Value="13" />
-            <Setter Property="Foreground"    Value="#7A6A9A" />
-            <Setter Property="TextWrapping"  Value="Wrap" />
-            <Setter Property="Margin"        Value="0,5,0,0" />
-            <Setter Property="LineHeight"    Value="20" />
+            <Setter Property="FontSize"     Value="13" />
+            <Setter Property="Foreground"   Value="#7A6A9A" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin"       Value="0,5,0,0" />
+            <Setter Property="LineHeight"   Value="20" />
         </Style>
 
         <Style x:Key="CardTitleStyle" TargetType="TextBlock">
@@ -45,6 +45,62 @@
             <Setter Property="Margin"     Value="0,2,0,0" />
         </Style>
 
+        <!-- Admin TNC section styles -->
+        <Style x:Key="ClinicTncCardStyle" TargetType="Border">
+            <Setter Property="Background"      Value="#FDFBFF" />
+            <Setter Property="BorderBrush"     Value="#E4DAF5" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius"    Value="8" />
+        </Style>
+
+        <Style x:Key="EditTitleBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize"      Value="14" />
+            <Setter Property="FontWeight"    Value="SemiBold" />
+            <Setter Property="MaxLength"     Value="120" />
+            <Setter Property="BorderBrush"   Value="#C9A8E8" />
+            <Setter Property="CornerRadius"  Value="6" />
+            <Setter Property="Padding"       Value="10,6" />
+        </Style>
+
+        <Style x:Key="EditDescBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize"      Value="13" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="TextWrapping"  Value="Wrap" />
+            <Setter Property="MinHeight"     Value="100" />
+            <Setter Property="BorderBrush"   Value="#C9A8E8" />
+            <Setter Property="CornerRadius"  Value="6" />
+            <Setter Property="Padding"       Value="10,8" />
+        </Style>
+
+        <Style x:Key="SaveButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="#7B3FCC" />
+            <Setter Property="Foreground"      Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="16,8" />
+            <Setter Property="FontSize"        Value="13" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="SubtleButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent" />
+            <Setter Property="BorderBrush"     Value="#C9A8E8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="14,7" />
+            <Setter Property="FontSize"        Value="13" />
+            <Setter Property="Foreground"      Value="#5B2D8E" />
+        </Style>
+
+        <Style x:Key="DeleteButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="#FEF2F2" />
+            <Setter Property="Foreground"      Value="#DC2626" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="14,7" />
+            <Setter Property="FontSize"        Value="13" />
+        </Style>
+
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -53,11 +109,10 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- ══════════════════════════════
-                 PAGE HEADER
-            ══════════════════════════════ -->
+            <!-- PAGE HEADER -->
             <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,4">
                 <TextBlock
                     Text="Terms and Conditions"
@@ -65,14 +120,12 @@
                     FontWeight="Bold"
                     Foreground="#2D1554" />
                 <TextBlock
-                    Text="Review the clinic's terms and conditions below."
+                    Text="Review and manage the clinic's terms and conditions."
                     FontSize="13"
                     Foreground="#9B80C4" />
             </StackPanel>
 
-            <!-- ══════════════════════════════
-                 INFO BANNER
-            ══════════════════════════════ -->
+            <!-- INFO BANNER -->
             <Border
                 Grid.Row="1"
                 Background="#EDE4F9"
@@ -83,7 +136,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <FontIcon Glyph="&#xE946;" FontSize="16" Foreground="#5B2D8E" VerticalAlignment="Center" />
                     <TextBlock
-                        Text="This is a read-only view of the Aesthetic Clinic's Terms and Conditions. For amendments or updates, please contact the system administrator."
+                        Text="The system provisions below are set by the system administrator and are read-only. You may add and manage your own clinic-specific provisions in the section below."
                         FontSize="12"
                         Foreground="#5B2D8E"
                         TextWrapping="Wrap"
@@ -91,21 +144,18 @@
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════════════════
-                 TNC LIST CARD
-            ══════════════════════════════ -->
+            <!-- SYSTEM TNC CARD (read-only) -->
             <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="0">
 
-                    <!-- Card Header -->
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="Clinic Terms and Conditions" Style="{StaticResource CardTitleStyle}" />
-                            <TextBlock Text="Effective date: January 1, 2025" Style="{StaticResource CardSubtitleStyle}" />
+                            <TextBlock Text="System Terms and Conditions" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Text="Effective date: January 1, 2025 · Read-only" Style="{StaticResource CardSubtitleStyle}" />
                         </StackPanel>
                         <Border
                             Grid.Column="1"
@@ -117,100 +167,114 @@
                         </Border>
                     </Grid>
 
-                    <!-- Divider -->
                     <Border Height="1" Background="#F0EAF8" Margin="0,0,0,20" />
 
-                    <!-- TNC Items -->
                     <StackPanel Spacing="0">
-
-                        <!-- Item 1 -->
                         <Border Padding="16,18" CornerRadius="8">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="Patient Consent" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock
-                                    Text="All patients must provide informed written consent prior to undergoing any aesthetic procedure. Consent forms must be signed on the day of the appointment and retained in the patient's file."
-                                    Style="{StaticResource TncDescStyle}" />
+                                <TextBlock Text="All patients must provide informed written consent prior to undergoing any aesthetic procedure. Consent forms must be signed on the day of the appointment and retained in the patient's file." Style="{StaticResource TncDescStyle}" />
                             </StackPanel>
                         </Border>
                         <Border Height="1" Background="#F0EAF8" Margin="16,0" />
 
-                        <!-- Item 2 -->
                         <Border Padding="16,18" CornerRadius="8">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="Appointment Policy" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock
-                                    Text="Patients are required to arrive at least 10 minutes before their scheduled appointment. Late arrivals beyond 15 minutes may result in rescheduling at the clinic's discretion."
-                                    Style="{StaticResource TncDescStyle}" />
+                                <TextBlock Text="Patients are required to arrive at least 10 minutes before their scheduled appointment. Late arrivals beyond 15 minutes may result in rescheduling at the clinic's discretion." Style="{StaticResource TncDescStyle}" />
                             </StackPanel>
                         </Border>
                         <Border Height="1" Background="#F0EAF8" Margin="16,0" />
 
-                        <!-- Item 3 -->
                         <Border Padding="16,18" CornerRadius="8">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="Cancellation and Rescheduling" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock
-                                    Text="Cancellations must be made at least 24 hours in advance. Failure to notify the clinic within this window may incur a cancellation fee equivalent to 20% of the procedure cost."
-                                    Style="{StaticResource TncDescStyle}" />
+                                <TextBlock Text="Cancellations must be made at least 24 hours in advance. Failure to notify the clinic within this window may incur a cancellation fee equivalent to 20% of the procedure cost." Style="{StaticResource TncDescStyle}" />
                             </StackPanel>
                         </Border>
                         <Border Height="1" Background="#F0EAF8" Margin="16,0" />
 
-                        <!-- Item 4 -->
                         <Border Padding="16,18" CornerRadius="8">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="Payment Terms" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock
-                                    Text="Full payment is required upon completion of each procedure. The clinic accepts cash, credit/debit cards, and approved digital wallets. Installment arrangements must be pre-approved by management."
-                                    Style="{StaticResource TncDescStyle}" />
+                                <TextBlock Text="Full payment is required upon completion of each procedure. The clinic accepts cash, credit/debit cards, and approved digital wallets. Installment arrangements must be pre-approved by management." Style="{StaticResource TncDescStyle}" />
                             </StackPanel>
                         </Border>
                         <Border Height="1" Background="#F0EAF8" Margin="16,0" />
 
-                        <!-- Item 5 -->
                         <Border Padding="16,18" CornerRadius="8">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="Confidentiality and Privacy" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock
-                                    Text="All patient information, medical records, and treatment history are treated as strictly confidential in accordance with applicable data privacy laws. Records will not be shared with third parties without explicit patient consent."
-                                    Style="{StaticResource TncDescStyle}" />
+                                <TextBlock Text="All patient information, medical records, and treatment history are treated as strictly confidential in accordance with applicable data privacy laws. Records will not be shared with third parties without explicit patient consent." Style="{StaticResource TncDescStyle}" />
                             </StackPanel>
                         </Border>
                         <Border Height="1" Background="#F0EAF8" Margin="16,0" />
 
-                        <!-- Item 6 -->
                         <Border Padding="16,18" CornerRadius="8">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="Refund Policy" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock
-                                    Text="Payments for completed procedures are non-refundable. Refunds may be considered only in cases of documented adverse reactions directly attributable to clinic negligence, subject to management review."
-                                    Style="{StaticResource TncDescStyle}" />
+                                <TextBlock Text="Payments for completed procedures are non-refundable. Refunds may be considered only in cases of documented adverse reactions directly attributable to clinic negligence, subject to management review." Style="{StaticResource TncDescStyle}" />
                             </StackPanel>
                         </Border>
                         <Border Height="1" Background="#F0EAF8" Margin="16,0" />
 
-                        <!-- Item 7 -->
                         <Border Padding="16,18" CornerRadius="8">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="Code of Conduct" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock
-                                    Text="Patients and accompanying individuals are expected to conduct themselves respectfully within clinic premises. The clinic reserves the right to refuse service to anyone exhibiting disruptive or inappropriate behavior."
-                                    Style="{StaticResource TncDescStyle}" />
+                                <TextBlock Text="Patients and accompanying individuals are expected to conduct themselves respectfully within clinic premises. The clinic reserves the right to refuse service to anyone exhibiting disruptive or inappropriate behavior." Style="{StaticResource TncDescStyle}" />
                             </StackPanel>
                         </Border>
                         <Border Height="1" Background="#F0EAF8" Margin="16,0" />
 
-                        <!-- Item 8 -->
                         <Border Padding="16,18" CornerRadius="8">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="Amendments to Terms" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock
-                                    Text="The clinic reserves the right to update or amend these terms and conditions at any time. Patients and staff will be notified of significant changes through official clinic communications."
-                                    Style="{StaticResource TncDescStyle}" />
+                                <TextBlock Text="The clinic reserves the right to update or amend these terms and conditions at any time. Patients and staff will be notified of significant changes through official clinic communications." Style="{StaticResource TncDescStyle}" />
                             </StackPanel>
                         </Border>
-
                     </StackPanel>
+
+                </StackPanel>
+            </Border>
+
+            <!-- CLINIC-SPECIFIC TNC CARD (admin-managed) -->
+            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="0">
+
+                    <!-- Card Header -->
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="Clinic-Specific Terms" Style="{StaticResource CardTitleStyle}" />
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8A9;" FontSize="11" Foreground="#9B80C4" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtEntryCount" Text="2 entries" Style="{StaticResource CardSubtitleStyle}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button
+                            x:Name="BtnAddNew"
+                            Grid.Column="1"
+                            Click="BtnAddNew_Click"
+                            Style="{StaticResource SaveButtonStyle}"
+                            VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE710;" FontSize="12" Foreground="White" VerticalAlignment="Center"/>
+                                <TextBlock Text="Add Provision" FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Divider -->
+                    <Border Height="1" Background="#F0EAF8" Margin="0,0,0,16" />
+
+                    <!-- Dynamic accordion list -->
+                    <StackPanel x:Name="ClinicTncList" Spacing="10" />
+
                 </StackPanel>
             </Border>
 

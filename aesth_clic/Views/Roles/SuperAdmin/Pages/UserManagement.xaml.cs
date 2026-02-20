@@ -172,6 +172,17 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             => ApplyFilters();
 
         // ─────────────────────────────────────────
+        // KEBAB MENU · Click (opens flyout via XAML binding;
+        //              this handler is a no-op but required
+        //              to satisfy the Click binding on the button)
+        // ─────────────────────────────────────────
+        private void KebabMenu_Click(object sender, RoutedEventArgs e)
+        {
+            // Flyout is opened automatically by WinUI via Button.Flyout.
+            // No additional logic needed here.
+        }
+
+        // ─────────────────────────────────────────
         // ADD USER
         // ─────────────────────────────────────────
         private async void AddUserButton_Click(object sender, RoutedEventArgs e)
@@ -195,8 +206,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         // ─────────────────────────────────────────
         private async void EditUser_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button btn) return;
-            int userId = (int)btn.Tag;
+            if (sender is not MenuFlyoutItem item) return;
+            int userId = (int)item.Tag;
             _editingUser = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (_editingUser == null) return;
 
@@ -212,12 +223,20 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ─────────────────────────────────────────
+        // MANAGE MODULES  (UI stub — logic TBD)
+        // ─────────────────────────────────────────
+        private void ManageModules_Click(object sender, RoutedEventArgs e)
+        {
+            // TODO: Implement Manage Modules dialog/panel
+        }
+
+        // ─────────────────────────────────────────
         // DEACTIVATE USER
         // ─────────────────────────────────────────
         private void DeactivateUser_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button btn) return;
-            int userId = (int)btn.Tag;
+            if (sender is not MenuFlyoutItem item) return;
+            int userId = (int)item.Tag;
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (user == null) return;
 
@@ -233,8 +252,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         // ─────────────────────────────────────────
         private void DeleteUser_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button btn) return;
-            int userId = (int)btn.Tag;
+            if (sender is not MenuFlyoutItem item) return;
+            int userId = (int)item.Tag;
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (user == null || user.Status != "Inactive") return;
 
