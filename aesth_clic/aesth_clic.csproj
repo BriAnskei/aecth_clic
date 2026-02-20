@@ -26,6 +26,8 @@
     <None Remove="Views\Roles\Doctor\Pages\ProcedureManagement.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\ServiceMenu.xaml" />
     <None Remove="Views\Roles\PharmacistShell.xaml" />
+    <None Remove="Views\Roles\Pharmacist\Pages\InventoryManagement.xaml" />
+    <None Remove="Views\Roles\Pharmacist\Pages\PatientMedicine.xaml" />
     <None Remove="Views\Roles\ReceptionistShell.xaml" />
     <None Remove="Views\Roles\Receptionist\Pages\AppointmentManagement.xaml" />
     <None Remove="Views\Roles\Receptionist\Pages\DoctorsAvailability.xaml" />
@@ -71,7 +73,16 @@
     <Folder Include="Model\" />
     <Folder Include="Service\" />
     <Folder Include="Views\Roles\Admin\Modal\" />
-    <Folder Include="Views\Roles\Pharmacist\Pages\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Pharmacist\Pages\InventoryManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Pharmacist\Pages\PatientMedicine.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Receptionist\Pages\PaymentManagement.xaml">

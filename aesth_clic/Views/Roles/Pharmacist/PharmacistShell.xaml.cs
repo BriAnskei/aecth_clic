@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using aesth_clic.Views;
+using aesth_clic.Views.Roles.Pharmacist.Pages;
 
 namespace aesth_clic.Views.Roles
 {
@@ -15,14 +16,23 @@ namespace aesth_clic.Views.Roles
         private void NavView_Loaded(object sender, RoutedEventArgs e)
         {
             NavView.SelectedItem = NavView.MenuItems[0];
-            ContentFrame.Navigate(typeof(BlankPage), "Medicine Inventory");
+            ContentFrame.Navigate(typeof(PatientMedicine));
         }
 
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.SelectedItem is NavigationViewItem item)
             {
-                ContentFrame.Navigate(typeof(BlankPage), item.Content?.ToString());
+                string tag = item.Tag?.ToString() ?? string.Empty;
+                switch (tag)
+                {
+                    case "PatientMedicine":
+                        ContentFrame.Navigate(typeof(PatientMedicine));
+                        break;
+                    case "Inventory":
+                        ContentFrame.Navigate(typeof(InventoryManagement));
+                        break;
+                }
             }
         }
 
