@@ -27,6 +27,12 @@
     <None Remove="Views\Roles\Doctor\Pages\ServiceMenu.xaml" />
     <None Remove="Views\Roles\PharmacistShell.xaml" />
     <None Remove="Views\Roles\ReceptionistShell.xaml" />
+    <None Remove="Views\Roles\Receptionist\Pages\AppointmentManagement.xaml" />
+    <None Remove="Views\Roles\Receptionist\Pages\DoctorsAvailability.xaml" />
+    <None Remove="Views\Roles\Receptionist\Pages\PatientManagement.xaml" />
+    <None Remove="Views\Roles\Receptionist\Pages\PatientProcedures.xaml" />
+    <None Remove="Views\Roles\Receptionist\Pages\PaymentManagement.xaml" />
+    <None Remove="Views\Roles\Receptionist\Pages\ServiceMenu.xaml" />
     <None Remove="Views\Roles\SuperAdminShell.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Pages\Dashboard.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Pages\PaymentManagement.xaml" />
@@ -65,8 +71,37 @@
     <Folder Include="Model\" />
     <Folder Include="Service\" />
     <Folder Include="Views\Roles\Admin\Modal\" />
-    <Folder Include="Views\Roles\Receptionist\" />
-    <Folder Include="Views\Roles\Pharmacist\" />
+    <Folder Include="Views\Roles\Pharmacist\Pages\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Receptionist\Pages\PaymentManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Receptionist\Pages\DoctorsAvailability.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Receptionist\Pages\AppointmentManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Receptionist\Pages\PatientProcedures.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Receptionist\Pages\ServiceMenu.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Receptionist\Pages\PatientManagement.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Doctor\Pages\ServiceMenu.xaml">

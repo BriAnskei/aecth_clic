@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="aesth_clic.Views.Roles.Admin.Pages.UserManagement"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -255,7 +254,7 @@
                                     <ColumnDefinition Width="140" />
                                     <ColumnDefinition Width="120" />
                                     <ColumnDefinition Width="90" />
-                                    <ColumnDefinition Width="250" />
+                                    <ColumnDefinition Width="60" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="NAME"    Style="{StaticResource ColHeaderStyle}" />
                                 <TextBlock Grid.Column="1" Text="EMAIL"   Style="{StaticResource ColHeaderStyle}" />
@@ -282,7 +281,7 @@
                                                     <ColumnDefinition Width="140" />
                                                     <ColumnDefinition Width="120" />
                                                     <ColumnDefinition Width="90" />
-                                                    <ColumnDefinition Width="250" />
+                                                    <ColumnDefinition Width="60" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <!-- Name + Avatar -->
@@ -307,92 +306,103 @@
                                                 <!-- Phone -->
                                                 <TextBlock Grid.Column="2" Text="{x:Bind Phone}" Style="{StaticResource CellSecondaryStyle}" />
 
-                                                <!-- Role Badge -->
-                                                <Border
+                                                <!-- Role · text only, no background -->
+                                                <StackPanel
                                                     Grid.Column="3"
-                                                    Background="{Binding RoleBadgeColor, Converter={StaticResource StringToBrush}}"
-                                                    CornerRadius="6" Padding="8,4"
-                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                    Orientation="Horizontal" Spacing="5"
+                                                    VerticalAlignment="Center">
+                                                    <Ellipse
+                                                        Width="7" Height="7"
+                                                        Fill="{Binding RoleBadgeText, Converter={StaticResource StringToBrush}}" />
                                                     <TextBlock
                                                         Text="{x:Bind Role}"
-                                                        FontSize="11" FontWeight="SemiBold"
-                                                        Foreground="{Binding RoleBadgeText, Converter={StaticResource StringToBrush}}" />
-                                                </Border>
+                                                        FontSize="12" FontWeight="SemiBold"
+                                                        Foreground="{Binding RoleBadgeText, Converter={StaticResource StringToBrush}}"
+                                                        VerticalAlignment="Center" />
+                                                </StackPanel>
 
-                                                <!-- Status Badge -->
-                                                <Border
+                                                <!-- Status · text only, no background -->
+                                                <StackPanel
                                                     Grid.Column="4"
-                                                    Background="{Binding StatusBadgeColor, Converter={StaticResource StringToBrush}}"
-                                                    CornerRadius="6" Padding="8,4"
-                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                    Orientation="Horizontal" Spacing="5"
+                                                    VerticalAlignment="Center">
+                                                    <Ellipse
+                                                        Width="7" Height="7"
+                                                        Fill="{Binding StatusBadgeText, Converter={StaticResource StringToBrush}}" />
                                                     <TextBlock
                                                         Text="{x:Bind Status}"
-                                                        FontSize="11" FontWeight="SemiBold"
-                                                        Foreground="{Binding StatusBadgeText, Converter={StaticResource StringToBrush}}" />
+                                                        FontSize="12" FontWeight="SemiBold"
+                                                        Foreground="{Binding StatusBadgeText, Converter={StaticResource StringToBrush}}"
+                                                        VerticalAlignment="Center" />
+                                                </StackPanel>
+
+                                                <!-- Actions · Kebab Menu -->
+                                                <Border
+                                                    Grid.Column="5"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Button
+                                                        Padding="6,4"
+                                                        Background="Transparent"
+                                                        CornerRadius="6"
+                                                        BorderThickness="0"
+                                                        ToolTipService.ToolTip="More actions">
+                                                        <Button.Flyout>
+                                                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+
+                                                                <!-- Edit -->
+                                                                <MenuFlyoutItem
+                                                                    Tag="{x:Bind UserId}"
+                                                                    Text="Edit"
+                                                                    Click="EditUser_Click">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xE70F;" FontSize="13" />
+                                                                    </MenuFlyoutItem.Icon>
+                                                                </MenuFlyoutItem>
+
+                                                                <!-- Deactivate -->
+                                                                <MenuFlyoutItem
+                                                                    Tag="{x:Bind UserId}"
+                                                                    Text="Deactivate"
+                                                                    Click="DeactivateUser_Click"
+                                                                    Visibility="{Binding DeactivateVisible, Converter={StaticResource StringToVisibility}}">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xEA8C;" FontSize="13" />
+                                                                    </MenuFlyoutItem.Icon>
+                                                                </MenuFlyoutItem>
+
+                                                                <!-- Reactivate -->
+                                                                <MenuFlyoutItem
+                                                                    Tag="{x:Bind UserId}"
+                                                                    Text="Reactivate"
+                                                                    Click="ReactivateUser_Click"
+                                                                    Visibility="{Binding ReactivateVisible, Converter={StaticResource StringToVisibility}}">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xE8FB;" FontSize="13" />
+                                                                    </MenuFlyoutItem.Icon>
+                                                                </MenuFlyoutItem>
+
+                                                                <MenuFlyoutSeparator
+                                                                    Visibility="{Binding DeleteVisible, Converter={StaticResource StringToVisibility}}" />
+
+                                                                <!-- Delete -->
+                                                                <MenuFlyoutItem
+                                                                    Tag="{x:Bind UserId}"
+                                                                    Text="Delete"
+                                                                    Click="DeleteUser_Click"
+                                                                    Visibility="{Binding DeleteVisible, Converter={StaticResource StringToVisibility}}">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                                                                    </MenuFlyoutItem.Icon>
+                                                                </MenuFlyoutItem>
+
+                                                            </MenuFlyout>
+                                                        </Button.Flyout>
+
+                                                        <!-- ⋮ icon -->
+                                                        <FontIcon Glyph="&#xE712;" FontSize="16" Foreground="#5B2D8E" />
+                                                    </Button>
                                                 </Border>
 
-                                                <!-- Actions -->
-                                                <StackPanel
-                                                    Grid.Column="5"
-                                                    Orientation="Horizontal" Spacing="6"
-                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
-
-                                                    <!-- Edit -->
-                                                    <Button
-                                                        Tag="{x:Bind UserId}"
-                                                        Click="EditUser_Click"
-                                                        Padding="8,5" Background="#EDE4F9"
-                                                        CornerRadius="6" BorderThickness="0"
-                                                        ToolTipService.ToolTip="Edit user">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <FontIcon Glyph="&#xE70F;" FontSize="11" Foreground="#5B2D8E" />
-                                                            <TextBlock Text="Edit" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                    <!-- Deactivate -->
-                                                    <Button
-                                                        Tag="{x:Bind UserId}"
-                                                        Click="DeactivateUser_Click"
-                                                        Padding="8,5" Background="#FEF0EF"
-                                                        CornerRadius="6" BorderThickness="0"
-                                                        Visibility="{Binding DeactivateVisible, Converter={StaticResource StringToVisibility}}"
-                                                        ToolTipService.ToolTip="Deactivate user">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <FontIcon Glyph="&#xEA8C;" FontSize="11" Foreground="#C0392B" />
-                                                            <TextBlock Text="Deactivate" FontSize="12" Foreground="#C0392B" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                    <!-- Reactivate -->
-                                                    <Button
-                                                        Tag="{x:Bind UserId}"
-                                                        Click="ReactivateUser_Click"
-                                                        Padding="8,5" Background="#E6F9F2"
-                                                        CornerRadius="6" BorderThickness="0"
-                                                        Visibility="{Binding ReactivateVisible, Converter={StaticResource StringToVisibility}}"
-                                                        ToolTipService.ToolTip="Reactivate user">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <FontIcon Glyph="&#xE8FB;" FontSize="11" Foreground="#0B7A56" />
-                                                            <TextBlock Text="Reactivate" FontSize="12" Foreground="#0B7A56" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                    <!-- Delete -->
-                                                    <Button
-                                                        Tag="{x:Bind UserId}"
-                                                        Click="DeleteUser_Click"
-                                                        Padding="8,5" Background="#FDECEA"
-                                                        CornerRadius="6" BorderThickness="0"
-                                                        Visibility="{Binding DeleteVisible, Converter={StaticResource StringToVisibility}}"
-                                                        ToolTipService.ToolTip="Delete user permanently">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <FontIcon Glyph="&#xE74D;" FontSize="11" Foreground="#C0392B" />
-                                                            <TextBlock Text="Delete" FontSize="12" Foreground="#C0392B" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                </StackPanel>
                                             </Grid>
                                         </Border>
                                         <Border Height="1" Background="#F0EAF8" Margin="20,0" />
