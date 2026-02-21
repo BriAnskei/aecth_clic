@@ -66,7 +66,7 @@
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Patient Medicine" Tag="PatientMedicine">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE701;" />
+                        <FontIcon Glyph="&#xE716;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem Content="Inventory" Tag="Inventory">

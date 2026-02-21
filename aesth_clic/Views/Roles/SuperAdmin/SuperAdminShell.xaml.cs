@@ -55,7 +55,8 @@ namespace aesth_clic.Views.Roles
                     presenter.Restore();
             }
 
-            Frame.Navigate(typeof(RoleSelectionPage));
+            //Frame.Navigate(typeof(RoleSelectionPage));
+            Frame.Navigate(typeof(LoginPage));
         }
     }
 }

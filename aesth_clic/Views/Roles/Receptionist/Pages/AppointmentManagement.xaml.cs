@@ -14,6 +14,7 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
         public string PatientName { get; set; } = string.Empty;
         public string Initials { get; set; } = string.Empty;
         public string AvatarColor { get; set; } = "#5B2D8E";
+        public string DoctorName { get; set; } = string.Empty;
         public string ProcedureName { get; set; } = string.Empty;
         public string AppointmentDate { get; set; } = string.Empty;
         public string AppointmentTime { get; set; } = string.Empty;
@@ -36,24 +37,24 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
         {
             _allAppointments = new List<AppointmentItem>
             {
-                BuildItem("a1",  "p1",  "Maria Santos",    "Female", "Botox Injection",      "Mar 05, 2025", "10:00 AM"),
-                BuildItem("a2",  "p3",  "Ana Cruz",        "Female", "Body Contouring",      "Apr 20, 2025", "02:30 PM"),
-                BuildItem("a3",  "p5",  "Liza Flores",     "Female", "Dermal Fillers",       "Mar 28, 2025", "11:00 AM"),
-                BuildItem("a4",  "p9",  "Grace Tan",       "Female", "Lip Augmentation",     "May 02, 2025", "03:00 PM"),
-                BuildItem("a5",  "p1",  "Maria Santos",    "Female", "Hydra Facial",         "Jan 10, 2025", "09:00 AM"),
-                BuildItem("a6",  "p3",  "Ana Cruz",        "Female", "Chemical Peel",        "Feb 14, 2025", "01:00 PM"),
-                BuildItem("a7",  "p6",  "Ramon Garcia",    "Male",   "Microdermabrasion",    "Dec 22, 2024", "10:30 AM"),
-                BuildItem("a8",  "p10", "Kevin Lim",       "Male",   "Back Massage Therapy", "Jan 30, 2025", "04:00 PM"),
-                BuildItem("a9",  "p2",  "Jose Reyes",      "Male",   "Laser Hair Removal",   "Jun 10, 2025", "09:30 AM"),
-                BuildItem("a10", "p4",  "Carlo Mendoza",   "Male",   "Acne Scar Treatment",  "Jun 15, 2025", "11:30 AM"),
-                BuildItem("a11", "p7",  "Sofia Aquino",    "Female", "Skin Brightening",     "Jun 20, 2025", "02:00 PM"),
-                BuildItem("a12", "p8",  "Mark Villanueva", "Male",   "Laser Toning",         "Jul 01, 2025", "03:30 PM"),
+                BuildItem("a1",  "p1",  "Maria Santos",    "Female", "Dr. Isabel Reyes",     "Botox Injection",      "Mar 05, 2025", "10:00 AM"),
+                BuildItem("a2",  "p3",  "Ana Cruz",        "Female", "Dr. Carlos Mendoza",   "Body Contouring",      "Apr 20, 2025", "02:30 PM"),
+                BuildItem("a3",  "p5",  "Liza Flores",     "Female", "Dr. Isabel Reyes",     "Dermal Fillers",       "Mar 28, 2025", "11:00 AM"),
+                BuildItem("a4",  "p9",  "Grace Tan",       "Female", "Dr. Sofia Villanueva", "Lip Augmentation",     "May 02, 2025", "03:00 PM"),
+                BuildItem("a5",  "p1",  "Maria Santos",    "Female", "Dr. Ramon Aquino",     "Hydra Facial",         "Jan 10, 2025", "09:00 AM"),
+                BuildItem("a6",  "p3",  "Ana Cruz",        "Female", "Dr. Sofia Villanueva", "Chemical Peel",        "Feb 14, 2025", "01:00 PM"),
+                BuildItem("a7",  "p6",  "Ramon Garcia",    "Male",   "Dr. Carlos Mendoza",   "Microdermabrasion",    "Dec 22, 2024", "10:30 AM"),
+                BuildItem("a8",  "p10", "Kevin Lim",       "Male",   "Dr. Ramon Aquino",     "Back Massage Therapy", "Jan 30, 2025", "04:00 PM"),
+                BuildItem("a9",  "p2",  "Jose Reyes",      "Male",   "Dr. Mark Delgado",     "Laser Hair Removal",   "Jun 10, 2025", "09:30 AM"),
+                BuildItem("a10", "p4",  "Carlo Mendoza",   "Male",   "Dr. Isabel Reyes",     "Acne Scar Treatment",  "Jun 15, 2025", "11:30 AM"),
+                BuildItem("a11", "p7",  "Sofia Aquino",    "Female", "Dr. Mark Delgado",     "Skin Brightening",     "Jun 20, 2025", "02:00 PM"),
+                BuildItem("a12", "p8",  "Mark Villanueva", "Male",   "Dr. Carlos Mendoza",   "Laser Toning",         "Jul 01, 2025", "03:30 PM"),
             };
         }
 
         private static AppointmentItem BuildItem(
             string appointmentId, string patientId, string patientName, string gender,
-            string procedureName, string date, string time)
+            string doctorName, string procedureName, string date, string time)
         {
             var parts = patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var initials = parts.Length >= 2
@@ -74,6 +75,7 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 PatientName = patientName,
                 Initials = initials.ToUpper(),
                 AvatarColor = avatarColor,
+                DoctorName = doctorName,
                 ProcedureName = procedureName,
                 AppointmentDate = date,
                 AppointmentTime = time,
@@ -128,7 +130,7 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
             var dialog = new ContentDialog
             {
                 Title = record.ProcedureName,
-                Content = $"Patient: {record.PatientName}\nProcedure: {record.ProcedureName}\nDate: {record.AppointmentDate}\nTime: {record.AppointmentTime}",
+                Content = $"Patient: {record.PatientName}\nDoctor: {record.DoctorName}\nProcedure: {record.ProcedureName}\nDate: {record.AppointmentDate}\nTime: {record.AppointmentTime}",
                 CloseButtonText = "Close",
                 XamlRoot = XamlRoot
             };

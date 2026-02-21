@@ -62,7 +62,6 @@
                         FontSize="13" Foreground="#9B80C4" />
                 </StackPanel>
 
-                <!-- Add Appointment Button -->
                 <Button
                     Grid.Column="1"
                     x:Name="BtnAddAppointment"
@@ -134,14 +133,16 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="220" />
                                     <ColumnDefinition Width="200" />
                                     <ColumnDefinition Width="60" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="PATIENT"        Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="1" Text="PROCEDURE"      Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="2" Text="SCHEDULED DATE" Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="3" Text="ACTIONS"        Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
+                                <TextBlock Grid.Column="0" Text="PATIENT"         Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="1" Text="ASSIGNED DOCTOR" Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="2" Text="PROCEDURE"       Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="3" Text="SCHEDULED DATE"  Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="4" Text="ACTIONS"         Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
                             </Grid>
                         </Border>
                         <Border Height="1" Background="#E4DAF5" VerticalAlignment="Bottom" />
@@ -157,6 +158,7 @@
                                             <Grid MinHeight="64">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="200" />
                                                     <ColumnDefinition Width="220" />
                                                     <ColumnDefinition Width="200" />
                                                     <ColumnDefinition Width="60" />
@@ -178,11 +180,20 @@
                                                         FontWeight="SemiBold" />
                                                 </StackPanel>
 
+                                                <!-- Assigned Doctor -->
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind DoctorName}"
+                                                    Style="{StaticResource CellTextStyle}" />
+
                                                 <!-- Procedure Name -->
-                                                <TextBlock Grid.Column="1" Text="{x:Bind ProcedureName}" Style="{StaticResource CellTextStyle}" />
+                                                <TextBlock
+                                                    Grid.Column="2"
+                                                    Text="{x:Bind ProcedureName}"
+                                                    Style="{StaticResource CellTextStyle}" />
 
                                                 <!-- Scheduled Date -->
-                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                     <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="#5B2D8E" VerticalAlignment="Center" />
                                                     <StackPanel Spacing="1">
                                                         <TextBlock
@@ -197,7 +208,7 @@
 
                                                 <!-- Kebab Menu -->
                                                 <Button
-                                                    Grid.Column="3"
+                                                    Grid.Column="4"
                                                     Tag="{x:Bind AppointmentId}"
                                                     Click="KebabMenu_Click"
                                                     HorizontalAlignment="Center"
