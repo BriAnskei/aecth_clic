@@ -38,6 +38,11 @@
     <None Remove="Views\Roles\Receptionist\Pages\ServiceMenu.xaml" />
     <None Remove="Views\Roles\SuperAdminShell.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Modals\AddNewClient.xaml" />
+    <None Remove="Views\Roles\SuperAdmin\Modals\EditClient.xaml" />
+    <None Remove="Views\Roles\SuperAdmin\Modals\ManageModules.xaml" />
+    <None Remove="Views\Roles\SuperAdmin\Modals\UsersManagement\DeactivateClient.xaml" />
+    <None Remove="Views\Roles\SuperAdmin\Modals\UsersManagement\DeleteClient.xaml" />
+    <None Remove="Views\Roles\SuperAdmin\Modals\UsersManagement\ReactivateClient.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Pages\Dashboard.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Pages\PaymentManagement.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Pages\Tnc.xaml" />
@@ -77,6 +82,31 @@
   <ItemGroup>
     <Folder Include="ViewModels\" />
     <Folder Include="Views\Roles\Admin\Modal\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\SuperAdmin\Modals\UsersManagement\DeleteClient.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\SuperAdmin\Modals\UsersManagement\ReactivateClient.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\SuperAdmin\Modals\UsersManagement\DeactivateClient.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\SuperAdmin\Modals\ManageModules.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\SuperAdmin\Modals\EditClient.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\SuperAdmin\Modals\AddNewClient.xaml">

@@ -161,6 +161,55 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             TogglePasswordIcon.Glyph = _passwordRevealed ? "\uED1A" : "\uE7B3";
         }
 
+        // ── Generate credentials ───────────────────────────────
+        private void GenerateCredentials_Click(object sender, RoutedEventArgs e)
+        {
+            const string letters = "abcdefghijklmnopqrstuvwxyz";
+            const string digits = "0123456789";
+            const string special = "!@#$%";
+            const string all = letters + digits + special;
+
+            var rng = new Random();
+
+            // Username: "user" + 4 random digits  e.g. user3821
+            string username = "user" + string.Create(4, rng, (buf, r) =>
+            {
+                for (int i = 0; i < buf.Length; i++)
+                    buf[i] = digits[r.Next(digits.Length)];
+            });
+
+            // Password: 10 chars guaranteed to contain at least one letter,
+            // one digit, and one special character
+            char[] pwd = new char[10];
+            pwd[0] = letters[rng.Next(letters.Length)];
+            pwd[1] = digits[rng.Next(digits.Length)];
+            pwd[2] = special[rng.Next(special.Length)];
+            for (int i = 3; i < pwd.Length; i++)
+                pwd[i] = all[rng.Next(all.Length)];
+
+            // Shuffle so the guaranteed chars aren't always at the front
+            for (int i = pwd.Length - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (pwd[i], pwd[j]) = (pwd[j], pwd[i]);
+            }
+            string password = new string(pwd);
+
+            FieldUsername.Password = username;
+            FieldPassword.Password = password;
+            FieldConfirmPassword.Password = password;
+
+            // Auto-reveal so the admin can see what was generated
+            FieldUsername.PasswordRevealMode = PasswordRevealMode.Visible;
+            FieldPassword.PasswordRevealMode = PasswordRevealMode.Visible;
+            FieldConfirmPassword.PasswordRevealMode = PasswordRevealMode.Visible;
+
+            _usernameRevealed = true;
+            _passwordRevealed = true;
+            ToggleUsernameIcon.Glyph = "\uED1A";
+            TogglePasswordIcon.Glyph = "\uED1A";
+        }
+
         // ── Copy credentials to clipboard ─────────────────────
         private void CopyCredentials_Click(object sender, RoutedEventArgs e)
         {

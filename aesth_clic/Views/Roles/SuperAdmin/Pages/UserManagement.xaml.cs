@@ -38,6 +38,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 OnPropertyChanged(nameof(StatusBadgeColor));
                 OnPropertyChanged(nameof(StatusBadgeText));
                 OnPropertyChanged(nameof(DeactivateVisible));
+                OnPropertyChanged(nameof(ReactivateVisible)); // ✏️ NEW
                 OnPropertyChanged(nameof(DeleteVisible));
             }
         }
@@ -58,16 +59,20 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         public SolidColorBrush AvatarColor =>
             new SolidColorBrush(Color.FromArgb(255, 0, 120, 212));
 
+        // ✏️ Updated: "Inactive" → "Deactivated"
         public SolidColorBrush StatusBadgeColor => Status == "Active"
             ? new SolidColorBrush(Color.FromArgb(20, 14, 164, 122))
             : new SolidColorBrush(Color.FromArgb(20, 216, 59, 1));
 
+        // ✏️ Updated: "Inactive" → "Deactivated"
         public SolidColorBrush StatusBadgeText => Status == "Active"
             ? new SolidColorBrush(Color.FromArgb(255, 10, 130, 96))
             : new SolidColorBrush(Color.FromArgb(255, 180, 40, 0));
 
+        // ✏️ Updated: "Inactive" → "Deactivated"
         public Visibility DeactivateVisible => Status == "Active" ? Visibility.Visible : Visibility.Collapsed;
-        public Visibility DeleteVisible => Status == "Inactive" ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility ReactivateVisible => Status == "Deactivated" ? Visibility.Visible : Visibility.Collapsed; // ✏️ NEW
+        public Visibility DeleteVisible => Status == "Deactivated" ? Visibility.Visible : Visibility.Collapsed; // ✏️ Updated
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? name = null)
@@ -81,7 +86,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
     {
         private readonly List<UserItem> _allUsers = new();
         private readonly ObservableCollection<UserItem> _displayedUsers = new();
-        private UserItem? _editingUser;
         private int _nextId = 1;
 
         public UserManagement()
@@ -98,15 +102,16 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         // ─────────────────────────────────────────
         private void SeedMockData()
         {
+            // ✏️ Updated: "Inactive" → "Deactivated" in seed data
             var seed = new[]
             {
-                new { Name = "Maria Santos",    Email = "maria@clinic.com",   Phone = "0917-123-4567", Clinic = "Santos Aesthetic Clinic",   Status = "Active"   },
-                new { Name = "Jose Reyes",      Email = "jose@clinic.com",    Phone = "0918-234-5678", Clinic = "Reyes Beauty Hub",           Status = "Active"   },
-                new { Name = "Anna Cruz",       Email = "anna@clinic.com",    Phone = "0919-345-6789", Clinic = "Cruz Skin & Wellness",       Status = "Active"   },
-                new { Name = "Carlos Bautista", Email = "carlos@clinic.com",  Phone = "0920-456-7890", Clinic = "Bautista Derma Center",      Status = "Inactive" },
-                new { Name = "Lucia Ramos",     Email = "lucia@clinic.com",   Phone = "0921-567-8901", Clinic = "Ramos Glow Clinic",          Status = "Active"   },
-                new { Name = "Miguel Torres",   Email = "miguel@clinic.com",  Phone = "0922-678-9012", Clinic = "Torres Med Spa",             Status = "Inactive" },
-                new { Name = "Sofia Garcia",    Email = "sofia@clinic.com",   Phone = "0923-789-0123", Clinic = "Garcia Aesthetic Studio",    Status = "Active"   },
+                new { Name = "Maria Santos",    Email = "maria@clinic.com",   Phone = "0917-123-4567", Clinic = "Santos Aesthetic Clinic",   Status = "Active"      },
+                new { Name = "Jose Reyes",      Email = "jose@clinic.com",    Phone = "0918-234-5678", Clinic = "Reyes Beauty Hub",           Status = "Active"      },
+                new { Name = "Anna Cruz",       Email = "anna@clinic.com",    Phone = "0919-345-6789", Clinic = "Cruz Skin & Wellness",       Status = "Active"      },
+                new { Name = "Carlos Bautista", Email = "carlos@clinic.com",  Phone = "0920-456-7890", Clinic = "Bautista Derma Center",      Status = "Deactivated" },
+                new { Name = "Lucia Ramos",     Email = "lucia@clinic.com",   Phone = "0921-567-8901", Clinic = "Ramos Glow Clinic",          Status = "Active"      },
+                new { Name = "Miguel Torres",   Email = "miguel@clinic.com",  Phone = "0922-678-9012", Clinic = "Torres Med Spa",             Status = "Deactivated" },
+                new { Name = "Sofia Garcia",    Email = "sofia@clinic.com",   Phone = "0923-789-0123", Clinic = "Garcia Aesthetic Studio",    Status = "Active"      },
             };
 
             foreach (var s in seed)
@@ -130,6 +135,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         private void ApplyFilters()
         {
             string search = SearchBox.Text?.ToLower().Trim() ?? string.Empty;
+            // ✏️ Updated: filter tag is now "Deactivated"
             string statFilter = (StatusFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
 
             var filtered = _allUsers.Where(u =>
@@ -159,7 +165,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         {
             TxtTotalUsers.Text = _allUsers.Count.ToString();
             TxtActiveUsers.Text = _allUsers.Count(u => u.Status == "Active").ToString();
-            TxtInactiveUsers.Text = _allUsers.Count(u => u.Status == "Inactive").ToString();
+            // ✏️ Updated: count "Deactivated" instead of "Inactive"
+            TxtInactiveUsers.Text = _allUsers.Count(u => u.Status == "Deactivated").ToString();
         }
 
         // ─────────────────────────────────────────
@@ -196,7 +203,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 {
                     UserId = _nextId++,
                     FullName = r.FullName,
-                    Email = r.Username,          // Username maps to email column for now
+                    Email = r.Username,
                     Phone = r.PhoneNumber,
                     ClinicName = r.ClinicName,
                     Password = r.Password,
@@ -215,57 +222,138 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         {
             if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
-            _editingUser = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (_editingUser == null) return;
 
-            // TODO: Open an EditClient dialog (separate from AddNewClient)
-            // For now re-use AddNewClient as a read-only preview stub
-            await Task.CompletedTask;
+            var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
+            if (user == null) return;
+
+            var dialog = new EditClient(user)
+            {
+                XamlRoot = XamlRoot
+            };
+
+            var dialogResult = await dialog.ShowAsync();
+
+            if (dialogResult == ContentDialogResult.Primary && dialog.Result is not null)
+            {
+                var r = dialog.Result;
+
+                // Mutate the existing UserItem in-place
+                user.FullName = r.FullName;
+                user.Email = r.Email;
+                user.Phone = r.PhoneNumber;
+                user.ClinicName = r.ClinicName;
+
+                // Only update the password if the user typed a new one
+                if (r.Password is not null)
+                    user.Password = r.Password;
+
+                // Refresh the table and KPI cards
+                ApplyFilters();
+                UpdateKpiCards();
+            }
         }
 
         // ─────────────────────────────────────────
         // MANAGE MODULES  (stub)
         // ─────────────────────────────────────────
-        private void ManageModules_Click(object sender, RoutedEventArgs e)
+        private async void ManageModules_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement Manage Modules dialog/panel
+            if (sender is not MenuFlyoutItem item) return;
+            int userId = (int)item.Tag;
+
+            var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
+            if (user == null) return;
+
+            var dialog = new ManageModules(user)
+            {
+                XamlRoot = XamlRoot
+            };
+
+            var dialogResult = await dialog.ShowAsync();
+
+            //if (dialogResult == ContentDialogResult.Primary && dialog.Result is not null)
+            //{
+            //    // Mutate the Tier on the existing UserItem
+            //    user.Tier = dialog.Result.Tier;
+
+            //    // Refresh the table (no KPI change needed for tier)
+            //    ApplyFilters();
+            //}
         }
 
         // ─────────────────────────────────────────
-        // DEACTIVATE
+        // DEACTIVATE  (Active → Deactivated)
         // ─────────────────────────────────────────
-        private void DeactivateUser_Click(object sender, RoutedEventArgs e)
+        private async void DeactivateUser_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (user == null) return;
 
-            // TODO: confirmation dialog
-            user.Status = "Inactive";
-            ApplyFilters();
-            UpdateKpiCards();
+            var dialog = new DeactivateClient(user)
+            {
+                XamlRoot = XamlRoot
+            };
+
+            await dialog.ShowAsync();
+
+            if (dialog.Confirmed)
+            {
+                user.Status = "Deactivated";
+                ApplyFilters();
+                UpdateKpiCards();
+            }
         }
 
         // ─────────────────────────────────────────
-        // DELETE
+        // ✏️ NEW: REACTIVATE  (Deactivated → Active)
         // ─────────────────────────────────────────
-        private void DeleteUser_Click(object sender, RoutedEventArgs e)
+        private async void ReactivateUser_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user == null || user.Status != "Inactive") return;
+            if (user == null) return;
 
-            // TODO: confirmation dialog
-            _allUsers.Remove(user);
-            ApplyFilters();
-            UpdateKpiCards();
+            var dialog = new ReactivateClient(user)
+            {
+                XamlRoot = XamlRoot
+            };
+
+            await dialog.ShowAsync();
+
+            if (dialog.Confirmed)
+            {
+                user.Status = "Active";
+                ApplyFilters();
+                UpdateKpiCards();
+            }
         }
 
         // ─────────────────────────────────────────
-        // OLD INLINE DIALOG HANDLER (removed — kept as tombstone)
-        // UserDialog_PrimaryButtonClick → replaced by AddNewClient
+        // DELETE  (only allowed when Deactivated)
         // ─────────────────────────────────────────
+        private async void DeleteUser_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuFlyoutItem item) return;
+    int userId = (int)item.Tag;
+    var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
+    if (user == null || user.Status != "Deactivated") return;
+
+    var dialog = new DeleteClient(user)
+    {
+        XamlRoot = XamlRoot
+    };
+
+    await dialog.ShowAsync();
+
+    if (dialog.Confirmed)
+    {
+        _allUsers.Remove(user);
+        ApplyFilters();
+        UpdateKpiCards();
+    }
+        }
     }
 }

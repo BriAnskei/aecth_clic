@@ -108,7 +108,7 @@
                                Style="{StaticResource FieldHintStyle}" Margin="0" />
                 </StackPanel>
 
-                <!-- Action buttons: Show User | Show Pass | Copy -->
+                <!-- Action buttons: Show User | Show Pass | Copy | Generate -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                     <Button Click="ToggleUsername_Click"
                             Style="{StaticResource HeaderIconButtonStyle}"
@@ -132,6 +132,14 @@
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE8C8;" FontSize="12" />
                             <TextBlock Text="Copy" FontSize="11" />
+                        </StackPanel>
+                    </Button>
+                    <Button Click="GenerateCredentials_Click"
+                            Style="{StaticResource HeaderIconButtonStyle}"
+                            ToolTipService.ToolTip="Auto-generate username and password">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE72E;" FontSize="12" />
+                            <TextBlock Text="Generate" FontSize="11" />
                         </StackPanel>
                     </Button>
                 </StackPanel>

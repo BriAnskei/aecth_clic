@@ -136,11 +136,12 @@
                 </StackPanel>
             </Border>
 
+            <!-- ✏️ Changed: "INACTIVE" → "DEACTIVATED" -->
             <Border Grid.Column="2" Style="{StaticResource KpiCardStyle}">
                 <StackPanel Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xEA8C;" FontSize="16" Foreground="#D83B01" />
-                        <TextBlock Text="INACTIVE CLIENTS" Style="{StaticResource SectionHeaderStyle}" />
+                        <TextBlock Text="DEACTIVATED CLIENTS" Style="{StaticResource SectionHeaderStyle}" />
                     </StackPanel>
                     <TextBlock x:Name="TxtInactiveUsers" Text="0" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
                     <TextBlock Text="Deactivated accounts" Style="{StaticResource KpiLabelStyle}" />
@@ -166,15 +167,16 @@
                 VerticalAlignment="Center"
                 TextChanged="SearchBox_TextChanged" />
 
+            <!-- ✏️ Changed: "Inactive" filter option → "Deactivated" -->
             <ComboBox
                 Grid.Column="1"
                 x:Name="StatusFilter"
                 PlaceholderText="All Status"
                 VerticalAlignment="Center"
                 SelectionChanged="StatusFilter_SelectionChanged">
-                <ComboBoxItem Content="All Status" Tag="All"      />
-                <ComboBoxItem Content="Active"     Tag="Active"   />
-                <ComboBoxItem Content="Inactive"   Tag="Inactive" />
+                <ComboBoxItem Content="All Status"   Tag="All"         />
+                <ComboBoxItem Content="Active"        Tag="Active"      />
+                <ComboBoxItem Content="Deactivated"   Tag="Deactivated" />
             </ComboBox>
         </Grid>
 
@@ -321,6 +323,7 @@
 
                                                     <MenuFlyoutSeparator />
 
+                                                    <!-- ✏️ Visible only when Active → triggers deactivation -->
                                                     <MenuFlyoutItem
                                                         Text="Deactivate"
                                                         Tag="{x:Bind UserId}"
@@ -334,6 +337,21 @@
                                                         </MenuFlyoutItem.Foreground>
                                                     </MenuFlyoutItem>
 
+                                                    <!-- ✏️ NEW: Visible only when Deactivated → restores to Active -->
+                                                    <MenuFlyoutItem
+                                                        Text="Reactivate"
+                                                        Tag="{x:Bind UserId}"
+                                                        Visibility="{x:Bind ReactivateVisible}"
+                                                        Click="ReactivateUser_Click">
+                                                        <MenuFlyoutItem.Icon>
+                                                            <FontIcon Glyph="&#xE72C;" Foreground="#0EA47A" />
+                                                        </MenuFlyoutItem.Icon>
+                                                        <MenuFlyoutItem.Foreground>
+                                                            <SolidColorBrush Color="#0EA47A" />
+                                                        </MenuFlyoutItem.Foreground>
+                                                    </MenuFlyoutItem>
+
+                                                    <!-- ✏️ Visible only when Deactivated → permanently removes -->
                                                     <MenuFlyoutItem
                                                         Text="Delete"
                                                         Tag="{x:Bind UserId}"
