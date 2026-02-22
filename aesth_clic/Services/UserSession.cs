@@ -6,23 +6,23 @@ namespace aesth_clic.Services
     {
         public static User? CurrentUser { get; private set; }
         public static Company? CurrentCompany { get; private set; }
-        public static CompanyModule? CurrentCompanyModule { get; private set; }
+
 
         public static bool IsLoggedIn => CurrentUser is not null;
         public static bool IsSuperAdmin => CurrentUser?.Role == "SuperAdmin";
 
-        public UserSession(User user, Company company, CompanyModule companyModule)
+        public UserSession(User user, Company company)
         {
             CurrentUser = user;
             CurrentCompany = company;
-            CurrentCompanyModule = companyModule;
+
         }
 
         public static void Clear()
         {
             CurrentUser = null;
             CurrentCompany = null;
-            CurrentCompanyModule = null;
+       
         }
     }
 }

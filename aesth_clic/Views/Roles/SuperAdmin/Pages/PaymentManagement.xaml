@@ -113,58 +113,86 @@
 
                 <!-- Total Revenue -->
                 <Border Grid.Column="0" Style="{StaticResource KpiCardStyle}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE8A4;" FontSize="16" Foreground="#0078D4" />
-                            <TextBlock Text="TOTAL REVENUE" Style="{StaticResource SectionHeaderStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8A4;" FontSize="16" Foreground="#0078D4" />
+                                <TextBlock Text="TOTAL REVENUE" Style="{StaticResource SectionHeaderStyle}" />
+                            </StackPanel>
+                            <TextBlock Text="Sum across all clients" Style="{StaticResource KpiLabelStyle}" />
                         </StackPanel>
-                        <TextBlock Text="₱348,000.00" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
-                        <TextBlock Text="Sum across all clients" Style="{StaticResource KpiLabelStyle}" />
-                    </StackPanel>
+                        <TextBlock Grid.Column="1" Text="₱348,000.00" Style="{StaticResource KpiValueStyle}"
+                       VerticalAlignment="Center" Margin="16,0,0,0" />
+                    </Grid>
                 </Border>
 
                 <!-- Total Paid -->
                 <Border Grid.Column="1" Style="{StaticResource KpiCardStyle}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE73E;" FontSize="16" Foreground="#0EA47A" />
-                            <TextBlock Text="TOTAL PAID" Style="{StaticResource SectionHeaderStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE73E;" FontSize="16" Foreground="#0EA47A" />
+                                <TextBlock Text="TOTAL PAID" Style="{StaticResource SectionHeaderStyle}" />
+                            </StackPanel>
+                            <TextBlock Text="Amount already collected" Style="{StaticResource KpiLabelStyle}" />
+                            <TextBlock Text="78% collection rate"
+                           FontSize="12" Foreground="#0EA47A" Margin="0,6,0,0" />
                         </StackPanel>
-                        <TextBlock Text="₱271,500.00" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
-                        <TextBlock Text="Amount already collected" Style="{StaticResource KpiLabelStyle}" />
-                        <TextBlock Text="78% collection rate"
-                                   FontSize="12" Foreground="#0EA47A" Margin="0,6,0,0" />
-                    </StackPanel>
+                        <TextBlock Grid.Column="1" Text="₱271,500.00" Style="{StaticResource KpiValueStyle}"
+                       VerticalAlignment="Center" Margin="16,0,0,0" />
+                    </Grid>
                 </Border>
 
                 <!-- Outstanding -->
                 <Border Grid.Column="2" Style="{StaticResource KpiCardStyle}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE783;" FontSize="16" Foreground="#D83B01" />
-                            <TextBlock Text="OUTSTANDING" Style="{StaticResource SectionHeaderStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE783;" FontSize="16" Foreground="#D83B01" />
+                                <TextBlock Text="OUTSTANDING" Style="{StaticResource SectionHeaderStyle}" />
+                            </StackPanel>
+                            <TextBlock Text="Remaining balance due" Style="{StaticResource KpiLabelStyle}" />
+                            <TextBlock Text="3 clients with balance"
+                           FontSize="12" Foreground="#D83B01" Margin="0,6,0,0" />
                         </StackPanel>
-                        <TextBlock Text="₱76,500.00" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
-                        <TextBlock Text="Remaining balance due" Style="{StaticResource KpiLabelStyle}" />
-                        <TextBlock Text="3 clients with balance"
-                                   FontSize="12" Foreground="#D83B01" Margin="0,6,0,0" />
-                    </StackPanel>
+                        <TextBlock Grid.Column="1" Text="₱76,500.00" Style="{StaticResource KpiValueStyle}"
+                       VerticalAlignment="Center" Margin="16,0,0,0" />
+                    </Grid>
                 </Border>
 
                 <!-- Clients -->
                 <Border Grid.Column="3" Style="{StaticResource KpiCardStyle}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE716;" FontSize="16" Foreground="#C239B3" />
-                            <TextBlock Text="CLIENTS" Style="{StaticResource SectionHeaderStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE716;" FontSize="16" Foreground="#C239B3" />
+                                <TextBlock Text="CLIENTS" Style="{StaticResource SectionHeaderStyle}" />
+                            </StackPanel>
+                            <TextBlock Text="Registered client accounts" Style="{StaticResource KpiLabelStyle}" />
+                            <TextBlock Text="5 active this month"
+                           FontSize="12"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           Margin="0,6,0,0" />
                         </StackPanel>
-                        <TextBlock Text="5" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
-                        <TextBlock Text="Registered client accounts" Style="{StaticResource KpiLabelStyle}" />
-                        <TextBlock Text="5 active this month"
-                                   FontSize="12"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   Margin="0,6,0,0" />
-                    </StackPanel>
+                        <TextBlock Grid.Column="1" Text="5" Style="{StaticResource KpiValueStyle}"
+                       VerticalAlignment="Center" Margin="16,0,0,0" />
+                    </Grid>
                 </Border>
             </Grid>
 

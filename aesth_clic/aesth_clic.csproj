@@ -9,7 +9,7 @@
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
-    <WinUISDKReferences>false</WinUISDKReferences>
+
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -37,6 +37,7 @@
     <None Remove="Views\Roles\Receptionist\Pages\PaymentManagement.xaml" />
     <None Remove="Views\Roles\Receptionist\Pages\ServiceMenu.xaml" />
     <None Remove="Views\Roles\SuperAdminShell.xaml" />
+    <None Remove="Views\Roles\SuperAdmin\Modals\AddNewClient.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Pages\Dashboard.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Pages\PaymentManagement.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Pages\Tnc.xaml" />
@@ -76,6 +77,11 @@
   <ItemGroup>
     <Folder Include="ViewModels\" />
     <Folder Include="Views\Roles\Admin\Modal\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\SuperAdmin\Modals\AddNewClient.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\LoginPage.xaml">

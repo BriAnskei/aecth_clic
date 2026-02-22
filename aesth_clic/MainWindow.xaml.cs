@@ -11,8 +11,8 @@ namespace aesth_clic
         public MainWindow()
         {
             InitializeComponent();
-            //RootFrame.Navigate(typeof(RoleSelectionPage));
-            RootFrame.Navigate(typeof(LoginPage));
+            RootFrame.Navigate(typeof(RoleSelectionPage));
+            //RootFrame.Navigate(typeof(LoginPage));
         }
     }
 }

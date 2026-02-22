@@ -34,7 +34,7 @@ namespace aesth_clic
             //  -- users, auth
             services.AddTransient<UserRepository>();
             services.AddTransient<CompanyRepository>();
-            services.AddTransient<CompanyModuleRepository>();
+            services.AddTransient<AccountStatusRepository>();
 
             // Services
             services.AddTransient<AuthService>();

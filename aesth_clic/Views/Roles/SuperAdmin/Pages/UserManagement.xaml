@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Page
     x:Class="aesth_clic.Views.Roles.SuperAdmin.Pages.UserManagement"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -243,12 +242,10 @@
                                             <ColumnDefinition Width="60"  />
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- # -->
                                         <TextBlock Grid.Column="0"
                                                    Text="{x:Bind RowNumber}"
                                                    Style="{StaticResource CellSecondaryStyle}" />
 
-                                        <!-- Name + Avatar -->
                                         <StackPanel Grid.Column="1" Orientation="Horizontal"
                                                     Spacing="10" VerticalAlignment="Center">
                                             <Border Width="32" Height="32" CornerRadius="16"
@@ -265,17 +262,14 @@
                                                        FontWeight="SemiBold" />
                                         </StackPanel>
 
-                                        <!-- Email -->
                                         <TextBlock Grid.Column="2"
                                                    Text="{x:Bind Email}"
                                                    Style="{StaticResource CellSecondaryStyle}" />
 
-                                        <!-- Phone -->
                                         <TextBlock Grid.Column="3"
                                                    Text="{x:Bind Phone}"
                                                    Style="{StaticResource CellSecondaryStyle}" />
 
-                                        <!-- Clinic Name -->
                                         <StackPanel Grid.Column="4"
                                                     Orientation="Horizontal"
                                                     Spacing="6"
@@ -287,17 +281,13 @@
                                                        Style="{StaticResource CellSecondaryStyle}" />
                                         </StackPanel>
 
-                                  
-                                        <!-- Status -->
                                         <TextBlock
-                                         Grid.Column="5"
-                                         Text="{x:Bind Status}"
-                                         FontSize="11" FontWeight="SemiBold"
-                                         Foreground="{x:Bind StatusBadgeText}"
-                                        VerticalAlignment="Center" />
-                                        
-                                        
-                                        <!-- Actions · Kebab Menu -->
+                                            Grid.Column="5"
+                                            Text="{x:Bind Status}"
+                                            FontSize="11" FontWeight="SemiBold"
+                                            Foreground="{x:Bind StatusBadgeText}"
+                                            VerticalAlignment="Center" />
+
                                         <Button
                                             Grid.Column="6"
                                             Tag="{x:Bind UserId}"
@@ -311,7 +301,6 @@
                                             <Button.Flyout>
                                                 <MenuFlyout Placement="BottomEdgeAlignedRight">
 
-                                                    <!-- Edit -->
                                                     <MenuFlyoutItem
                                                         Text="Edit"
                                                         Tag="{x:Bind UserId}"
@@ -321,7 +310,6 @@
                                                         </MenuFlyoutItem.Icon>
                                                     </MenuFlyoutItem>
 
-                                                    <!-- Manage Modules -->
                                                     <MenuFlyoutItem
                                                         Text="Manage Modules"
                                                         Tag="{x:Bind UserId}"
@@ -333,7 +321,6 @@
 
                                                     <MenuFlyoutSeparator />
 
-                                                    <!-- Deactivate (Active only) -->
                                                     <MenuFlyoutItem
                                                         Text="Deactivate"
                                                         Tag="{x:Bind UserId}"
@@ -347,7 +334,6 @@
                                                         </MenuFlyoutItem.Foreground>
                                                     </MenuFlyoutItem>
 
-                                                    <!-- Delete (Inactive only) -->
                                                     <MenuFlyoutItem
                                                         Text="Delete"
                                                         Tag="{x:Bind UserId}"
@@ -387,60 +373,6 @@
 
             </Grid>
         </Border>
-
-        <!-- ══════════════════════════════════════
-             ADD / EDIT CLIENT DIALOG
-        ══════════════════════════════════════ -->
-        <ContentDialog
-            x:Name="UserDialog"
-            Title="Add Client"
-            PrimaryButtonText="Save"
-            CloseButtonText="Cancel"
-            DefaultButton="Primary"
-            PrimaryButtonClick="UserDialog_PrimaryButtonClick">
-
-            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="460">
-                <StackPanel Spacing="16" Padding="0,4" Width="340">
-
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Full Name" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        <TextBox x:Name="FieldName" PlaceholderText="e.g. Maria Santos" />
-                    </StackPanel>
-
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Email Address" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        <TextBox x:Name="FieldEmail" PlaceholderText="e.g. maria@clinic.com" />
-                    </StackPanel>
-
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Phone Number" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        <TextBox x:Name="FieldPhone" PlaceholderText="e.g. 09XX-XXX-XXXX" />
-                    </StackPanel>
-
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Clinic Name" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        <TextBox x:Name="FieldClinicName" PlaceholderText="e.g. Santos Aesthetic Clinic" />
-                    </StackPanel>
-
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Password" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        <PasswordBox x:Name="FieldPassword" PlaceholderText="Enter password" />
-                    </StackPanel>
-
-                    <InfoBar
-                        x:Name="DialogValidationBar"
-                        IsOpen="False"
-                        Severity="Error"
-                        IsClosable="False" />
-
-                </StackPanel>
-            </ScrollViewer>
-        </ContentDialog>
 
     </Grid>
 </Page>

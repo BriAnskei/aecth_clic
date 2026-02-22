@@ -1,91 +1,173 @@
 ﻿using aesth_clic.Data;
 using aesth_clic.Models.Users;
 using MySqlConnector;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace aesth_clic.Repository
 {
-    internal class UserRepository
+    internal class UserRepository(DbConnectionFactory db)
     {
-        private readonly DbConnectionFactory _db;
+        private readonly DbConnectionFactory _db = db ?? throw new ArgumentNullException(nameof(db));
 
-        public UserRepository(DbConnectionFactory db)
-        {
-            _db = db;
-        }
+        #region CREATE
 
-        public async Task<User?> GetUserByUsernameAsync(string username)
+        public async Task<int> CreateAsync(User user)
         {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
             using var conn = _db.GetConnection();
             await conn.OpenAsync();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                SELECT id, full_name, username, password, phone_number, role, created_at
-                FROM users
-                WHERE username = @username
-                LIMIT 1";
+                INSERT INTO users 
+                (full_name, email, username, password, phone_number, role, created_at)
+                VALUES
+                (@fullName, @email, @username, @password, @phoneNumber, @role, @createdAt);
+                SELECT LAST_INSERT_ID();";
+
+            AddUserParameters(cmd, user);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result);
+        }
+
+        #endregion
+
+        #region READ
+
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT * FROM users WHERE id = @id LIMIT 1";
+            cmd.Parameters.AddWithValue("@id", id);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return null;
+
+            return MapUser(reader);
+        }
+
+        public async Task<User?> GetByUsernameAsync(string username)
+        {
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT * FROM users WHERE username = @username LIMIT 1";
             cmd.Parameters.AddWithValue("@username", username);
 
             using var reader = await cmd.ExecuteReaderAsync();
             if (!await reader.ReadAsync()) return null;
 
+            return MapUser(reader);
+        }
+
+        public async Task<List<User>> GetAllAsync()
+        {
+            var users = new List<User>();
+
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT * FROM users";
+
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                users.Add(MapUser(reader));
+            }
+
+            return users;
+        }
+
+        #endregion
+
+        #region UPDATE
+
+        public async Task<bool> UpdateAsync(User user)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE users SET
+                    full_name = @fullName,
+                    email = @email,
+                    username = @username,
+                    password = @password,
+                    phone_number = @phoneNumber,
+                    role = @role
+                WHERE id = @id";
+
+            AddUserParameters(cmd, user);
+            cmd.Parameters.AddWithValue("@id", user.Id);
+
+            var affected = await cmd.ExecuteNonQueryAsync();
+            return affected > 0;
+        }
+
+        #endregion
+
+        #region DELETE
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "DELETE FROM users WHERE id = @id";
+            cmd.Parameters.AddWithValue("@id", id);
+
+            var affected = await cmd.ExecuteNonQueryAsync();
+            return affected > 0;
+        }
+
+        #endregion
+
+        #region Private Helpers
+
+        private static void AddUserParameters(MySqlCommand cmd, User user)
+        {
+            cmd.Parameters.AddWithValue("@fullName", user.FullName);
+            cmd.Parameters.AddWithValue("@email", user.Email);
+            cmd.Parameters.AddWithValue("@username", user.Username);
+            cmd.Parameters.AddWithValue("@password", user.Password);
+            cmd.Parameters.AddWithValue("@phoneNumber",
+                user.PhoneNumber ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@role", user.Role);
+            cmd.Parameters.AddWithValue("@createdAt", user.CreatedAt);
+        }
+
+        private static User MapUser(MySqlDataReader reader)
+        {
             return new User(
                 id: reader.GetInt32("id"),
                 fullName: reader.GetString("full_name"),
+                email: reader.GetString("email"),
                 username: reader.GetString("username"),
                 password: reader.GetString("password"),
-                phoneNumber: reader.IsDBNull(reader.GetOrdinal("phone_number")) ? null : reader.GetString("phone_number"),
+                phoneNumber: reader.IsDBNull(reader.GetOrdinal("phone_number"))
+                                ? null
+                                : reader.GetString("phone_number"),
                 role: reader.GetString("role"),
                 createdAt: reader.GetDateTime("created_at")
             );
         }
 
-        public async Task<Company?> GetCompanyByUserIdAsync(int userId)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
-
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT id, user_id, name, status
-                FROM companies
-                WHERE user_id = @userId
-                LIMIT 1";
-            cmd.Parameters.AddWithValue("@userId", userId);
-
-            using var reader = await cmd.ExecuteReaderAsync();
-            if (!await reader.ReadAsync()) return null;
-
-            return new Company(
-                id: reader.GetInt32("id"),
-                user_id: reader.GetInt32("user_id"),
-                name: reader.GetString("name"),
-                status: reader.GetString("status")
-            );
-        }
-
-        public async Task<CompanyModule?> GetCompanyModuleByCompanyIdAsync(int companyId)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
-
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT id, company_id, module_type
-                FROM company_modules
-                WHERE company_id = @companyId
-                LIMIT 1";
-            cmd.Parameters.AddWithValue("@companyId", companyId);
-
-            using var reader = await cmd.ExecuteReaderAsync();
-            if (!await reader.ReadAsync()) return null;
-
-            return new CompanyModule(
-                id: reader.GetInt32("id"),
-                company_id: reader.GetInt32("company_id"),
-                module_type: reader.GetString("module_type")
-            );
-        }
+        #endregion
     }
 }

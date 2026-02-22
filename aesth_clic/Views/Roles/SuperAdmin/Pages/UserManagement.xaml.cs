@@ -1,4 +1,5 @@
-﻿using Microsoft.UI;
+﻿using aesth_clic.Views.Roles.SuperAdmin.Modals;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -8,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Windows.UI;
 
 namespace aesth_clic.Views.Roles.SuperAdmin.Pages
@@ -23,7 +25,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string ClinicName { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;   // plain text for mock only
+        public string Password { get; set; } = string.Empty;
 
         private string _status = "Active";
         public string Status
@@ -42,14 +44,20 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
 
         // ── Derived display helpers ──────────────────────────
 
-        public string Initials => FullName.Length >= 2
-            ? $"{FullName[0]}{FullName.Split(' ').Last()[0]}".ToUpper()
-            : FullName.ToUpper();
+        public string Initials
+        {
+            get
+            {
+                var parts = FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 2)
+                    return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
+                return FullName.Length > 0 ? FullName[0].ToString().ToUpper() : "?";
+            }
+        }
 
         public SolidColorBrush AvatarColor =>
             new SolidColorBrush(Color.FromArgb(255, 0, 120, 212));
 
-        // Status badge
         public SolidColorBrush StatusBadgeColor => Status == "Active"
             ? new SolidColorBrush(Color.FromArgb(20, 14, 164, 122))
             : new SolidColorBrush(Color.FromArgb(20, 216, 59, 1));
@@ -58,7 +66,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             ? new SolidColorBrush(Color.FromArgb(255, 10, 130, 96))
             : new SolidColorBrush(Color.FromArgb(255, 180, 40, 0));
 
-        // Button visibility
         public Visibility DeactivateVisible => Status == "Active" ? Visibility.Visible : Visibility.Collapsed;
         public Visibility DeleteVisible => Status == "Inactive" ? Visibility.Visible : Visibility.Collapsed;
 
@@ -72,16 +79,9 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
     // ─────────────────────────────────────────────────────────
     public sealed partial class UserManagement : Page
     {
-        // Master list (source of truth)
         private readonly List<UserItem> _allUsers = new();
-
-        // Displayed list (filtered)
         private readonly ObservableCollection<UserItem> _displayedUsers = new();
-
-        // Track which user is being edited (null = adding new)
         private UserItem? _editingUser;
-
-        // Auto-increment id for mock data
         private int _nextId = 1;
 
         public UserManagement()
@@ -140,7 +140,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                     || u.ClinicName.ToLower().Contains(search);
 
                 bool matchStatus = statFilter == "All" || u.Status == statFilter;
-
                 return matchSearch && matchStatus;
             }).ToList();
 
@@ -152,7 +151,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 _displayedUsers.Add(u);
             }
 
-            TxtRowCount.Text = $"Showing {_displayedUsers.Count} of {_allUsers.Count} client{(_allUsers.Count != 1 ? "s" : "")}";
+            TxtRowCount.Text =
+                $"Showing {_displayedUsers.Count} of {_allUsers.Count} client{(_allUsers.Count != 1 ? "s" : "")}";
         }
 
         private void UpdateKpiCards()
@@ -172,33 +172,40 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             => ApplyFilters();
 
         // ─────────────────────────────────────────
-        // KEBAB MENU · Click (opens flyout via XAML binding;
-        //              this handler is a no-op but required
-        //              to satisfy the Click binding on the button)
+        // KEBAB MENU
         // ─────────────────────────────────────────
-        private void KebabMenu_Click(object sender, RoutedEventArgs e)
-        {
-            // Flyout is opened automatically by WinUI via Button.Flyout.
-            // No additional logic needed here.
-        }
+        private void KebabMenu_Click(object sender, RoutedEventArgs e) { }
 
         // ─────────────────────────────────────────
-        // ADD USER
+        // ADD CLIENT  →  opens AddNewClient dialog
         // ─────────────────────────────────────────
         private async void AddUserButton_Click(object sender, RoutedEventArgs e)
         {
-            _editingUser = null;
+            var dialog = new AddNewClient
+            {
+                XamlRoot = XamlRoot   // required for ContentDialog in WinUI 3
+            };
 
-            // Clear form
-            UserDialog.Title = "Add New Client";
-            FieldName.Text = string.Empty;
-            FieldEmail.Text = string.Empty;
-            FieldPhone.Text = string.Empty;
-            FieldClinicName.Text = string.Empty;
-            FieldPassword.Password = string.Empty;
-            DialogValidationBar.IsOpen = false;
+            var result = await dialog.ShowAsync();
 
-            await UserDialog.ShowAsync();
+            if (result == ContentDialogResult.Primary && dialog.Result is not null)
+            {
+                var r = dialog.Result;
+
+                _allUsers.Add(new UserItem
+                {
+                    UserId = _nextId++,
+                    FullName = r.FullName,
+                    Email = r.Username,          // Username maps to email column for now
+                    Phone = r.PhoneNumber,
+                    ClinicName = r.ClinicName,
+                    Password = r.Password,
+                    Status = "Active"
+                });
+
+                ApplyFilters();
+                UpdateKpiCards();
+            }
         }
 
         // ─────────────────────────────────────────
@@ -211,19 +218,13 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             _editingUser = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (_editingUser == null) return;
 
-            UserDialog.Title = "Edit Client";
-            FieldName.Text = _editingUser.FullName;
-            FieldEmail.Text = _editingUser.Email;
-            FieldPhone.Text = _editingUser.Phone;
-            FieldClinicName.Text = _editingUser.ClinicName;
-            FieldPassword.Password = _editingUser.Password;
-            DialogValidationBar.IsOpen = false;
-
-            await UserDialog.ShowAsync();
+            // TODO: Open an EditClient dialog (separate from AddNewClient)
+            // For now re-use AddNewClient as a read-only preview stub
+            await Task.CompletedTask;
         }
 
         // ─────────────────────────────────────────
-        // MANAGE MODULES  (UI stub — logic TBD)
+        // MANAGE MODULES  (stub)
         // ─────────────────────────────────────────
         private void ManageModules_Click(object sender, RoutedEventArgs e)
         {
@@ -231,7 +232,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ─────────────────────────────────────────
-        // DEACTIVATE USER
+        // DEACTIVATE
         // ─────────────────────────────────────────
         private void DeactivateUser_Click(object sender, RoutedEventArgs e)
         {
@@ -240,15 +241,14 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (user == null) return;
 
-            // TODO: Show confirmation dialog before deactivating
+            // TODO: confirmation dialog
             user.Status = "Inactive";
-
             ApplyFilters();
             UpdateKpiCards();
         }
 
         // ─────────────────────────────────────────
-        // DELETE USER
+        // DELETE
         // ─────────────────────────────────────────
         private void DeleteUser_Click(object sender, RoutedEventArgs e)
         {
@@ -257,59 +257,15 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (user == null || user.Status != "Inactive") return;
 
-            // TODO: Show confirmation dialog before deleting
+            // TODO: confirmation dialog
             _allUsers.Remove(user);
-
             ApplyFilters();
             UpdateKpiCards();
         }
 
         // ─────────────────────────────────────────
-        // DIALOG · SAVE
+        // OLD INLINE DIALOG HANDLER (removed — kept as tombstone)
+        // UserDialog_PrimaryButtonClick → replaced by AddNewClient
         // ─────────────────────────────────────────
-        private void UserDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-        {
-            // ── Validation ──
-            string name = FieldName.Text.Trim();
-            string email = FieldEmail.Text.Trim();
-            string phone = FieldPhone.Text.Trim();
-            string clinicName = FieldClinicName.Text.Trim();
-            string pass = FieldPassword.Password;
-
-            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(pass))
-            {
-                DialogValidationBar.Message = "Name, email, and password are required.";
-                DialogValidationBar.IsOpen = true;
-                args.Cancel = true;   // keep dialog open
-                return;
-            }
-
-            if (_editingUser == null)
-            {
-                // ── ADD ──
-                _allUsers.Add(new UserItem
-                {
-                    UserId = _nextId++,
-                    FullName = name,
-                    Email = email,
-                    Phone = phone,
-                    ClinicName = clinicName,
-                    Password = pass,
-                    Status = "Active"
-                });
-            }
-            else
-            {
-                // ── EDIT ──
-                _editingUser.FullName = name;
-                _editingUser.Email = email;
-                _editingUser.Phone = phone;
-                _editingUser.ClinicName = clinicName;
-                _editingUser.Password = pass;
-            }
-
-            ApplyFilters();
-            UpdateKpiCards();
-        }
     }
 }
