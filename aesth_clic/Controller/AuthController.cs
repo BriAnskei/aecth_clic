@@ -7,14 +7,9 @@ using System.Threading.Tasks;
 
 namespace aesth_clic.Controller
 {
-    internal class AuthController
+    internal class AuthController(AuthService authService)
     {
-        private readonly AuthService _authService;
-
-        public AuthController(AuthService authService)
-        {
-            _authService = authService;
-        }
+        private readonly AuthService _authService = authService;
 
         public Task<(bool Success, string Message)> LoginAsync(string username, string password, string role)
             => _authService.LoginAsync(username, password, role);

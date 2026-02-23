@@ -80,7 +80,6 @@
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ViewModels\" />
     <Folder Include="Views\Roles\Admin\Modal\" />
   </ItemGroup>
   <ItemGroup>
