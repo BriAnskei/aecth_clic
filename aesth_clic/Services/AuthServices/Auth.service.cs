@@ -5,23 +5,16 @@ using System.Threading.Tasks;
 
 namespace aesth_clic.Services.AuthServices
 {
-    internal class AuthService
+    internal class AuthService(
+        UserRepository userRepository,
+        CompanyRepository companyRepository,
+        AccountStatusRepository accountStatusRepository)
     {
-        private readonly UserRepository _userRepository;
-        private readonly CompanyRepository _companyRepository;
-        private readonly AccountStatusRepository _accountStatusRepository;
+        private readonly UserRepository _userRepository = userRepository;
+        private readonly CompanyRepository _companyRepository = companyRepository;
+        private readonly AccountStatusRepository _accountStatusRepository = accountStatusRepository;
 
         private const string SuperAdminRole = "super_admin";
-
-        public AuthService(
-            UserRepository userRepository,
-            CompanyRepository companyRepository,
-            AccountStatusRepository accountStatusRepository)
-        {
-            _userRepository = userRepository;
-            _companyRepository = companyRepository;
-            _accountStatusRepository = accountStatusRepository;
-        }
 
         public async Task<(bool Success, string Message)> LoginAsync(string username, string password, string role)
         {

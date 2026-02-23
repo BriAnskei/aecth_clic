@@ -1,9 +1,13 @@
-﻿using aesth_clic.ViewModels.SuperAdmin;
+﻿using System;
+using System.Linq;
+using aesth_clic.Controller;
+using aesth_clic.Models.Companies;
+using aesth_clic.Models.Users;
+using aesth_clic.ViewModels.SuperAdmin;
 using aesth_clic.Views.Roles.SuperAdmin.Modals;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
-using System.Linq;
 using Windows.UI;
 
 namespace aesth_clic.Views.Roles.SuperAdmin.Pages
@@ -77,6 +81,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
     {
         // ── Single source of truth ───────────────────────────
         private readonly UserManagementViewModel _vm = new();
+        // Add this field alongside _vm
+        private readonly UserController _userController = App.Services.GetRequiredService<UserController>();
 
         public UserManagement()
         {
@@ -143,21 +149,44 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             var dialog = new AddNewClient { XamlRoot = XamlRoot };
             var result = await dialog.ShowAsync();
 
-            if (result == ContentDialogResult.Primary && dialog.Result is not null)
+            if (result != ContentDialogResult.Primary || dialog.Result is null) return;
+
+            var r = dialog.Result;
+
+            var adminClient = new AdminClients(
+                new User(
+                    id: 0,
+                    fullName: r.FullName,
+                    email: r.Email,
+                    username: r.Username,
+                    password: r.Password,
+                    phoneNumber: r.PhoneNumber,
+                    role: "admin",
+                    createdAt: DateTime.Now
+                ),
+                new Company(
+                    id: 0,
+                    owner_id: 0,
+                    name: r.ClinicName,
+                    status: "active",
+                    module_tier: r.ModuleTier
+                )
+            );
+
+            try
             {
-                var r = dialog.Result;
-
-                _vm.AddUser(new UserItem
+                await _userController.CreateAdminClientAsync(adminClient);
+            }
+            catch (Exception ex)
+            {
+                var errorDialog = new ContentDialog
                 {
-                    FullName = r.FullName,
-                    Email = r.Username,
-                    Phone = r.PhoneNumber,
-                    ClinicName = r.ClinicName,
-                    Password = r.Password,
-                    Status = "Active"
-                });
-
-                UpdateKpiCards();
+                    Title = "Failed to create client",
+                    Content = ex.Message,
+                    CloseButtonText = "OK",
+                    XamlRoot = XamlRoot
+                };
+                await errorDialog.ShowAsync();
             }
         }
 

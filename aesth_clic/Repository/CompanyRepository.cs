@@ -1,5 +1,5 @@
 ﻿using aesth_clic.Data;
-using aesth_clic.Models.Users;
+using aesth_clic.Models.Companies;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

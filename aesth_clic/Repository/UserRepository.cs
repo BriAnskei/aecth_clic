@@ -1,9 +1,10 @@
-﻿using aesth_clic.Data;
-using aesth_clic.Models.Users;
-using MySqlConnector;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using aesth_clic.Data;
+using aesth_clic.Models.Companies;
+using aesth_clic.Models.Users;
+using MySqlConnector;
 
 namespace aesth_clic.Repository
 {
@@ -27,7 +28,7 @@ namespace aesth_clic.Repository
                 (full_name, email, username, password, phone_number, role, created_at)
                 VALUES
                 (@fullName, @email, @username, @password, @phoneNumber, @role, @createdAt);
-                SELECT LAST_INSERT_ID();";
+                SELECT LAST_INSER`T_ID();";
 
             AddUserParameters(cmd, user);
 
@@ -53,6 +54,56 @@ namespace aesth_clic.Repository
 
             return MapUser(reader);
         }
+
+
+
+
+
+        public async Task<AdminClients> FindAdminClientByIdAsync(int userId)
+        {
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+        SELECT 
+            u.id as user_id,
+            u.full_name,
+            u.email,
+            u.username,
+            u.password,
+            u.phone_number,
+            u.role,
+            u.created_at,
+            c.id as company_id,
+            c.owner_id,
+            c.name as company_name,
+            c.status as company_status,
+            c.module_tier
+        FROM users u
+        INNER JOIN companies c ON u.id = c.owner_id
+        WHERE u.id = @userId";
+
+            cmd.Parameters.AddWithValue("@userId", userId);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
+                throw new InvalidOperationException($"User with ID {userId} not found");
+
+            var user = MapUser(reader);
+
+            if(user is null || user.Role == null)
+                throw new ArgumentNullException(nameof(user));
+
+
+            if (!user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"User with ID {userId} is not an admin");
+
+            return MapToAdminClient(reader);
+        }
+
+
 
         public async Task<User?> GetByUsernameAsync(string username)
         {
@@ -150,6 +201,35 @@ namespace aesth_clic.Repository
                 user.PhoneNumber ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@role", user.Role);
             cmd.Parameters.AddWithValue("@createdAt", user.CreatedAt);
+        }
+
+
+        private static AdminClients MapToAdminClient(MySqlDataReader reader)
+        {
+            var user = new User
+            {
+                Id = reader.GetInt32("user_id"),
+                FullName = reader.GetString("full_name"),
+                Email = reader.GetString("email"),
+                Username = reader.GetString("username"),
+                Password = reader.GetString("password"),
+                PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phone_number"))
+                    ? null
+                    : reader.GetString("phone_number"),
+                Role = reader.GetString("role"),
+                CreatedAt = reader.GetDateTime("created_at")
+            };
+
+            var company = new Company
+            {
+                id = reader.GetInt32("company_id"),
+                owner_id = reader.GetInt32("owner_id"),
+                name = reader.GetString("company_name"),
+                status = reader.GetString("company_status"),
+                module_tier = reader.GetString("module_tier")
+            };
+
+            return new AdminClients(user, company);
         }
 
         private static User MapUser(MySqlDataReader reader)

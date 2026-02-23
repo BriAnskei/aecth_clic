@@ -17,6 +17,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
         private bool _usernameVisible = false;
         private bool _passwordVisible = false;
 
+        private bool _isSaving = false;
+
         public AddNewClient()
         {
             InitializeComponent();
@@ -193,6 +195,17 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             Debug.WriteLine("══════════════════════════════════");
         }
     }
+
+            // ── HELPER ─────────────────────────────────────────────────────────
+    private void SetSavingState(bool isSaving)
+        {
+            _isSaving = isSaving;
+            IsPrimaryButtonEnabled = !isSaving;
+            IsSecondaryButtonEnabled = !isSaving;
+
+            // Show/hide a loading indicator — add x:Name="SavingOverlay" to your XAML (see below)
+            SavingOverlay.Visibility = isSaving ? Visibility.Visible : Visibility.Collapsed;
+        }
 
     // ── Result DTO ─────────────────────────────────────────────────────────
     public class NewClientResult

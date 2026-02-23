@@ -1,4 +1,5 @@
-﻿using aesth_clic.Models.Users;
+﻿using aesth_clic.Models.Companies;
+using aesth_clic.Models.Users;
 
 namespace aesth_clic.Services
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace aesth_clic.Models.Users
+namespace aesth_clic.Models.Companies
 {
     internal class Company
     {
@@ -27,8 +27,8 @@ namespace aesth_clic.Models.Users
 
 
         public Company() {
-            this.name = string.Empty;
-            this.status = string.Empty;
+            name = string.Empty;
+            status = string.Empty;
             module_tier = string.Empty;
         }
     }
