@@ -4,6 +4,7 @@ using aesth_clic.Models.Users;
 using aesth_clic.Repository;
 using aesth_clic.Util;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
@@ -49,6 +50,10 @@ namespace aesth_clic.Services.AccountsServices
         }
 
 
+        public async Task<List<AdminClients>> GetAllAdminsAsync()
+        {
+            return await _userRepository.GetAllAdminsAsync();
+        }
 
 
     }

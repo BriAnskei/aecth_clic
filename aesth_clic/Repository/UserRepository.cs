@@ -133,6 +133,49 @@ namespace aesth_clic.Repository
             return users;
         }
 
+
+        public async Task<List<AdminClients>> GetAllAdminsAsync()
+        {
+            var admins = new List<AdminClients>();
+
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+
+            cmd.CommandText = @"
+        SELECT 
+            u.id as user_id,
+            u.full_name,
+            u.email,
+            u.username,
+            u.password,
+            u.phone_number,
+            u.role,
+            u.created_at,
+            c.id as company_id,
+            c.owner_id,
+            c.name as company_name,
+            c.status as company_status,
+            c.module_tier
+        FROM users u
+        INNER JOIN company c ON u.id = c.owner_id
+        WHERE LOWER(u.role) = 'admin'
+        ORDER BY u.created_at DESC";
+
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                admins.Add(MapToAdminClient(reader));
+            }
+
+            return admins;
+        }
+
+
+
+
         #endregion
 
         #region UPDATE

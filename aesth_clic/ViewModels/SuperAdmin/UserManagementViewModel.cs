@@ -1,4 +1,5 @@
-﻿using aesth_clic.Views.Roles.SuperAdmin.Pages;
+﻿using aesth_clic.Models.Users;
+using aesth_clic.Views.Roles.SuperAdmin.Pages;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -47,6 +48,19 @@ namespace aesth_clic.ViewModels.SuperAdmin
             }
         }
 
+        // ── NEW: Tier filter ─────────────────────
+        private string _selectedTier = "All";
+        public string SelectedTier
+        {
+            get => _selectedTier;
+            set
+            {
+                _selectedTier = value;
+                OnPropertyChanged();
+                ApplyFilters();
+            }
+        }
+
         // ─────────────────────────────────────────
         // KPI STATE
         // ─────────────────────────────────────────
@@ -56,37 +70,44 @@ namespace aesth_clic.ViewModels.SuperAdmin
         public int DeactivatedUsers => _allUsers.Count(u => u.Status == "Deactivated");
 
         // ─────────────────────────────────────────
-        // LOAD DATA (Mock for now)
+        // LOAD FROM DB
         // ─────────────────────────────────────────
 
-        public void LoadMockData()
+        /// <summary>
+        /// Replaces the in-memory list with data fetched from the database.
+        /// Call this on initial load and after any add/edit/delete operation.
+        /// </summary>
+        public void LoadFromDb(List<AdminClients> clients)
         {
             _allUsers.Clear();
             _nextId = 1;
 
-            var seed = new[]
+            foreach (var client in clients)
             {
-                new { Name = "Maria Santos",    Email = "maria@clinic.com",   Phone = "0917-123-4567", Clinic = "Santos Aesthetic Clinic",   Status = "Active"      },
-                new { Name = "Jose Reyes",      Email = "jose@clinic.com",    Phone = "0918-234-5678", Clinic = "Reyes Beauty Hub",           Status = "Active"      },
-                new { Name = "Anna Cruz",       Email = "anna@clinic.com",    Phone = "0919-345-6789", Clinic = "Cruz Skin & Wellness",       Status = "Active"      },
-                new { Name = "Carlos Bautista", Email = "carlos@clinic.com",  Phone = "0920-456-7890", Clinic = "Bautista Derma Center",      Status = "Deactivated" },
-                new { Name = "Lucia Ramos",     Email = "lucia@clinic.com",   Phone = "0921-567-8901", Clinic = "Ramos Glow Clinic",          Status = "Active"      },
-                new { Name = "Miguel Torres",   Email = "miguel@clinic.com",  Phone = "0922-678-9012", Clinic = "Torres Med Spa",             Status = "Deactivated" },
-                new { Name = "Sofia Garcia",    Email = "sofia@clinic.com",   Phone = "0923-789-0123", Clinic = "Garcia Aesthetic Studio",    Status = "Active"      },
-            };
+                if (client.User is null) continue;
 
-            foreach (var s in seed)
-            {
+                // Normalize status: DB stores "active"/"inactive", UI uses "Active"/"Deactivated"
+                string rawStatus = client.Company?.status ?? "active";
+                string status = rawStatus.ToLower() == "active" ? "Active" : "Deactivated";
+
+                // Tier: DB stores "basic"/"standard"/"premium" — kept lowercase to match filter tags
+                string tier = client.Company?.module_tier ?? "basic";
+
                 _allUsers.Add(new UserItem
                 {
-                    UserId = _nextId++,
-                    FullName = s.Name,
-                    Email = s.Email,
-                    Phone = s.Phone,
-                    ClinicName = s.Clinic,
-                    Status = s.Status,
-                    Password = "password123"
+                    UserId = client.User.Id,
+                    FullName = client.User.FullName ?? string.Empty,
+                    Email = client.User.Email ?? string.Empty,
+                    Phone = client.User.PhoneNumber ?? string.Empty,
+                    ClinicName = client.Company?.name ?? string.Empty,
+                    Status = status,
+                    Tier = tier,                   // ← NEW
+                    Password = client.User.Password ?? string.Empty,
                 });
+
+                // Keep _nextId ahead of the highest existing ID
+                if (client.User.Id >= _nextId)
+                    _nextId = client.User.Id + 1;
             }
 
             ApplyFilters();
@@ -101,12 +122,17 @@ namespace aesth_clic.ViewModels.SuperAdmin
             DisplayedUsers.Clear();
 
             var filtered = _allUsers.Where(u =>
+                // Search: name, email, or clinic
                 (string.IsNullOrEmpty(SearchText)
                     || u.FullName.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase)
                     || u.Email.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase)
                     || u.ClinicName.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase))
                 &&
-                (SelectedStatus == "All" || u.Status == SelectedStatus));
+                // Status filter
+                (SelectedStatus == "All" || u.Status == SelectedStatus)
+                &&
+                // Tier filter ← NEW
+                (SelectedTier == "All" || u.Tier == SelectedTier));
 
             int row = 1;
             foreach (var user in filtered)
@@ -124,10 +150,6 @@ namespace aesth_clic.ViewModels.SuperAdmin
         // LOOKUP HELPER  (used by code-behind)
         // ─────────────────────────────────────────
 
-        /// <summary>
-        /// Returns the UserItem with the given ID from the full (unfiltered) list,
-        /// or null if not found.
-        /// </summary>
         public UserItem? FindUser(int userId)
             => _allUsers.FirstOrDefault(u => u.UserId == userId);
 

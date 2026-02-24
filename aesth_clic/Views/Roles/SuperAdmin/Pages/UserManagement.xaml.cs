@@ -1,19 +1,17 @@
-﻿using System;
+﻿using aesth_clic.Models.Users;
+using aesth_clic.Views.Roles.SuperAdmin.Pages;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
-using aesth_clic.Controller;
-using aesth_clic.Models.Companies;
-using aesth_clic.Models.Users;
-using aesth_clic.ViewModels.SuperAdmin;
-using aesth_clic.Views.Roles.SuperAdmin.Modals;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using System.Runtime.CompilerServices;
 using Windows.UI;
+using Microsoft.UI.Xaml.Media;
 
 namespace aesth_clic.Views.Roles.SuperAdmin.Pages
 {
     // ─────────────────────────────────────────────────────────
-    // USER MODEL
+    // USER ITEM MODEL
     // ─────────────────────────────────────────────────────────
     public class UserItem : System.ComponentModel.INotifyPropertyChanged
     {
@@ -24,6 +22,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         public string Phone { get; set; } = string.Empty;
         public string ClinicName { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+
+        // ── Status ───────────────────────────────────────────
 
         private string _status = "Active";
         public string Status
@@ -41,7 +41,22 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             }
         }
 
-        // ── Derived display helpers ──────────────────────────
+        // ── Tier ─────────────────────────────────────────────
+
+        private string _tier = "basic";
+        public string Tier
+        {
+            get => _tier;
+            set
+            {
+                _tier = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(TierDisplay));
+                OnPropertyChanged(nameof(TierBadgeText));
+            }
+        }
+
+        // ── Derived display helpers — Status ─────────────────
 
         public string Initials
         {
@@ -65,40 +80,85 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             ? new(Color.FromArgb(255, 10, 130, 96))
             : new(Color.FromArgb(255, 180, 40, 0));
 
-        public Visibility DeactivateVisible => Status == "Active" ? Visibility.Visible : Visibility.Collapsed;
-        public Visibility ReactivateVisible => Status == "Deactivated" ? Visibility.Visible : Visibility.Collapsed;
-        public Visibility DeleteVisible => Status == "Deactivated" ? Visibility.Visible : Visibility.Collapsed;
+        public Microsoft.UI.Xaml.Visibility DeactivateVisible =>
+            Status == "Active"
+                ? Microsoft.UI.Xaml.Visibility.Visible
+                : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility ReactivateVisible =>
+            Status == "Deactivated"
+                ? Microsoft.UI.Xaml.Visibility.Visible
+                : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility DeleteVisible =>
+            Status == "Deactivated"
+                ? Microsoft.UI.Xaml.Visibility.Visible
+                : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        // ── Derived display helpers — Tier ────────────────────
+
+        /// <summary>Capitalised display label for the TIER column.</summary>
+        public string TierDisplay => Tier switch
+        {
+            "basic" => "Basic",
+            "standard" => "Standard",
+            "premium" => "Premium",
+            _ => Tier
+        };
+
+        /// <summary>
+        /// Colored brush for the tier label.
+        /// Basic   = #8764B8 (purple)   — distinct from Active (#0EA47A) and Deactivated (#D83B01)
+        /// Standard= #C19C00 (gold)
+        /// Premium = #0099BC (cyan-teal)
+        /// </summary>
+        public Microsoft.UI.Xaml.Media.SolidColorBrush TierBadgeText => Tier switch
+        {
+            "basic" => new(Color.FromArgb(255, 135, 100, 184)),
+            "standard" => new(Color.FromArgb(255, 193, 156, 0)),
+            "premium" => new(Color.FromArgb(255, 0, 153, 188)),
+            _ => new(Color.FromArgb(255, 100, 100, 100))
+        };
+
+        // ── INotifyPropertyChanged ────────────────────────────
 
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
     }
+}
 
-    // ─────────────────────────────────────────────────────────
-    // PAGE CODE-BEHIND
-    // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// PAGE CODE-BEHIND
+// ─────────────────────────────────────────────────────────────
+
+namespace aesth_clic.Views.Roles.SuperAdmin.Pages
+{
+    using aesth_clic.Controller;
+    using aesth_clic.Models.Companies;
+    using aesth_clic.Models.Users;
+    using aesth_clic.Utils;
+    using aesth_clic.ViewModels.SuperAdmin;
+    using aesth_clic.Views.Roles.SuperAdmin.Modals;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.UI.Xaml;
+    using Microsoft.UI.Xaml.Controls;
+    using System;
+
     public sealed partial class UserManagement : Page
     {
-        // ── Single source of truth ───────────────────────────
         private readonly UserManagementViewModel _vm = new();
-        // Add this field alongside _vm
-
         private readonly UserController _userController;
+
         public UserManagement()
         {
             InitializeComponent();
             _userController = App.Services.GetRequiredService<UserController>();
 
-            // Load mock data into the ViewModel
-            _vm.LoadMockData();
-
-            // Bind the ItemsControl to the ViewModel's DisplayedUsers collection
+            // Bind ItemsControl to the ViewModel's DisplayedUsers collection
             UserListControl.ItemsSource = _vm.DisplayedUsers;
 
-            // Sync KPI cards with initial state
-            UpdateKpiCards();
-
-            // Subscribe to ViewModel property changes to keep KPI cards in sync
+            // Sync KPI cards whenever ViewModel KPI props change
             _vm.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName is nameof(UserManagementViewModel.TotalUsers)
@@ -106,6 +166,26 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                                    or nameof(UserManagementViewModel.DeactivatedUsers))
                     UpdateKpiCards();
             };
+
+            // Load real data from DB on startup
+            _ = LoadFromDbAsync();
+        }
+
+        // ─────────────────────────────────────────
+        // DB LOAD
+        // ─────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
+        {
+            try
+            {
+                var clients = await _userController.GetAllAdminsAsync();
+                _vm.LoadFromDb(clients);
+                UpdateKpiCards();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load clients", ex.Message);
+            }
         }
 
         // ─────────────────────────────────────────
@@ -122,18 +202,25 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ─────────────────────────────────────────
-        // TOOLBAR EVENTS — delegate to ViewModel
+        // TOOLBAR EVENTS
         // ─────────────────────────────────────────
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             _vm.SearchText = sender.Text;
-            UpdateKpiCards(); // row count refresh
+            UpdateKpiCards();
         }
 
         private void StatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _vm.SelectedStatus =
                 (StatusFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+            UpdateKpiCards();
+        }
+
+        private void TierFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _vm.SelectedTier =
+                (TierFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
             UpdateKpiCards();
         }
 
@@ -177,17 +264,15 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             try
             {
                 await _userController.CreateAdminClientAsync(adminClient);
+                await LoadFromDbAsync();
+                ToastHelper.Success(
+                    ToastBar,
+                    "Client added",
+                    $"{r.FullName} ({r.ClinicName}) has been created successfully.");
             }
             catch (Exception ex)
             {
-                var errorDialog = new ContentDialog
-                {
-                    Title = "Failed to create client",
-                    Content = ex.Message,
-                    CloseButtonText = "OK",
-                    XamlRoot = XamlRoot
-                };
-                await errorDialog.ShowAsync();
+                ToastHelper.Error(ToastBar, "Failed to create client", ex.Message);
             }
         }
 
@@ -199,7 +284,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
 
-            // Resolve from the ViewModel's full list via a small public helper
             var user = _vm.FindUser(userId);
             if (user == null) return;
 
@@ -218,7 +302,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 if (r.Password is not null)
                     user.Password = r.Password;
 
-                // Re-run filters so the table reflects the edited data
                 _vm.ApplyFilters();
                 UpdateKpiCards();
             }
@@ -240,7 +323,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ─────────────────────────────────────────
-        // DEACTIVATE  (Active → Deactivated)
+        // DEACTIVATE
         // ─────────────────────────────────────────
         private async void DeactivateUser_Click(object sender, RoutedEventArgs e)
         {
@@ -261,7 +344,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ─────────────────────────────────────────
-        // REACTIVATE  (Deactivated → Active)
+        // REACTIVATE
         // ─────────────────────────────────────────
         private async void ReactivateUser_Click(object sender, RoutedEventArgs e)
         {
@@ -282,7 +365,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ─────────────────────────────────────────
-        // DELETE  (only when Deactivated)
+        // DELETE
         // ─────────────────────────────────────────
         private async void DeleteUser_Click(object sender, RoutedEventArgs e)
         {

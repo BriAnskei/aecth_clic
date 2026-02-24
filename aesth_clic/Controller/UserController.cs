@@ -19,5 +19,11 @@ namespace aesth_clic.Controller
         {
            return  await _userService.CreateAdminClientAsync(adminClient);
         }
+
+
+        public async Task<List<AdminClients>> GetAllAdminsAsync()
+        {
+            return await _userService.GetAllAdminsAsync();
+        }
     }
 }
