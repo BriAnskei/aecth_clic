@@ -1,7 +1,9 @@
 ﻿using aesth_clic.Controller;
 using aesth_clic.Data;
 using aesth_clic.Repository;
+using aesth_clic.Services.AccountsServices;
 using aesth_clic.Services.AuthServices;
+using aesth_clic.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using System;
@@ -29,18 +31,23 @@ namespace aesth_clic
 
             // Infrastructure
             services.AddSingleton<DbConnectionFactory>();
+            services.AddScoped<TransactionManager>(); 
 
             // Repositories
             //  -- users, auth
             services.AddTransient<UserRepository>();
             services.AddTransient<CompanyRepository>();
             services.AddTransient<AccountStatusRepository>();
+            services.AddTransient<PaymentRepository>();
 
             // Services
             services.AddTransient<AuthService>();
+            services.AddTransient<UserService>();
 
             // Controllers
             services.AddTransient<AuthController>();
+            services.AddTransient<UserController>();
+
 
             return services.BuildServiceProvider();
         }

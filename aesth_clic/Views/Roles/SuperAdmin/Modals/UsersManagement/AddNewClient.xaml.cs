@@ -32,9 +32,13 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             if (sender is not Button btn) return;
             _selectedTier = btn.Tag?.ToString() ?? string.Empty;
 
-            SetCardSelected(CardBasic, _selectedTier == "Basic");
-            SetCardSelected(CardStandard, _selectedTier == "Standard");
-            SetCardSelected(CardPremium, _selectedTier == "Premium");
+            if (_selectedTier != null)
+               _selectedTier =  _selectedTier.ToLower();
+
+
+            SetCardSelected(CardBasic, _selectedTier == "basic");
+            SetCardSelected(CardStandard, _selectedTier == "standard");
+            SetCardSelected(CardPremium, _selectedTier == "premium");
         }
 
         private void SetCardSelected(Button card, bool isSelected)
@@ -181,6 +185,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
                 CreatedAt = DateTime.Now
             };
 
+
             Debug.WriteLine("══════════════════════════════════");
             Debug.WriteLine("  NEW CLIENT SUBMITTED");
             Debug.WriteLine("══════════════════════════════════");
@@ -193,11 +198,14 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             Debug.WriteLine($"  Module Tier : {Result.ModuleTier}");
             Debug.WriteLine($"  Created At  : {Result.CreatedAt:yyyy-MM-dd HH:mm:ss}");
             Debug.WriteLine("══════════════════════════════════");
-        }
-    }
 
-            // ── HELPER ─────────────────────────────────────────────────────────
-    private void SetSavingState(bool isSaving)
+            SetSavingState(true);
+        }
+
+
+
+        // ── HELPER ─────────────────────────────────────────────────────────
+        private void SetSavingState(bool isSaving)
         {
             _isSaving = isSaving;
             IsPrimaryButtonEnabled = !isSaving;
@@ -207,16 +215,17 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             SavingOverlay.Visibility = isSaving ? Visibility.Visible : Visibility.Collapsed;
         }
 
-    // ── Result DTO ─────────────────────────────────────────────────────────
-    public class NewClientResult
-    {
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public string ClinicName { get; set; } = string.Empty;
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string ModuleTier { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+        // ── Result DTO ─────────────────────────────────────────────────────────
+        public class NewClientResult
+        {
+            public string FullName { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+            public string PhoneNumber { get; set; } = string.Empty;
+            public string ClinicName { get; set; } = string.Empty;
+            public string Username { get; set; } = string.Empty;
+            public string Password { get; set; } = string.Empty;
+            public string ModuleTier { get; set; } = string.Empty;
+            public DateTime CreatedAt { get; set; }
+        }
     }
 }

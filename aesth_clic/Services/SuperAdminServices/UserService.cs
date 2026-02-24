@@ -1,48 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using aesth_clic.Dto.SuperAdmin;
+﻿using aesth_clic.Data;
 using aesth_clic.Models.Companies;
 using aesth_clic.Models.Users;
 using aesth_clic.Repository;
-using Org.BouncyCastle.Asn1.Cmp;
+using aesth_clic.Util;
+using System;
+using System.Threading.Tasks;
+
 
 namespace aesth_clic.Services.AccountsServices
 {
     internal class UserService(
            UserRepository userRepository,
            CompanyRepository companyRepository,
-           AccountStatusRepository accountStatusRepository)
+           AccountStatusRepository accountStatusRepository,
+            TransactionManager transactionManager
+        )
     {
 
         private readonly UserRepository _userRepository = userRepository;
         private readonly CompanyRepository _companyRepository = companyRepository;
         private readonly AccountStatusRepository _accountStatusRepository = accountStatusRepository;
+        private readonly TransactionManager _transactionManager = transactionManager;
 
 
 
 
-        // Super Admin action
         public async Task<AdminClients> CreateAdminClientAsync(AdminClients adminClient)
         {
-            User? newUserData = adminClient.User;
-            Company? company = adminClient.Company;
+            return await _transactionManager.ExecuteAsync(async (conn, transaction) =>
+            {
+                User? newUserData = adminClient.User;
+                Company? company = adminClient.Company;
 
-            if (newUserData is null || company is null)
-                throw new ArgumentNullException("User or Company cannot be null.");
+                if (newUserData is null || company is null)
+                    throw new ArgumentNullException("User or Company cannot be null.");
 
-            int adminClientId = await _userRepository.CreateAsync(newUserData);
+                BycrptUtil.HashUserPassword(newUserData);
 
+                int adminClientId = await _userRepository.CreateAsync(
+                    newUserData, conn, transaction);
 
-            company.owner_id = adminClientId;
-             await _companyRepository.CreateAsync(company);
+                company.owner_id = adminClientId;
 
-
-            // fetch data after creation
-            var newAdminClientData = await _userRepository.FindAdminClientByIdAsync(adminClientId);
-            return newAdminClientData;
+                await _companyRepository.CreateAsync(
+                    company, conn, transaction);
+                return await _userRepository.FindAdminClientByIdAsync(adminClientId, conn, transaction);
+            });
         }
 
 

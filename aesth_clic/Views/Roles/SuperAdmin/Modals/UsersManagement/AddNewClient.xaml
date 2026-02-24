@@ -49,322 +49,294 @@
         </Style>
     </ContentDialog.Resources>
 
-    <StackPanel Spacing="16" Width="500">
+    <!-- Single root Grid so overlay can stack on top of the form -->
+    <Grid>
 
         <!-- ══════════════════════════════════════
-             SECTION 1 · Personal Info
+             MAIN FORM CONTENT
         ══════════════════════════════════════ -->
-        <StackPanel Spacing="4">
-            <TextBlock Text="PERSONAL INFORMATION" Style="{StaticResource SectionLabelStyle}" />
+        <StackPanel Spacing="16" Width="500">
 
-            <!-- Row 1: Full Name | Email -->
-            <Grid ColumnSpacing="12" Margin="0,6,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <!-- SECTION 1 · Personal Info -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="PERSONAL INFORMATION" Style="{StaticResource SectionLabelStyle}" />
 
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Full Name" Style="{StaticResource FieldLabelStyle}" />
-                    <TextBox x:Name="FieldFullName"
-                             PlaceholderText="e.g. Maria Santos" />
-                </StackPanel>
+                <!-- Row 1: Full Name | Email -->
+                <Grid ColumnSpacing="12" Margin="0,6,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="Email Address" Style="{StaticResource FieldLabelStyle}" />
-                    <TextBox x:Name="FieldEmail"
-                             PlaceholderText="e.g. maria@clinic.com" />
-                </StackPanel>
-            </Grid>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Full Name" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldFullName" PlaceholderText="e.g. Maria Santos" />
+                    </StackPanel>
 
-            <!-- Row 2: Phone | Clinic Name -->
-            <Grid ColumnSpacing="12" Margin="0,10,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Email Address" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldEmail" PlaceholderText="e.g. maria@clinic.com" />
+                    </StackPanel>
+                </Grid>
 
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Phone Number" Style="{StaticResource FieldLabelStyle}" />
-                    <TextBox x:Name="FieldPhone"
-                             PlaceholderText="e.g. 09XX-XXX-XXXX" />
-                </StackPanel>
+                <!-- Row 2: Phone | Clinic Name -->
+                <Grid ColumnSpacing="12" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="Clinic / Company Name" Style="{StaticResource FieldLabelStyle}" />
-                    <TextBox x:Name="FieldClinicName"
-                             PlaceholderText="e.g. Santos Aesthetic Clinic" />
-                </StackPanel>
-            </Grid>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Phone Number" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldPhone" PlaceholderText="e.g. 09XX-XXX-XXXX" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Clinic / Company Name" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldClinicName" PlaceholderText="e.g. Santos Aesthetic Clinic" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- Divider -->
+            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+            <!-- SECTION 2 · Login Credentials -->
+            <StackPanel Spacing="4">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="LOGIN CREDENTIALS" Style="{StaticResource SectionLabelStyle}" Margin="0" />
+                        <TextBlock Text="These will be used by the client to log in to the system."
+                                   Style="{StaticResource FieldHintStyle}" Margin="0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <Button Click="ToggleUsername_Click"
+                                Style="{StaticResource HeaderIconButtonStyle}"
+                                ToolTipService.ToolTip="Show / Hide Username">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon x:Name="ToggleUsernameIcon" Glyph="&#xE7B3;" FontSize="12" />
+                                <TextBlock Text="User" FontSize="11" />
+                            </StackPanel>
+                        </Button>
+                        <Button Click="TogglePassword_Click"
+                                Style="{StaticResource HeaderIconButtonStyle}"
+                                ToolTipService.ToolTip="Show / Hide Password">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon x:Name="TogglePasswordIcon" Glyph="&#xE7B3;" FontSize="12" />
+                                <TextBlock Text="Pass" FontSize="11" />
+                            </StackPanel>
+                        </Button>
+                        <Button Click="CopyCredentials_Click"
+                                Style="{StaticResource HeaderIconButtonStyle}"
+                                ToolTipService.ToolTip="Copy username and password to clipboard">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                <TextBlock Text="Copy" FontSize="11" />
+                            </StackPanel>
+                        </Button>
+                        <Button Click="GenerateCredentials_Click"
+                                Style="{StaticResource HeaderIconButtonStyle}"
+                                ToolTipService.ToolTip="Auto-generate username and password">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon Glyph="&#xE72E;" FontSize="12" />
+                                <TextBlock Text="Generate" FontSize="11" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Username -->
+                <Grid Margin="0,6,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Username" Style="{StaticResource FieldLabelStyle}" />
+                        <PasswordBox x:Name="FieldUsername"
+                                     PlaceholderText="Set a login username"
+                                     PasswordRevealMode="Hidden" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Password | Confirm Password -->
+                <Grid ColumnSpacing="12" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Password" Style="{StaticResource FieldLabelStyle}" />
+                        <PasswordBox x:Name="FieldPassword"
+                                     PlaceholderText="Set a password"
+                                     PasswordRevealMode="Hidden" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Confirm Password" Style="{StaticResource FieldLabelStyle}" />
+                        <PasswordBox x:Name="FieldConfirmPassword"
+                                     PlaceholderText="Re-enter password"
+                                     PasswordRevealMode="Hidden" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- Divider -->
+            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+            <!-- SECTION 3 · Module Tier Cards -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="SELECT MODULE TIER" Style="{StaticResource SectionLabelStyle}" />
+
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- BASIC -->
+                    <Button x:Name="CardBasic" Grid.Column="0"
+                            Style="{StaticResource TierButtonStyle}"
+                            Tag="Basic" Click="TierCard_Click">
+                        <StackPanel Spacing="8">
+                            <StackPanel Spacing="1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE91B;" FontSize="14" Foreground="#0078D4" />
+                                    <TextBlock Text="Basic" FontSize="13" FontWeight="Bold" />
+                                </StackPanel>
+                                <TextBlock Text="Patient records only" FontSize="10"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
+                                    <TextBlock Text="Patient records" FontSize="11" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE894;" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    <TextBlock Text="Appointments" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE894;" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    <TextBlock Text="Service menu" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE894;" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    <TextBlock Text="Procedures" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- STANDARD -->
+                    <Button x:Name="CardStandard" Grid.Column="1"
+                            Style="{StaticResource TierButtonStyle}"
+                            Tag="Standard" Click="TierCard_Click">
+                        <StackPanel Spacing="8">
+                            <StackPanel Spacing="1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE91B;" FontSize="14" Foreground="#7B2CBF" />
+                                    <TextBlock Text="Standard" FontSize="13" FontWeight="Bold" />
+                                </StackPanel>
+                                <TextBlock Text="Patients + Service menu" FontSize="10"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
+                                    <TextBlock Text="Patient records" FontSize="11" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE894;" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    <TextBlock Text="Appointments" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
+                                    <TextBlock Text="Service menu" FontSize="11" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE894;" FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    <TextBlock Text="Procedures" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- PREMIUM -->
+                    <Button x:Name="CardPremium" Grid.Column="2"
+                            Style="{StaticResource TierButtonStyle}"
+                            Tag="Premium" Click="TierCard_Click">
+                        <StackPanel Spacing="8">
+                            <StackPanel Spacing="1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE734;" FontSize="14" Foreground="#D4A017" />
+                                    <TextBlock Text="Premium" FontSize="13" FontWeight="Bold" />
+                                </StackPanel>
+                                <TextBlock Text="Full features" FontSize="10"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
+                                    <TextBlock Text="Patient records" FontSize="11" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
+                                    <TextBlock Text="Appointments" FontSize="11" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
+                                    <TextBlock Text="Service menu" FontSize="11" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
+                                    <TextBlock Text="Procedures" FontSize="11" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                </Grid>
+            </StackPanel>
+
+            <!-- Validation InfoBar -->
+            <InfoBar
+                x:Name="ValidationBar"
+                IsOpen="False"
+                Severity="Error"
+                IsClosable="False" />
+
         </StackPanel>
-
-        <!-- Divider -->
-        <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
         <!-- ══════════════════════════════════════
-             SECTION 2 · Login Credentials
+             LOADING OVERLAY — sits on top via Grid layering
+             Visible only while saving
         ══════════════════════════════════════ -->
-        <StackPanel Spacing="4">
+        <Border
+            x:Name="SavingOverlay"
+            Visibility="Collapsed"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            Opacity="0.90"
+            CornerRadius="8">
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <ProgressRing IsActive="True" Width="20" Height="20" />
+                <TextBlock
+                    Text="Saving client…"
+                    VerticalAlignment="Center"
+                    FontSize="13"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Border>
 
-            <!-- Section header row with action buttons -->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+    </Grid>
 
-                <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                    <TextBlock Text="LOGIN CREDENTIALS" Style="{StaticResource SectionLabelStyle}" Margin="0" />
-                    <TextBlock Text="These will be used by the client to log in to the system."
-                               Style="{StaticResource FieldHintStyle}" Margin="0" />
-                </StackPanel>
-
-                <!-- Action buttons: Show User | Show Pass | Copy | Generate -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                    <Button Click="ToggleUsername_Click"
-                            Style="{StaticResource HeaderIconButtonStyle}"
-                            ToolTipService.ToolTip="Show / Hide Username">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <FontIcon x:Name="ToggleUsernameIcon" Glyph="&#xE7B3;" FontSize="12" />
-                            <TextBlock Text="User" FontSize="11" />
-                        </StackPanel>
-                    </Button>
-                    <Button Click="TogglePassword_Click"
-                            Style="{StaticResource HeaderIconButtonStyle}"
-                            ToolTipService.ToolTip="Show / Hide Password">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <FontIcon x:Name="TogglePasswordIcon" Glyph="&#xE7B3;" FontSize="12" />
-                            <TextBlock Text="Pass" FontSize="11" />
-                        </StackPanel>
-                    </Button>
-                    <Button Click="CopyCredentials_Click"
-                            Style="{StaticResource HeaderIconButtonStyle}"
-                            ToolTipService.ToolTip="Copy username and password to clipboard">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <FontIcon Glyph="&#xE8C8;" FontSize="12" />
-                            <TextBlock Text="Copy" FontSize="11" />
-                        </StackPanel>
-                    </Button>
-                    <Button Click="GenerateCredentials_Click"
-                            Style="{StaticResource HeaderIconButtonStyle}"
-                            ToolTipService.ToolTip="Auto-generate username and password">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <FontIcon Glyph="&#xE72E;" FontSize="12" />
-                            <TextBlock Text="Generate" FontSize="11" />
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Grid>
-
-            <!-- Row 3: Username -->
-            <Grid Margin="0,6,0,0">
-                <StackPanel>
-                    <TextBlock Text="Username" Style="{StaticResource FieldLabelStyle}" />
-                    <PasswordBox x:Name="FieldUsername"
-                                 PlaceholderText="Set a login username"
-                                 PasswordRevealMode="Hidden" />
-                </StackPanel>
-            </Grid>
-
-            <!-- Row 4: Password | Confirm Password -->
-            <Grid ColumnSpacing="12" Margin="0,10,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <!-- Password -->
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Password" Style="{StaticResource FieldLabelStyle}" />
-                    <PasswordBox x:Name="FieldPassword"
-                                 PlaceholderText="Set a password"
-                                 PasswordRevealMode="Hidden" />
-                </StackPanel>
-
-                <!-- Confirm Password -->
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="Confirm Password" Style="{StaticResource FieldLabelStyle}" />
-                    <PasswordBox x:Name="FieldConfirmPassword"
-                                 PlaceholderText="Re-enter password"
-                                 PasswordRevealMode="Hidden" />
-                </StackPanel>
-            </Grid>
-        </StackPanel>
-
-        <!-- Divider -->
-        <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
-
-        <!-- ══════════════════════════════════════
-             SECTION 3 · Module Tier Cards
-        ══════════════════════════════════════ -->
-        <StackPanel Spacing="8">
-            <TextBlock Text="SELECT MODULE TIER" Style="{StaticResource SectionLabelStyle}" />
-
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <!-- BASIC -->
-                <Button x:Name="CardBasic"
-                Grid.Column="0"
-                Style="{StaticResource TierButtonStyle}"
-                Tag="Basic"
-                Click="TierCard_Click">
-                    <StackPanel Spacing="8">
-                        <StackPanel Spacing="1">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE91B;" FontSize="14" Foreground="#0078D4" />
-                                <TextBlock Text="Basic" FontSize="13" FontWeight="Bold" />
-                            </StackPanel>
-                            <TextBlock Text="Patient records only"
-                               FontSize="10"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-
-                        <StackPanel Spacing="4">
-
-                            <!-- Patient Records (Enabled) -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
-                                <TextBlock Text="Patient records" FontSize="11" />
-                            </StackPanel>
-
-                            <!-- Appointments (Disabled) -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE894;" FontSize="10"
-                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                <TextBlock Text="Appointments" FontSize="11"
-                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            </StackPanel>
-
-                            <!-- Service Menu (Disabled) -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE894;" FontSize="10"
-                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                <TextBlock Text="Service menu" FontSize="11"
-                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            </StackPanel>
-
-                            <!-- Procedures (Disabled) -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE894;" FontSize="10"
-                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                <TextBlock Text="Procedures" FontSize="11"
-                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            </StackPanel>
-
-                        </StackPanel>
-                    </StackPanel>
-                </Button>
-
-
-                <!-- STANDARD -->
-                <Button x:Name="CardStandard"
-                Grid.Column="1"
-                Style="{StaticResource TierButtonStyle}"
-                Tag="Standard"
-                Click="TierCard_Click">
-                    <StackPanel Spacing="8">
-                        <StackPanel Spacing="1">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE91B;" FontSize="14" Foreground="#7B2CBF" />
-                                <TextBlock Text="Standard" FontSize="13" FontWeight="Bold" />
-                            </StackPanel>
-                            <TextBlock Text="Patients + Service menu"
-                               FontSize="10"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-
-                        <StackPanel Spacing="4">
-
-                            <!-- Patient Records (Enabled) -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
-                                <TextBlock Text="Patient records" FontSize="11" />
-                            </StackPanel>
-
-                            <!-- Appointments (Disabled) -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE894;" FontSize="10"
-                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                <TextBlock Text="Appointments" FontSize="11"
-                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            </StackPanel>
-
-                            <!-- Service Menu (Enabled) -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
-                                <TextBlock Text="Service menu" FontSize="11" />
-                            </StackPanel>
-
-                            <!-- Procedures (Disabled) -->
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE894;" FontSize="10"
-                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                <TextBlock Text="Procedures" FontSize="11"
-                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            </StackPanel>
-
-                        </StackPanel>
-                    </StackPanel>
-                </Button>
-
-
-                <!-- PREMIUM -->
-                <Button x:Name="CardPremium"
-                Grid.Column="2"
-                Style="{StaticResource TierButtonStyle}"
-                Tag="Premium"
-                Click="TierCard_Click">
-                    <StackPanel Spacing="8">
-                        <StackPanel Spacing="1">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE734;" FontSize="14" Foreground="#D4A017" />
-                                <TextBlock Text="Premium" FontSize="13" FontWeight="Bold" />
-                            </StackPanel>
-                            <TextBlock Text="Full features"
-                               FontSize="10"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-
-                        <StackPanel Spacing="4">
-
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
-                                <TextBlock Text="Patient records" FontSize="11" />
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
-                                <TextBlock Text="Appointments" FontSize="11" />
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
-                                <TextBlock Text="Service menu" FontSize="11" />
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="#0EA47A" />
-                                <TextBlock Text="Procedures" FontSize="11" />
-                            </StackPanel>
-
-                        </StackPanel>
-                    </StackPanel>
-                </Button>
-
-            </Grid>
-        </StackPanel>
-
-        <!-- Validation InfoBar -->
-        <InfoBar
-            x:Name="ValidationBar"
-            IsOpen="False"
-            Severity="Error"
-            IsClosable="False" />
-
-    </StackPanel>
 </ContentDialog>

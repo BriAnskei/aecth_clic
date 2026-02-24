@@ -1,5 +1,6 @@
 ﻿using aesth_clic.Data;
 using aesth_clic.Models.Companies;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,19 +19,18 @@ namespace aesth_clic.Repository
         // ==============================
         // CREATE
         // ==============================
-        public async Task<int> CreateAsync(Company company)
+        public async Task<int> CreateAsync(
+     Company company,
+     MySqlConnection conn,
+     MySqlTransaction transaction)
         {
-            if (company == null)
-                throw new ArgumentNullException(nameof(company));
-
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
-
             using var cmd = conn.CreateCommand();
+            cmd.Transaction = transaction;
+
             cmd.CommandText = @"
-                INSERT INTO company (owner_id, name, status, module_tier)
-                VALUES (@owner_id, @name, @status, @module_tier);
-                SELECT LAST_INSERT_ID();";
+        INSERT INTO company (owner_id, name, status, module_tier)
+        VALUES (@owner_id, @name, @status, @module_tier);
+        SELECT LAST_INSERT_ID();";
 
             cmd.Parameters.AddWithValue("@owner_id", company.owner_id);
             cmd.Parameters.AddWithValue("@name", company.name);

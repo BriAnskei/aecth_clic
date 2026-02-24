@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using aesth_clic.Data;
+﻿using aesth_clic.Data;
 using aesth_clic.Models.Companies;
 using aesth_clic.Models.Users;
 using MySqlConnector;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 
 namespace aesth_clic.Repository
 {
@@ -14,21 +15,20 @@ namespace aesth_clic.Repository
 
         #region CREATE
 
-        public async Task<int> CreateAsync(User user)
+        public async Task<int> CreateAsync(
+       User user,
+       MySqlConnection conn,
+       MySqlTransaction transaction)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
-
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
-
             using var cmd = conn.CreateCommand();
+            cmd.Transaction = transaction;
+
             cmd.CommandText = @"
-                INSERT INTO users 
-                (full_name, email, username, password, phone_number, role, created_at)
-                VALUES
-                (@fullName, @email, @username, @password, @phoneNumber, @role, @createdAt);
-                SELECT LAST_INSER`T_ID();";
+        INSERT INTO users 
+        (full_name, email, username, password, phone_number, role, created_at)
+        VALUES
+        (@fullName, @email, @username, @password, @phoneNumber, @role, @createdAt);
+        SELECT LAST_INSERT_ID();";
 
             AddUserParameters(cmd, user);
 
@@ -59,12 +59,14 @@ namespace aesth_clic.Repository
 
 
 
-        public async Task<AdminClients> FindAdminClientByIdAsync(int userId)
+        public async Task<AdminClients> FindAdminClientByIdAsync(
+      int userId,
+      MySqlConnection conn,
+      MySqlTransaction transaction)
         {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
-
             using var cmd = conn.CreateCommand();
+            cmd.Transaction = transaction;
+
             cmd.CommandText = @"
         SELECT 
             u.id as user_id,
@@ -81,7 +83,7 @@ namespace aesth_clic.Repository
             c.status as company_status,
             c.module_tier
         FROM users u
-        INNER JOIN companies c ON u.id = c.owner_id
+        INNER JOIN company c ON u.id = c.owner_id
         WHERE u.id = @userId";
 
             cmd.Parameters.AddWithValue("@userId", userId);
@@ -90,15 +92,6 @@ namespace aesth_clic.Repository
 
             if (!await reader.ReadAsync())
                 throw new InvalidOperationException($"User with ID {userId} not found");
-
-            var user = MapUser(reader);
-
-            if(user is null || user.Role == null)
-                throw new ArgumentNullException(nameof(user));
-
-
-            if (!user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException($"User with ID {userId} is not an admin");
 
             return MapToAdminClient(reader);
         }
@@ -219,6 +212,11 @@ namespace aesth_clic.Repository
                 Role = reader.GetString("role"),
                 CreatedAt = reader.GetDateTime("created_at")
             };
+
+
+            if (!user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"User with ID {user.Id} is not an admin");
+
 
             var company = new Company
             {

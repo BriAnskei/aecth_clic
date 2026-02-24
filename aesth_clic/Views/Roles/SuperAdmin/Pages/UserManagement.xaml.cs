@@ -82,11 +82,12 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         // ── Single source of truth ───────────────────────────
         private readonly UserManagementViewModel _vm = new();
         // Add this field alongside _vm
-        private readonly UserController _userController = App.Services.GetRequiredService<UserController>();
 
+        private readonly UserController _userController;
         public UserManagement()
         {
             InitializeComponent();
+            _userController = App.Services.GetRequiredService<UserController>();
 
             // Load mock data into the ViewModel
             _vm.LoadMockData();
