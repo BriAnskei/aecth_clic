@@ -1,29 +1,32 @@
-﻿using aesth_clic.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using aesth_clic.Data;
 using aesth_clic.Models.Companies;
 using aesth_clic.Models.Users;
 using MySqlConnector;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 
 namespace aesth_clic.Repository
 {
     internal class UserRepository(DbConnectionFactory db)
     {
-        private readonly DbConnectionFactory _db = db ?? throw new ArgumentNullException(nameof(db));
+        private readonly DbConnectionFactory _db =
+            db ?? throw new ArgumentNullException(nameof(db));
 
         #region CREATE
 
         public async Task<int> CreateAsync(
-       User user,
-       MySqlConnection conn,
-       MySqlTransaction transaction)
+            User user,
+            MySqlConnection conn,
+            MySqlTransaction transaction
+        )
         {
             using var cmd = conn.CreateCommand();
             cmd.Transaction = transaction;
 
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
         INSERT INTO users 
         (full_name, email, username, password, phone_number, role, created_at)
         VALUES
@@ -50,24 +53,23 @@ namespace aesth_clic.Repository
             cmd.Parameters.AddWithValue("@id", id);
 
             using var reader = await cmd.ExecuteReaderAsync();
-            if (!await reader.ReadAsync()) return null;
+            if (!await reader.ReadAsync())
+                return null;
 
             return MapUser(reader);
         }
 
-
-
-
-
         public async Task<AdminClients> FindAdminClientByIdAsync(
-      int userId,
-      MySqlConnection conn,
-      MySqlTransaction transaction)
+            int userId,
+            MySqlConnection conn,
+            MySqlTransaction transaction
+        )
         {
             using var cmd = conn.CreateCommand();
             cmd.Transaction = transaction;
 
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
         SELECT 
             u.id as user_id,
             u.full_name,
@@ -96,8 +98,6 @@ namespace aesth_clic.Repository
             return MapToAdminClient(reader);
         }
 
-
-
         public async Task<User?> GetByUsernameAsync(string username)
         {
             using var conn = _db.GetConnection();
@@ -108,7 +108,8 @@ namespace aesth_clic.Repository
             cmd.Parameters.AddWithValue("@username", username);
 
             using var reader = await cmd.ExecuteReaderAsync();
-            if (!await reader.ReadAsync()) return null;
+            if (!await reader.ReadAsync())
+                return null;
 
             return MapUser(reader);
         }
@@ -133,7 +134,6 @@ namespace aesth_clic.Repository
             return users;
         }
 
-
         public async Task<List<AdminClients>> GetAllAdminsAsync()
         {
             var admins = new List<AdminClients>();
@@ -143,7 +143,8 @@ namespace aesth_clic.Repository
 
             using var cmd = conn.CreateCommand();
 
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
         SELECT 
             u.id as user_id,
             u.full_name,
@@ -173,31 +174,40 @@ namespace aesth_clic.Repository
             return admins;
         }
 
-
-
-
         #endregion
 
         #region UPDATE
 
-        public async Task<bool> UpdateAsync(User user)
+        public async Task<bool> UpdateUserAsync(
+            User user,
+            MySqlConnection conn,
+            MySqlTransaction transaction
+        )
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
-
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                UPDATE users SET
-                    full_name = @fullName,
-                    email = @email,
-                    username = @username,
-                    password = @password,
-                    phone_number = @phoneNumber,
-                    role = @role
-                WHERE id = @id";
+            cmd.Transaction = transaction;
+
+            var query = new StringBuilder();
+            query.AppendLine("UPDATE users SET");
+            query.AppendLine("    full_name = @fullName,");
+            query.AppendLine("    email = @email,");
+            query.AppendLine("    username = @username,");
+            query.AppendLine("    phone_number = @phoneNumber,");
+            query.AppendLine("    role = @role");
+
+            // Only update password if provided
+            if (!string.IsNullOrWhiteSpace(user.Password))
+            {
+                query.AppendLine("    ,password = @password");
+                cmd.Parameters.AddWithValue("@password", user.Password);
+            }
+
+            query.AppendLine("WHERE id = @id");
+
+            cmd.CommandText = query.ToString();
 
             AddUserParameters(cmd, user);
             cmd.Parameters.AddWithValue("@id", user.Id);
@@ -232,13 +242,9 @@ namespace aesth_clic.Repository
             cmd.Parameters.AddWithValue("@fullName", user.FullName);
             cmd.Parameters.AddWithValue("@email", user.Email);
             cmd.Parameters.AddWithValue("@username", user.Username);
-            cmd.Parameters.AddWithValue("@password", user.Password);
-            cmd.Parameters.AddWithValue("@phoneNumber",
-                user.PhoneNumber ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@phoneNumber", user.PhoneNumber ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@role", user.Role);
-            cmd.Parameters.AddWithValue("@createdAt", user.CreatedAt);
         }
-
 
         private static AdminClients MapToAdminClient(MySqlDataReader reader)
         {
@@ -253,13 +259,11 @@ namespace aesth_clic.Repository
                     ? null
                     : reader.GetString("phone_number"),
                 Role = reader.GetString("role"),
-                CreatedAt = reader.GetDateTime("created_at")
+                CreatedAt = reader.GetDateTime("created_at"),
             };
-
 
             if (!user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException($"User with ID {user.Id} is not an admin");
-
 
             var company = new Company
             {
@@ -267,7 +271,7 @@ namespace aesth_clic.Repository
                 owner_id = reader.GetInt32("owner_id"),
                 name = reader.GetString("company_name"),
                 status = reader.GetString("company_status"),
-                module_tier = reader.GetString("module_tier")
+                module_tier = reader.GetString("module_tier"),
             };
 
             return new AdminClients(user, company);
@@ -282,8 +286,8 @@ namespace aesth_clic.Repository
                 username: reader.GetString("username"),
                 password: reader.GetString("password"),
                 phoneNumber: reader.IsDBNull(reader.GetOrdinal("phone_number"))
-                                ? null
-                                : reader.GetString("phone_number"),
+                    ? null
+                    : reader.GetString("phone_number"),
                 role: reader.GetString("role"),
                 createdAt: reader.GetDateTime("created_at")
             );

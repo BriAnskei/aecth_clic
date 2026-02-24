@@ -30,7 +30,16 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
 
         private void OnConfirmClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
+            // Show a brief busy state in the dialog before it closes
             Confirmed = true;
+            SetSavingState(true);
+        }
+
+        private void SetSavingState(bool isSaving)
+        {
+            IsPrimaryButtonEnabled = !isSaving;
+            IsSecondaryButtonEnabled = !isSaving;
+            SavingOverlay.Visibility = isSaving ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
         }
     }
 }

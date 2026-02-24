@@ -14,71 +14,98 @@
         </Style>
     </ContentDialog.Resources>
 
-    <StackPanel Spacing="16" Width="420">
+    <!-- Root Grid so we can layer a loading overlay on top -->
+    <Grid>
 
-        <!-- Icon + Heading -->
-        <StackPanel HorizontalAlignment="Center" Spacing="12">
-            <Border
-                Width="72" Height="72"
-                CornerRadius="36"
-                Background="#1AD83B01"
-                HorizontalAlignment="Center">
-                <FontIcon
-                    Glyph="&#xEA8C;"
-                    FontSize="32"
-                    Foreground="#D83B01"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center" />
-            </Border>
+        <StackPanel Spacing="16" Width="420">
 
-            <TextBlock
-                x:Name="ClientNameText"
-                Text="Client Name"
-                FontSize="16"
-                FontWeight="SemiBold"
-                HorizontalAlignment="Center"
-                TextAlignment="Center"
-                Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-        </StackPanel>
+            <!-- Icon + Heading -->
+            <StackPanel HorizontalAlignment="Center" Spacing="12">
+                <Border
+                    Width="72" Height="72"
+                    CornerRadius="36"
+                    Background="#1AD83B01"
+                    HorizontalAlignment="Center">
+                    <FontIcon
+                        Glyph="&#xEA8C;"
+                        FontSize="32"
+                        Foreground="#D83B01"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center" />
+                </Border>
 
-        <!-- Divider -->
-        <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
-
-        <!-- Warning message -->
-        <StackPanel Spacing="8">
-            <TextBlock
-                Text="Are you sure you want to deactivate this client account?"
-                FontSize="13"
-                TextWrapping="Wrap"
-                Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-
-            <TextBlock
-                Text="The client will no longer be able to log in to the system. You can reactivate this account at any time from the client management page."
-                FontSize="12"
-                TextWrapping="Wrap"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        </StackPanel>
-
-        <!-- Info strip -->
-        <Border
-            Background="#1AD83B01"
-            BorderBrush="#40D83B01"
-            BorderThickness="1"
-            CornerRadius="6"
-            Padding="12,10">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <FontIcon
-                    Glyph="&#xE783;"
-                    FontSize="14"
-                    Foreground="#D83B01"
-                    VerticalAlignment="Top" />
                 <TextBlock
-                    Text="This action is reversible. The client's data and settings will be preserved."
+                    x:Name="ClientNameText"
+                    Text="Client Name"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    HorizontalAlignment="Center"
+                    TextAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+            </StackPanel>
+
+            <!-- Divider -->
+            <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+            <!-- Warning message -->
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Text="Are you sure you want to deactivate this client account?"
+                    FontSize="13"
+                    TextWrapping="Wrap"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+
+                <TextBlock
+                    Text="The client will no longer be able to log in to the system. You can reactivate this account at any time from the client management page."
                     FontSize="12"
                     TextWrapping="Wrap"
-                    Foreground="#D83B01" />
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
+            <!-- Info strip -->
+            <Border
+                Background="#1AD83B01"
+                BorderBrush="#40D83B01"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,10">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <FontIcon
+                        Glyph="&#xE783;"
+                        FontSize="14"
+                        Foreground="#D83B01"
+                        VerticalAlignment="Top" />
+                    <TextBlock
+                        Text="This action is reversible. The client's data and settings will be preserved."
+                        FontSize="12"
+                        TextWrapping="Wrap"
+                        Foreground="#D83B01" />
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+
+        <!-- Loading overlay shown when the modal enters a busy state -->
+        <Border
+            x:Name="SavingOverlay"
+            Visibility="Collapsed"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            Opacity="0.90"
+            CornerRadius="8">
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <ProgressRing IsActive="True" Width="20" Height="20" />
+                <TextBlock
+                    x:Name="SavingText"
+                    Text="Deactivating…"
+                    VerticalAlignment="Center"
+                    FontSize="13"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>
         </Border>
 
-    </StackPanel>
+    </Grid>
 </ContentDialog>

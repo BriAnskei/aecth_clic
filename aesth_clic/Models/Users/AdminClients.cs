@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using aesth_clic.Models.Companies;
-using aesth_clic.Models;
 
 namespace aesth_clic.Models.Users
 {
@@ -13,9 +8,19 @@ namespace aesth_clic.Models.Users
         public User? User { get; set; }
         public Company? Company { get; set; }
 
-            public AdminClients(User? user, Company? companies) { 
-            
-            User = user; Company = companies;
+        public AdminClients(User? user, Company? companies)
+        {
+            User = user;
+            Company = companies;
+        }
+
+        public void ValidateAdminClient()
+        {
+            if (User is null)
+                throw new ArgumentException("User cannot be null.");
+
+            if (Company is null)
+                throw new ArgumentException("Company cannot be null.");
         }
     }
 }

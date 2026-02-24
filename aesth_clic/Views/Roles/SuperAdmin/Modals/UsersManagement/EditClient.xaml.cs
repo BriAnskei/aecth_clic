@@ -1,8 +1,8 @@
+using System;
+using System.Diagnostics;
 using aesth_clic.Views.Roles.SuperAdmin.Pages;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
-using System.Diagnostics;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace aesth_clic.Views.Roles.SuperAdmin.Modals
@@ -56,29 +56,24 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             FieldPhone.Text = _user.Phone;
             FieldClinicName.Text = _user.ClinicName;
 
-            // Username: UserItem doesn't store it separately yet,
-            // so we use a sensible mock derived from the email local-part.
-            // Replace this with real data once the model is wired to the DB.
-            string mockUsername = _user.Email.Contains('@')
-                ? _user.Email.Split('@')[0]
-                : _user.Email;
-            FieldUsername.Password = mockUsername;
-
-            // Password fields intentionally left blank ("leave blank to keep" pattern)
+            FieldUsername.Password = _user.Username;
         }
 
         // ── Save handler ───────────────────────────────────────
         private void OnSaveClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
             // Validate personal info (all four fields required)
-            if (string.IsNullOrWhiteSpace(FieldFullName.Text) ||
-                string.IsNullOrWhiteSpace(FieldEmail.Text) ||
-                string.IsNullOrWhiteSpace(FieldPhone.Text) ||
-                string.IsNullOrWhiteSpace(FieldClinicName.Text))
+            if (
+                string.IsNullOrWhiteSpace(FieldFullName.Text)
+                || string.IsNullOrWhiteSpace(FieldEmail.Text)
+                || string.IsNullOrWhiteSpace(FieldPhone.Text)
+                || string.IsNullOrWhiteSpace(FieldClinicName.Text)
+            )
             {
-                args.Cancel = true;          // keep dialog open
+                args.Cancel = true; // keep dialog open
                 ValidationBar.Title = "Missing information";
-                ValidationBar.Message = "Full Name, Email, Phone, and Clinic Name are all required.";
+                ValidationBar.Message =
+                    "Full Name, Email, Phone, and Clinic Name are all required.";
                 ValidationBar.IsOpen = true;
                 return;
             }
@@ -120,7 +115,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
                 PhoneNumber = FieldPhone.Text.Trim(),
                 ClinicName = FieldClinicName.Text.Trim(),
                 Username = FieldUsername.Password.Trim(),
-                Password = newPassword
+                Password = newPassword,
             };
 
             // ── Console / Debug output ─────────────────────────
@@ -131,7 +126,9 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             Debug.WriteLine($"  Phone      : {Result.PhoneNumber}");
             Debug.WriteLine($"  Clinic     : {Result.ClinicName}");
             Debug.WriteLine($"  Username   : {Result.Username}");
-            Debug.WriteLine($"  Password   : {(Result.Password is null ? "(unchanged)" : "*** (updated)")}");
+            Debug.WriteLine(
+                $"  Password   : {(Result.Password is null ? "(unchanged)" : "*** (updated)")}"
+            );
             Debug.WriteLine("─────────────────────────────────────");
         }
 
@@ -172,11 +169,17 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             var rng = new Random();
 
             // Username: "user" + 4 random digits  e.g. user3821
-            string username = "user" + string.Create(4, rng, (buf, r) =>
-            {
-                for (int i = 0; i < buf.Length; i++)
-                    buf[i] = digits[r.Next(digits.Length)];
-            });
+            string username =
+                "user"
+                + string.Create(
+                    4,
+                    rng,
+                    (buf, r) =>
+                    {
+                        for (int i = 0; i < buf.Length; i++)
+                            buf[i] = digits[r.Next(digits.Length)];
+                    }
+                );
 
             // Password: 10 chars guaranteed to contain at least one letter,
             // one digit, and one special character
@@ -193,7 +196,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
                 int j = rng.Next(i + 1);
                 (pwd[i], pwd[j]) = (pwd[j], pwd[i]);
             }
-            string password = new string(pwd);
+            string password = new(pwd);
 
             FieldUsername.Password = username;
             FieldPassword.Password = password;

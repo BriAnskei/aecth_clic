@@ -1,9 +1,9 @@
-﻿using aesth_clic.Data;
-using aesth_clic.Models.Companies;
-using MySqlConnector;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using aesth_clic.Data;
+using aesth_clic.Models.Companies;
+using MySqlConnector;
 
 namespace aesth_clic.Repository
 {
@@ -20,14 +20,16 @@ namespace aesth_clic.Repository
         // CREATE
         // ==============================
         public async Task<int> CreateAsync(
-     Company company,
-     MySqlConnection conn,
-     MySqlTransaction transaction)
+            Company company,
+            MySqlConnection conn,
+            MySqlTransaction transaction
+        )
         {
             using var cmd = conn.CreateCommand();
             cmd.Transaction = transaction;
 
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
         INSERT INTO company (owner_id, name, status, module_tier)
         VALUES (@owner_id, @name, @status, @module_tier);
         SELECT LAST_INSERT_ID();";
@@ -50,7 +52,8 @@ namespace aesth_clic.Repository
             await conn.OpenAsync();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
                 SELECT id, owner_id, name, status, module_tier
                 FROM company
                 WHERE id = @id
@@ -75,7 +78,8 @@ namespace aesth_clic.Repository
             await conn.OpenAsync();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
                 SELECT id, owner_id, name, status, module_tier
                 FROM company
                 WHERE owner_id = @owner_id
@@ -102,7 +106,8 @@ namespace aesth_clic.Repository
             await conn.OpenAsync();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
                 SELECT id, owner_id, name, status, module_tier
                 FROM company";
 
@@ -119,30 +124,76 @@ namespace aesth_clic.Repository
         // ==============================
         // UPDATE
         // ==============================
-        public async Task<bool> UpdateAsync(Company company)
+        public async Task<bool> Updatetier(int id, string newTier)
         {
-            if (company == null)
-                throw new ArgumentNullException(nameof(company));
+            if (id == 0)
+                throw new ArgumentNullException("Invalid id");
 
             using var conn = _db.GetConnection();
             await conn.OpenAsync();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
                 UPDATE company
-                SET owner_id = @owner_id,
-                    name = @name,
-                    status = @status,
+                SET
                     module_tier = @module_tier
                 WHERE id = @id";
 
-            cmd.Parameters.AddWithValue("@id", company.id);
-            cmd.Parameters.AddWithValue("@owner_id", company.owner_id);
-            cmd.Parameters.AddWithValue("@name", company.name);
-            cmd.Parameters.AddWithValue("@status", company.status);
-            cmd.Parameters.AddWithValue("@module_tier", company.module_tier);
+            cmd.Parameters.AddWithValue("@module_tier", newTier);
+            cmd.Parameters.AddWithValue("@id", id);
 
             var rowsAffected = await cmd.ExecuteNonQueryAsync();
+            return rowsAffected > 0;
+        }
+
+        public async Task UpdateCompanyNameAsync(
+            Company company,
+            MySqlConnection conn,
+            MySqlTransaction transaction
+        )
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.Transaction = transaction;
+
+            cmd.CommandText =
+                @"
+        UPDATE company
+        SET name = @name
+        WHERE owner_id = @ownerId";
+
+            cmd.Parameters.AddWithValue("@name", company.name);
+            cmd.Parameters.AddWithValue("@ownerId", company.owner_id);
+
+            var affected = await cmd.ExecuteNonQueryAsync();
+
+            if (affected == 0)
+                throw new InvalidOperationException("Company was not updated.");
+        }
+
+        public async Task<bool> UpdateStatusAsync(int ownerId, string newStatus)
+        {
+            if (ownerId <= 0)
+                throw new ArgumentException("Invalid company ID.", nameof(ownerId));
+
+            if (string.IsNullOrWhiteSpace(newStatus))
+                throw new ArgumentException("Status cannot be empty.", nameof(newStatus));
+
+            using var conn = _db.GetConnection();
+            await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText =
+                @"
+        UPDATE company
+        SET status = @status
+        WHERE owner_id = @id";
+
+            cmd.Parameters.AddWithValue("@status", newStatus);
+            cmd.Parameters.AddWithValue("@id", ownerId);
+
+            var rowsAffected = await cmd.ExecuteNonQueryAsync();
+
             return rowsAffected > 0;
         }
 
@@ -155,7 +206,8 @@ namespace aesth_clic.Repository
             await conn.OpenAsync();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
+            cmd.CommandText =
+                @"
                 DELETE FROM company
                 WHERE id = @id";
 
@@ -165,7 +217,6 @@ namespace aesth_clic.Repository
             return rowsAffected > 0;
         }
 
-  
         private Company MapCompany(dynamic reader)
         {
             return new Company(
