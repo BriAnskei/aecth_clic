@@ -6,7 +6,7 @@ using aesth_clic.Services.AccountsServices;
 
 namespace aesth_clic.Controller
 {
-    internal class UserController(UserService userService)
+    internal class UserController_superAdmin(UserService userService)
     {
         private readonly UserService _userService =
             userService ?? throw new ArgumentNullException(nameof(userService));
@@ -16,9 +16,7 @@ namespace aesth_clic.Controller
         // ==============================
         public async Task<AdminClients> CreateAdminClientAsync(AdminClients adminClient)
         {
-            if (adminClient is null)
-                throw new ArgumentNullException(nameof(adminClient));
-
+            adminClient.ValidateAdminClient();
             return await _userService.CreateAdminClientAsync(adminClient);
         }
 

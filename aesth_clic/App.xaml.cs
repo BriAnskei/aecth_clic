@@ -45,7 +45,7 @@ namespace aesth_clic
 
             // Controllers
             services.AddTransient<AuthController>();
-            services.AddTransient<UserController>();
+            services.AddTransient<UserController_superAdmin>();
             services.AddTransient<CompanyController>();
 
             return services.BuildServiceProvider();

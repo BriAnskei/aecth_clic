@@ -128,13 +128,13 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
     public sealed partial class UserManagement : Page
     {
         private readonly UserManagementViewModel _vm = new();
-        private readonly UserController _userController;
+        private readonly UserController_superAdmin _userController;
         private readonly CompanyController _companyController;
 
         public UserManagement()
         {
             InitializeComponent();
-            _userController = App.Services.GetRequiredService<UserController>();
+            _userController = App.Services.GetRequiredService<UserController_superAdmin>();
             _companyController = App.Services.GetRequiredService<CompanyController>();
 
             UserListControl.ItemsSource = _vm.DisplayedUsers;

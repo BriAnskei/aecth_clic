@@ -26,11 +26,9 @@ namespace aesth_clic.Services.AccountsServices
             return await _transactionManager.ExecuteAsync(
                 async (conn, transaction) =>
                 {
-                    User? newUserData = adminClient.User;
-                    Company? company = adminClient.Company;
-
-                    if (newUserData is null || company is null)
-                        throw new ArgumentNullException("User or Company cannot be null.");
+                    // already validated, so we can safely access these properties
+                    User newUserData = adminClient.User!;
+                    Company company = adminClient.Company!;
 
                     BycrptUtil.HashUserPassword(newUserData);
 

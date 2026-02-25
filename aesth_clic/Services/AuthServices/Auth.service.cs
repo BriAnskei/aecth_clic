@@ -1,15 +1,16 @@
-﻿using aesth_clic.Models.Users;
+﻿using System.Threading.Tasks;
 using aesth_clic.Models.Companies;
+using aesth_clic.Models.Users;
 using aesth_clic.Repository;
-
-using System.Threading.Tasks;
+using aesth_clic.Util;
 
 namespace aesth_clic.Services.AuthServices
 {
     internal class AuthService(
         UserRepository userRepository,
         CompanyRepository companyRepository,
-        AccountStatusRepository accountStatusRepository)
+        AccountStatusRepository accountStatusRepository
+    )
     {
         private readonly UserRepository _userRepository = userRepository;
         private readonly CompanyRepository _companyRepository = companyRepository;
@@ -17,16 +18,23 @@ namespace aesth_clic.Services.AuthServices
 
         private const string SuperAdminRole = "super_admin";
 
-        public async Task<(bool Success, string Message)> LoginAsync(string username, string password, string role)
+        public async Task<(bool Success, string Message)> LoginAsync(
+            string username,
+            string password,
+            string role
+        )
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 return (false, "Username and password are required.");
 
             var user = await _userRepository.GetByUsernameAsync(username);
 
-            if (user is null ||
-                !VerifyPassword(password, user.Password!) ||
-                user.Role != role)
+            bool isPasswordValid = BycrptUtil.VerifyPassword(
+                password,
+                user?.Password ?? string.Empty
+            );
+
+            if (user is null || isPasswordValid || user.Role != role)
             {
                 return (false, "Invalid username or password.");
             }
@@ -77,11 +85,6 @@ namespace aesth_clic.Services.AuthServices
             return (true, "Access granted");
         }
 
-        private static bool VerifyPassword(string inputPassword, string storedPassword)
-        {
-            return BCrypt.Net.BCrypt.Verify(inputPassword, storedPassword);
-        }
-
         private async Task BuildSessionAsync(User user)
         {
             if (user.Role == SuperAdminRole)
@@ -92,10 +95,7 @@ namespace aesth_clic.Services.AuthServices
 
             var company = await _companyRepository.GetCompanyByOwnerIdAsync(user.Id);
 
-            _ = new UserSession(
-                user,
-                company ?? new Company()
-            );
+            _ = new UserSession(user, company ?? new Company());
         }
 
         public void Logout()
