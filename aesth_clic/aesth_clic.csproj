@@ -14,10 +14,17 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Views\Roles\Admin\Modal\**" />
+    <EmbeddedResource Remove="Views\Roles\Admin\Modal\**" />
+    <None Remove="Views\Roles\Admin\Modal\**" />
+    <Page Remove="Views\Roles\Admin\Modal\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="Views\BlankPage.xaml" />
     <None Remove="Views\LoginPage.xaml" />
     <None Remove="Views\RoleSelectionPage .xaml" />
     <None Remove="Views\Roles\AdminClientShell.xaml" />
+    <None Remove="Views\Roles\Admin\Modals\UsersManagement\AddNewUser.xaml" />
     <None Remove="Views\Roles\Admin\Pages\AdminDashboard.xaml" />
     <None Remove="Views\Roles\Admin\Pages\TermsAndConditions.xaml" />
     <None Remove="Views\Roles\Admin\Pages\UsersManagement.xaml" />
@@ -80,7 +87,7 @@
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Views\Roles\Admin\Modal\" />
+    <Folder Include="Services\AdminServices\" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\SuperAdmin\Modals\UsersManagement\DeleteClient.xaml">
@@ -193,11 +200,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\Roles\Admin\Pages\AdminDashboard.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
     <Page Update="Views\Roles\SuperAdmin\Pages\PaymentManagement.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -262,4 +264,17 @@
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <ItemGroup>
+    <PRIResource Remove="Views\Roles\Admin\Modal\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Admin\Modals\UsersManagement\AddNewUser.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Admin\Pages\AdminDashboard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 </Project>

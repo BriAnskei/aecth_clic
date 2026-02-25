@@ -1,0 +1,308 @@
+<ContentDialog
+  x:Class="aesth_clic.Views.Roles.Admin.Modals.AddNewUser"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Title="Add New User"
+  PrimaryButtonText="Save User"
+  CloseButtonText="Cancel"
+  DefaultButton="Primary"
+  PrimaryButtonClick="OnSaveClicked"
+>
+  <ContentDialog.Resources>
+    <!-- Dialog background -->
+    <SolidColorBrush x:Key="ContentDialogBackground" Color="White" />
+    <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#E4DAF5" />
+    <SolidColorBrush x:Key="ContentDialogTopOverlayBackground" Color="White" />
+    <SolidColorBrush x:Key="ContentDialogButtonAreaBackground" Color="White" />
+
+    <!-- Fix invisible Cancel button -->
+    <SolidColorBrush x:Key="ContentDialogForeground" Color="#2D1554" />
+    <SolidColorBrush x:Key="ContentDialogCloseButtonForeground" Color="#5B2D8E" />
+    <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPointerOver" Color="#2D1554" />
+    <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPressed" Color="#2D1554" />
+    <SolidColorBrush x:Key="ContentDialogCloseButtonBackground" Color="White" />
+    <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPointerOver" Color="#EDE4F9" />
+    <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPressed" Color="#E4DAF5" />
+
+    <!-- Fix TextBox text invisible when unfocused -->
+    <SolidColorBrush x:Key="TextControlForeground" Color="#2D1554" />
+    <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#2D1554" />
+    <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#2D1554" />
+    <SolidColorBrush x:Key="TextControlForegroundDisabled" Color="#9B80C4" />
+    <SolidColorBrush x:Key="TextControlBackground" Color="White" />
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FAFAFA" />
+    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="White" />
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#5B2D8E" />
+
+    <!-- Fix PasswordBox text invisible when unfocused -->
+    <SolidColorBrush x:Key="TextControlPasswordCharacterForeground" Color="#2D1554" />
+
+    <!-- Fix ComboBox text invisible when unfocused -->
+    <SolidColorBrush x:Key="ComboBoxForeground" Color="#2D1554" />
+    <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#2D1554" />
+    <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="#2D1554" />
+    <SolidColorBrush x:Key="ComboBoxForegroundDisabled" Color="#9B80C4" />
+    <SolidColorBrush x:Key="ComboBoxBackground" Color="White" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#FAFAFA" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="White" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#E4DAF5" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#9B80C4" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrushFocused" Color="#5B2D8E" />
+
+    <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#9B80C4" />
+      <Setter Property="CharacterSpacing" Value="50" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#2D1554" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style x:Key="FieldHintStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Foreground" Value="#9B80C4" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style x:Key="HeaderIconButtonStyle" TargetType="Button">
+      <Setter Property="Padding" Value="6,3" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Background" Value="#EDE4F9" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="#5B2D8E" />
+    </Style>
+  </ContentDialog.Resources>
+
+  <Grid>
+    <!-- MAIN FORM -->
+    <StackPanel Spacing="16" Width="500">
+      <!-- SECTION 1 · Personal Information -->
+      <StackPanel Spacing="4">
+        <TextBlock Text="PERSONAL INFORMATION" Style="{StaticResource SectionLabelStyle}" />
+
+        <!-- Full Name | Email -->
+        <Grid ColumnSpacing="12" Margin="0,6,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Column="0">
+            <TextBlock Text="Full Name" Style="{StaticResource FieldLabelStyle}" />
+            <TextBox
+              x:Name="FieldFullName"
+              PlaceholderText="e.g. Maria Santos"
+              BorderBrush="#E4DAF5"
+              CornerRadius="6"
+            />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1">
+            <TextBlock Text="Email Address" Style="{StaticResource FieldLabelStyle}" />
+            <TextBox
+              x:Name="FieldEmail"
+              PlaceholderText="e.g. maria@clinic.com"
+              BorderBrush="#E4DAF5"
+              CornerRadius="6"
+            />
+          </StackPanel>
+        </Grid>
+
+        <!-- Phone | Role -->
+        <Grid ColumnSpacing="12" Margin="0,10,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Column="0">
+            <TextBlock Text="Phone Number" Style="{StaticResource FieldLabelStyle}" />
+            <TextBox
+              x:Name="FieldPhone"
+              PlaceholderText="e.g. 09XX-XXX-XXXX"
+              BorderBrush="#E4DAF5"
+              CornerRadius="6"
+            />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1">
+            <TextBlock Text="Role" Style="{StaticResource FieldLabelStyle}" />
+            <ComboBox
+              x:Name="FieldRole"
+              PlaceholderText="Select a role"
+              HorizontalAlignment="Stretch"
+              BorderBrush="#E4DAF5"
+              CornerRadius="6"
+            >
+              <ComboBoxItem Content="Doctor" Tag="Doctor" />
+              <ComboBoxItem Content="Receptionist" Tag="Receptionist" />
+              <ComboBoxItem Content="Pharmacist" Tag="Pharmacist" />
+            </ComboBox>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+
+      <!-- Divider -->
+      <Border Height="1" Background="#E4DAF5" />
+
+      <!-- SECTION 2 · Login Credentials -->
+      <StackPanel Spacing="4">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Column="0" VerticalAlignment="Center">
+            <TextBlock
+              Text="LOGIN CREDENTIALS"
+              Style="{StaticResource SectionLabelStyle}"
+              Margin="0"
+            />
+            <TextBlock
+              Text="These will be used by the staff to log in to the system."
+              Style="{StaticResource FieldHintStyle}"
+              Margin="0"
+            />
+          </StackPanel>
+
+          <StackPanel
+            Grid.Column="1"
+            Orientation="Horizontal"
+            Spacing="4"
+            VerticalAlignment="Center"
+          >
+            <Button
+              Click="ToggleUsername_Click"
+              Style="{StaticResource HeaderIconButtonStyle}"
+              ToolTipService.ToolTip="Show / Hide Username"
+            >
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <FontIcon
+                  x:Name="ToggleUsernameIcon"
+                  Glyph="&#xE7B3;"
+                  FontSize="12"
+                  Foreground="#5B2D8E"
+                />
+                <TextBlock Text="User" FontSize="11" Foreground="#5B2D8E" />
+              </StackPanel>
+            </Button>
+            <Button
+              Click="TogglePassword_Click"
+              Style="{StaticResource HeaderIconButtonStyle}"
+              ToolTipService.ToolTip="Show / Hide Password"
+            >
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <FontIcon
+                  x:Name="TogglePasswordIcon"
+                  Glyph="&#xE7B3;"
+                  FontSize="12"
+                  Foreground="#5B2D8E"
+                />
+                <TextBlock Text="Pass" FontSize="11" Foreground="#5B2D8E" />
+              </StackPanel>
+            </Button>
+            <Button
+              Click="CopyCredentials_Click"
+              Style="{StaticResource HeaderIconButtonStyle}"
+              ToolTipService.ToolTip="Copy username and password to clipboard"
+            >
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <FontIcon Glyph="&#xE8C8;" FontSize="12" Foreground="#5B2D8E" />
+                <TextBlock Text="Copy" FontSize="11" Foreground="#5B2D8E" />
+              </StackPanel>
+            </Button>
+            <Button
+              Click="GenerateCredentials_Click"
+              Style="{StaticResource HeaderIconButtonStyle}"
+              ToolTipService.ToolTip="Auto-generate username and password"
+            >
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <FontIcon Glyph="&#xE72E;" FontSize="12" Foreground="#5B2D8E" />
+                <TextBlock Text="Generate" FontSize="11" Foreground="#5B2D8E" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Grid>
+
+        <!-- Username -->
+        <Grid Margin="0,6,0,0">
+          <StackPanel>
+            <TextBlock Text="Username" Style="{StaticResource FieldLabelStyle}" />
+            <PasswordBox
+              x:Name="FieldUsername"
+              PlaceholderText="Set a login username"
+              PasswordRevealMode="Hidden"
+              BorderBrush="#E4DAF5"
+              CornerRadius="6"
+            />
+          </StackPanel>
+        </Grid>
+
+        <!-- Password | Confirm Password -->
+        <Grid ColumnSpacing="12" Margin="0,10,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Column="0">
+            <TextBlock Text="Password" Style="{StaticResource FieldLabelStyle}" />
+            <PasswordBox
+              x:Name="FieldPassword"
+              PlaceholderText="Set a password"
+              PasswordRevealMode="Hidden"
+              BorderBrush="#E4DAF5"
+              CornerRadius="6"
+            />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1">
+            <TextBlock Text="Confirm Password" Style="{StaticResource FieldLabelStyle}" />
+            <PasswordBox
+              x:Name="FieldConfirmPassword"
+              PlaceholderText="Re-enter password"
+              PasswordRevealMode="Hidden"
+              BorderBrush="#E4DAF5"
+              CornerRadius="6"
+            />
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+
+      <!-- Validation InfoBar -->
+      <InfoBar x:Name="ValidationBar" IsOpen="False" Severity="Error" IsClosable="False" />
+    </StackPanel>
+
+    <!-- LOADING OVERLAY -->
+    <Border
+      x:Name="SavingOverlay"
+      Visibility="Collapsed"
+      Background="White"
+      Opacity="0.90"
+      CornerRadius="8"
+    >
+      <StackPanel
+        Orientation="Horizontal"
+        Spacing="10"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+      >
+        <ProgressRing IsActive="True" Width="20" Height="20" Foreground="#5B2D8E" />
+        <TextBlock
+          Text="Saving user…"
+          VerticalAlignment="Center"
+          FontSize="13"
+          Foreground="#9B80C4"
+        />
+      </StackPanel>
+    </Border>
+  </Grid>
+</ContentDialog>
