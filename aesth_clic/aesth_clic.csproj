@@ -24,7 +24,6 @@
     <None Remove="Views\LoginPage.xaml" />
     <None Remove="Views\RoleSelectionPage .xaml" />
     <None Remove="Views\Roles\AdminClientShell.xaml" />
-    <None Remove="Views\Roles\Admin\Modals\UsersManagement\AddNewUser.xaml" />
     <None Remove="Views\Roles\Admin\Pages\AdminDashboard.xaml" />
     <None Remove="Views\Roles\Admin\Pages\TermsAndConditions.xaml" />
     <None Remove="Views\Roles\Admin\Pages\UsersManagement.xaml" />
@@ -268,7 +267,7 @@
     <PRIResource Remove="Views\Roles\Admin\Modal\**" />
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\Roles\Admin\Modals\UsersManagement\AddNewUser.xaml">
+    <Page Update="Views\Roles\Admin\Modals\UsersManagement\UserForm.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

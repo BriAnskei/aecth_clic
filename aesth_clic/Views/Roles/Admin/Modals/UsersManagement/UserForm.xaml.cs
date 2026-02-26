@@ -12,10 +12,45 @@ namespace aesth_clic.Views.Roles.Admin.Modals
 
         private bool _usernameVisible = false;
         private bool _passwordVisible = false;
+        private bool _isEditMode = false;
 
         public AddNewUser()
         {
             InitializeComponent();
+        }
+
+        // ─────────────────────────────────────────
+        // EDIT MODE — call this before ShowAsync()
+        // ─────────────────────────────────────────
+        public void LoadForEdit(
+            string fullName,
+            string email,
+            string phone,
+            string role,
+            string username
+        )
+        {
+            _isEditMode = true;
+
+            Title = "Edit User";
+            PrimaryButtonText = "Save Changes";
+
+            FieldFullName.Text = fullName;
+            FieldEmail.Text = email;
+            FieldPhone.Text = phone;
+            FieldUsername.Password = username;
+
+            foreach (var item in FieldRole.Items)
+            {
+                if (item is ComboBoxItem cbi && cbi.Tag?.ToString() == role)
+                {
+                    FieldRole.SelectedItem = cbi;
+                    break;
+                }
+            }
+
+            // Password fields are optional in edit mode — show hint
+            PasswordEditHint.Visibility = Visibility.Visible;
         }
 
         // ─────────────────────────────────────────
@@ -56,14 +91,11 @@ namespace aesth_clic.Views.Roles.Admin.Modals
 
         // ─────────────────────────────────────────
         // GENERATE CREDENTIALS
-        //   Username: <first_word_of_fullname>_staff + 4 random digits
-        //   Password: secure random 12-char string
         // ─────────────────────────────────────────
         private void GenerateCredentials_Click(object sender, RoutedEventArgs e)
         {
             var rng = new Random(Environment.TickCount);
 
-            // Username — based on full name
             string fullName = FieldFullName.Text.Trim();
             string firstWord = string.Empty;
 
@@ -79,7 +111,6 @@ namespace aesth_clic.Views.Roles.Admin.Modals
             int digits = rng.Next(1000, 9999);
             string username = $"{firstWord}_staff{digits}";
 
-            // Password
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
             var pw = new char[12];
             for (int i = 0; i < pw.Length; i++)
@@ -102,31 +133,59 @@ namespace aesth_clic.Views.Roles.Admin.Modals
             string email = FieldEmail.Text.Trim();
             string phone = FieldPhone.Text.Trim();
             string role = (FieldRole.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? string.Empty;
-            string username = FieldUsername.Password.Trim();
-            string password = FieldPassword.Password;
-            string confirmPw = FieldConfirmPassword.Password;
 
+            // Validate shared fields
             if (
                 string.IsNullOrEmpty(fullName)
                 || string.IsNullOrEmpty(email)
                 || string.IsNullOrEmpty(role)
-                || string.IsNullOrEmpty(username)
-                || string.IsNullOrEmpty(password)
             )
             {
-                ValidationBar.Message =
-                    "Full Name, Email, Role, Username, and Password are required.";
+                ValidationBar.Message = "Full Name, Email, and Role are required.";
                 ValidationBar.IsOpen = true;
                 args.Cancel = true;
                 return;
             }
 
-            if (password != confirmPw)
+            string username = FieldUsername.Password.Trim();
+            string password = FieldPassword.Password;
+            string confirmPw = FieldConfirmPassword.Password;
+
+            if (!_isEditMode)
             {
-                ValidationBar.Message = "Passwords do not match.";
-                ValidationBar.IsOpen = true;
-                args.Cancel = true;
-                return;
+                // Add mode — username and password are required
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                {
+                    ValidationBar.Message = "Username and Password are required.";
+                    ValidationBar.IsOpen = true;
+                    args.Cancel = true;
+                    return;
+                }
+
+                if (password != confirmPw)
+                {
+                    ValidationBar.Message = "Passwords do not match.";
+                    ValidationBar.IsOpen = true;
+                    args.Cancel = true;
+                    return;
+                }
+            }
+            else
+            {
+                // Edit mode — password is optional; only validate if something was typed
+                bool changingPassword =
+                    !string.IsNullOrEmpty(password) || !string.IsNullOrEmpty(confirmPw);
+
+                if (changingPassword && password != confirmPw)
+                {
+                    ValidationBar.Message = "Passwords do not match.";
+                    ValidationBar.IsOpen = true;
+                    args.Cancel = true;
+                    return;
+                }
+
+                // If left blank, password stays as empty string — caller should
+                // check string.IsNullOrEmpty(Result.Password) and skip password update
             }
 
             Result = new NewUserResult

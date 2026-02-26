@@ -7,6 +7,8 @@
   CloseButtonText="Cancel"
   DefaultButton="Primary"
   PrimaryButtonClick="OnSaveClicked"
+  PrimaryButtonStyle="{StaticResource PurplePrimaryButtonStyle}"
+  CloseButtonStyle="{StaticResource GrayCloseButtonStyle}"
 >
   <ContentDialog.Resources>
     <!-- Dialog background -->
@@ -153,7 +155,7 @@
       <Border Height="1" Background="#E4DAF5" />
 
       <!-- SECTION 2 · Login Credentials -->
-      <StackPanel Spacing="4">
+      <StackPanel x:Name="CredentialsSection" Spacing="4">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -275,6 +277,16 @@
             />
           </StackPanel>
         </Grid>
+
+        <!-- Edit mode hint — hidden by default, shown when in edit mode -->
+        <TextBlock
+          x:Name="PasswordEditHint"
+          Text="Leave Password and Confirm Password blank to keep the existing password."
+          Style="{StaticResource FieldHintStyle}"
+          Visibility="Collapsed"
+          Margin="0,6,0,0"
+          TextWrapping="Wrap"
+        />
       </StackPanel>
 
       <!-- Validation InfoBar -->

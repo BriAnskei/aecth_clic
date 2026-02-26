@@ -250,11 +250,32 @@
             PlaceholderText="Search name, email, or phone…"
             QueryIcon="Find"
             VerticalAlignment="Center"
-            BorderBrush="#E4DAF5"
+            Background="White"
+            Foreground="#2D1554"
+            BorderBrush="#C4B0E0"
             BorderThickness="1"
             CornerRadius="8"
             TextChanged="SearchBox_TextChanged"
-          />
+          >
+            <AutoSuggestBox.Resources>
+              <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#9B80C4" />
+              <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#9B80C4" />
+              <SolidColorBrush
+                x:Key="TextControlPlaceholderForegroundPointerOver"
+                Color="#9B80C4"
+              />
+
+              <!-- Keep border visible on hover/focus -->
+              <SolidColorBrush x:Key="TextControlBorderBrush" Color="#C4B0E0" />
+              <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#5B2D8E" />
+              <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#5B2D8E" />
+
+              <!-- Keep background white on hover/focus -->
+              <SolidColorBrush x:Key="TextControlBackground" Color="White" />
+              <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="White" />
+              <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="White" />
+            </AutoSuggestBox.Resources>
+          </AutoSuggestBox>
 
           <ComboBox
             Grid.Column="1"
@@ -262,10 +283,35 @@
             PlaceholderText="All Roles"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
-            BorderBrush="#E4DAF5"
+            Background="White"
+            Foreground="#2D1554"
+            BorderBrush="#C4B0E0"
+            BorderThickness="1"
             CornerRadius="8"
             SelectionChanged="RoleFilter_SelectionChanged"
           >
+            <ComboBox.Resources>
+              <!-- Placeholder text -->
+              <SolidColorBrush x:Key="ComboBoxPlaceholderForeground" Color="#9B80C4" />
+
+              <!-- Keep border on all states -->
+              <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#C4B0E0" />
+              <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#5B2D8E" />
+              <SolidColorBrush x:Key="ComboBoxBorderBrushFocused" Color="#5B2D8E" />
+              <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#5B2D8E" />
+
+              <!-- Keep background white on all states -->
+              <SolidColorBrush x:Key="ComboBoxBackground" Color="White" />
+              <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="White" />
+              <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="White" />
+              <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="White" />
+
+              <!-- Keep foreground visible on all states -->
+              <SolidColorBrush x:Key="ComboBoxForeground" Color="#2D1554" />
+              <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#2D1554" />
+              <SolidColorBrush x:Key="ComboBoxForegroundFocused" Color="#2D1554" />
+              <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="#2D1554" />
+            </ComboBox.Resources>
             <ComboBoxItem Content="All Roles" Tag="All" IsSelected="True" />
             <ComboBoxItem Content="Doctor" Tag="Doctor" />
             <ComboBoxItem Content="Receptionist" Tag="Receptionist" />
@@ -278,10 +324,28 @@
             PlaceholderText="All Status"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
-            BorderBrush="#E4DAF5"
+            Background="White"
+            Foreground="#2D1554"
+            BorderBrush="#C4B0E0"
+            BorderThickness="1"
             CornerRadius="8"
             SelectionChanged="StatusFilter_SelectionChanged"
           >
+            <ComboBox.Resources>
+              <SolidColorBrush x:Key="ComboBoxPlaceholderForeground" Color="#9B80C4" />
+              <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#C4B0E0" />
+              <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#5B2D8E" />
+              <SolidColorBrush x:Key="ComboBoxBorderBrushFocused" Color="#5B2D8E" />
+              <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#5B2D8E" />
+              <SolidColorBrush x:Key="ComboBoxBackground" Color="White" />
+              <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="White" />
+              <SolidColorBrush x:Key="ComboBoxBackgroundFocused" Color="White" />
+              <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="White" />
+              <SolidColorBrush x:Key="ComboBoxForeground" Color="#2D1554" />
+              <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#2D1554" />
+              <SolidColorBrush x:Key="ComboBoxForegroundFocused" Color="#2D1554" />
+              <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="#2D1554" />
+            </ComboBox.Resources>
             <ComboBoxItem Content="All Status" Tag="All" IsSelected="True" />
             <ComboBoxItem Content="Active" Tag="Active" />
             <ComboBoxItem Content="Deactivated" Tag="Deactivated" />
@@ -420,25 +484,14 @@
                         />
 
                         <!-- Role -->
-                        <StackPanel
+                        <TextBlock
                           Grid.Column="3"
-                          Orientation="Horizontal"
-                          Spacing="5"
+                          Text="{x:Bind Role}"
+                          FontSize="12"
+                          FontWeight="SemiBold"
+                          Foreground="{Binding RoleBadgeText, Converter={StaticResource StringToBrush}}"
                           VerticalAlignment="Center"
-                        >
-                          <Ellipse
-                            Width="7"
-                            Height="7"
-                            Fill="{Binding RoleBadgeText, Converter={StaticResource StringToBrush}}"
-                          />
-                          <TextBlock
-                            Text="{x:Bind Role}"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="{Binding RoleBadgeText, Converter={StaticResource StringToBrush}}"
-                            VerticalAlignment="Center"
-                          />
-                        </StackPanel>
+                        />
 
                         <!-- Status -->
                         <StackPanel

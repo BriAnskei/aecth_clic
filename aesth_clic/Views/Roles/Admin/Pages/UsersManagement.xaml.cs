@@ -85,6 +85,7 @@ namespace aesth_clic.Views.Roles.Admin.Pages
         public string Phone { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
         public string Initials { get; set; } = string.Empty;
         public string AvatarColor { get; set; } = "#5B2D8E";
         public string RoleBadgeColor { get; set; } = string.Empty;
@@ -119,7 +120,8 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                     "maria@clinic.com",
                     "0912-345-6789",
                     "Doctor",
-                    "Active"
+                    "Active",
+                    "maria_staff1234"
                 ),
                 BuildItem(
                     "u2",
@@ -127,7 +129,8 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                     "jose@clinic.com",
                     "0923-456-7890",
                     "Receptionist",
-                    "Active"
+                    "Active",
+                    "jose_staff5678"
                 ),
                 BuildItem(
                     "u3",
@@ -135,7 +138,8 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                     "ana@clinic.com",
                     "0934-567-8901",
                     "Pharmacist",
-                    "Active"
+                    "Active",
+                    "ana_staff9012"
                 ),
                 BuildItem(
                     "u4",
@@ -143,7 +147,8 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                     "carlo@clinic.com",
                     "0945-678-9012",
                     "Doctor",
-                    "Deactivated"
+                    "Deactivated",
+                    "carlo_staff3456"
                 ),
                 BuildItem(
                     "u5",
@@ -151,7 +156,8 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                     "liza@clinic.com",
                     "0956-789-0123",
                     "Receptionist",
-                    "Deactivated"
+                    "Deactivated",
+                    "liza_staff7890"
                 ),
             };
         }
@@ -163,7 +169,8 @@ namespace aesth_clic.Views.Roles.Admin.Pages
             string email,
             string phone,
             string role,
-            string status
+            string status,
+            string username = ""
         )
         {
             var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -198,6 +205,7 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 Phone = phone,
                 Role = role,
                 Status = status,
+                Username = username,
                 Initials = initials.ToUpper(),
                 AvatarColor = avatarColor,
                 RoleBadgeColor = roleBg,
@@ -214,7 +222,7 @@ namespace aesth_clic.Views.Roles.Admin.Pages
         private void ApplyFilters()
         {
             if (UserListControl is null)
-                return; // ← safety guard
+                return;
 
             var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
             var roleTag = (RoleFilter?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
@@ -276,7 +284,8 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 email: r.Email,
                 phone: r.Phone,
                 role: r.Role,
-                status: "Active"
+                status: "Active",
+                username: r.Username
             );
 
             _allUsers.Add(newUser);
@@ -291,20 +300,34 @@ namespace aesth_clic.Views.Roles.Admin.Pages
         // ── Edit ──────────────────────────────────────────────────
         private async void EditUser_Click(object sender, RoutedEventArgs e)
         {
-            var userId = (sender as Button)?.Tag?.ToString();
+            var userId = (sender as MenuFlyoutItem)?.Tag?.ToString();
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (user is null)
                 return;
 
-            // TODO: replace with your real Edit dialog
-            var dialog = new ContentDialog
-            {
-                Title = $"Edit — {user.FullName}",
-                Content = $"Edit dialog for user ID: {userId}",
-                CloseButtonText = "Cancel",
-                XamlRoot = XamlRoot,
-            };
+            var dialog = new AddNewUser { XamlRoot = XamlRoot };
+            dialog.LoadForEdit(user.FullName, user.Email, user.Phone, user.Role, user.Username);
             await dialog.ShowAsync();
+
+            if (dialog.Result is null)
+                return;
+
+            var r = dialog.Result;
+            var index = _allUsers.IndexOf(user);
+
+            _allUsers[index] = BuildItem(
+                id: user.UserId,
+                name: r.FullName,
+                email: r.Email,
+                phone: r.Phone,
+                role: r.Role,
+                status: user.Status,
+                // Keep existing username if admin left the field blank
+                username: string.IsNullOrEmpty(r.Username) ? user.Username : r.Username
+            );
+
+            ApplyFilters();
+            ToastHelper.Success(ToastBar, "User updated", $"{r.FullName} has been updated.");
         }
 
         // ── Deactivate ────────────────────────────────────────────
@@ -314,9 +337,11 @@ namespace aesth_clic.Views.Roles.Admin.Pages
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (user is null)
                 return;
+
             var dlg = new DeactivateUser(user);
             dlg.XamlRoot = XamlRoot;
-            var res = await dlg.ShowAsync();
+            await dlg.ShowAsync();
+
             if (dlg.Confirmed)
             {
                 user.Status = "Deactivated";
@@ -342,9 +367,11 @@ namespace aesth_clic.Views.Roles.Admin.Pages
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
             if (user is null)
                 return;
+
             var dlg = new ReactivateUser(user);
             dlg.XamlRoot = XamlRoot;
-            var res = await dlg.ShowAsync();
+            await dlg.ShowAsync();
+
             if (dlg.Confirmed)
             {
                 user.Status = "Active";
