@@ -1,13 +1,11 @@
-﻿using System;
-using aesth_clic.Controller;
-using aesth_clic.Models.Companies;
-using aesth_clic.Models.Users;
-using aesth_clic.Utils;
+﻿using aesth_clic.Utils;
 using aesth_clic.ViewModels.SuperAdmin;
 using aesth_clic.Views.Roles.SuperAdmin.Modals;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
+using System.Collections.Generic;
 using Windows.UI;
 
 namespace aesth_clic.Views.Roles.SuperAdmin.Pages
@@ -57,7 +55,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         {
             get
             {
-                var parts = FullName.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+                var parts = FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length >= 2)
                     return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
                 return FullName.Length > 0 ? FullName[0].ToString().ToUpper() : "?";
@@ -113,8 +111,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged(
-            [System.Runtime.CompilerServices.CallerMemberName] string? name = null
-        ) =>
+            [System.Runtime.CompilerServices.CallerMemberName] string? name = null) =>
             PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
     }
 }
@@ -128,37 +125,80 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
     public sealed partial class UserManagement : Page
     {
         private readonly UserManagementViewModel _vm = new();
-        private readonly UserController_superAdmin _userController;
-        private readonly CompanyController _companyController;
+        private readonly aesth_clic.Master.Controller.CompanyController _companyController;
 
         public UserManagement()
         {
             InitializeComponent();
-            _userController = App.Services.GetRequiredService<UserController_superAdmin>();
-            _companyController = App.Services.GetRequiredService<CompanyController>();
+
+            _companyController = App.Services
+                .GetRequiredService<aesth_clic.Master.Controller.CompanyController>();
 
             UserListControl.ItemsSource = _vm.DisplayedUsers;
 
             _vm.PropertyChanged += (_, e) =>
             {
-                if (
-                    e.PropertyName
+                if (e.PropertyName
                     is nameof(UserManagementViewModel.TotalUsers)
-                        or nameof(UserManagementViewModel.ActiveUsers)
-                        or nameof(UserManagementViewModel.DeactivatedUsers)
-                )
+                    or nameof(UserManagementViewModel.ActiveUsers)
+                    or nameof(UserManagementViewModel.DeactivatedUsers))
                     UpdateKpiCards();
             };
 
             _ = LoadFromDbAsync();
         }
 
+        // ──────────────────────────────────────────────────────
+        // DATA LOADING  (mock until GetAllClientsAsync is ready)
+        // ──────────────────────────────────────────────────────
         private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
             try
             {
-                var clients = await _userController.GetAllAdminsAsync();
-                _vm.LoadFromDb(clients);
+                // TODO: swap mock list for real call once GetAllClientsAsync is implemented:
+                //   var clients = await _companyController.GetAllClientsAsync();
+                //   _vm.LoadFromDb(clients);
+
+                var mockClients = new List<(
+                    aesth_clic.Master.Model.Client Client,
+                    string FullName,
+                    string Email,
+                    string Phone,
+                    string Username)>
+                {
+                    (
+                        new aesth_clic.Master.Model.Client
+                        {
+                            Id = 1, ClinicName = "Santos Aesthetic Clinic",
+                            DbName = "Aesth_Santos_Aesthetic_Clinic",
+                            ClinicCode = "12345", Status = "active",
+                            Tier = "basic", CreatedAt = DateTime.UtcNow
+                        },
+                        "Maria Santos", "maria@santos.com", "09171234567", "santos_clinic1234"
+                    ),
+                    (
+                        new aesth_clic.Master.Model.Client
+                        {
+                            Id = 2, ClinicName = "Glow Skin Center",
+                            DbName = "Aesth_Glow_Skin_Center",
+                            ClinicCode = "67890", Status = "active",
+                            Tier = "premium", CreatedAt = DateTime.UtcNow
+                        },
+                        "Jose Reyes", "jose@glow.com", "09281234567", "glow_clinic5678"
+                    ),
+                    (
+                        new aesth_clic.Master.Model.Client
+                        {
+                            Id = 3, ClinicName = "Lumina Derma Clinic",
+                            DbName = "Aesth_Lumina_Derma_Clinic",
+                            ClinicCode = "11223", Status = "deactivated",
+                            Tier = "standard", CreatedAt = DateTime.UtcNow
+                        },
+                        "Ana Dela Cruz", "ana@lumina.com", "09391234567", "lumina_clinic9012"
+                    ),
+                };
+
+                _vm.LoadFromMock(mockClients);
                 UpdateKpiCards();
             }
             catch (Exception ex)
@@ -167,6 +207,9 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             }
         }
 
+        // ──────────────────────────────────────────────────────
+        // KPI CARDS
+        // ──────────────────────────────────────────────────────
         private void UpdateKpiCards()
         {
             TxtTotalUsers.Text = _vm.TotalUsers.ToString();
@@ -174,13 +217,15 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             TxtInactiveUsers.Text = _vm.DeactivatedUsers.ToString();
 
             TxtRowCount.Text =
-                $"Showing {_vm.DisplayedUsers.Count} of {_vm.TotalUsers} client{(_vm.TotalUsers != 1 ? "s" : "")}";
+                $"Showing {_vm.DisplayedUsers.Count} of {_vm.TotalUsers} " +
+                $"client{(_vm.TotalUsers != 1 ? "s" : "")}";
         }
 
+        // ──────────────────────────────────────────────────────
+        // SEARCH + FILTERS
+        // ──────────────────────────────────────────────────────
         private void SearchBox_TextChanged(
-            AutoSuggestBox sender,
-            AutoSuggestBoxTextChangedEventArgs args
-        )
+            AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             _vm.SearchText = sender.Text;
             UpdateKpiCards();
@@ -195,255 +240,146 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
 
         private void TierFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _vm.SelectedTier = (TierFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+            _vm.SelectedTier =
+                (TierFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
             UpdateKpiCards();
         }
 
+        // ──────────────────────────────────────────────────────
+        // ADD CLIENT
+        // ──────────────────────────────────────────────────────
         private void KebabMenu_Click(object sender, RoutedEventArgs e) { }
 
         private async void AddUserButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new AddNewClient { XamlRoot = XamlRoot };
-            var result = await dialog.ShowAsync();
+            await dialog.ShowAsync();
 
-            if (result != ContentDialogResult.Primary || dialog.Result is null)
+            // Result is only non-null when the dialog saved successfully
+            if (dialog.Result is null)
                 return;
 
             var r = dialog.Result;
 
-            var adminClient = new AdminClients(
-                new User(
-                    id: 0,
-                    fullName: r.FullName,
-                    email: r.Email,
-                    username: r.Username,
-                    password: r.Password,
-                    phoneNumber: r.PhoneNumber,
-                    role: "admin",
-                    createdAt: DateTime.Now
-                ),
-                new Company(
-                    id: 0,
-                    owner_id: 0,
-                    name: r.ClinicName,
-                    status: "active",
-                    module_tier: r.ModuleTier
-                )
-            );
+            await LoadFromDbAsync();
 
-            try
-            {
-                await _userController.CreateAdminClientAsync(adminClient);
-                await LoadFromDbAsync();
-                ToastHelper.Success(
-                    ToastBar,
-                    "Client added",
-                    $"{r.FullName} ({r.ClinicName}) has been created successfully."
-                );
-            }
-            catch (Exception ex)
-            {
-                ToastHelper.Error(ToastBar, "Failed to create client", ex.Message);
-            }
+            ToastHelper.Success(
+                ToastBar,
+                "Client added",
+                $"{r.FullName} ({r.ClinicName}) has been created successfully.");
         }
 
+
+        // ──────────────────────────────────────────────────────
+        // EDIT CLIENT  — TODO: wire to new controller when ready
+        // ──────────────────────────────────────────────────────
         private async void EditUser_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
 
             var user = _vm.FindUser(userId);
-            if (user == null)
-                return;
+            if (user == null) return;
 
             var dialog = new EditClient(user) { XamlRoot = XamlRoot };
             var dialogResult = await dialog.ShowAsync();
 
             if (dialogResult == ContentDialogResult.Primary && dialog.Result is not null)
             {
-                var r = dialog.Result;
-
-                var adminClient = new AdminClients(
-                    new User(
-                        id: user.UserId,
-                        fullName: r.FullName,
-                        email: r.Email,
-                        username: r.Username,
-                        password: r.Password ?? string.Empty,
-                        phoneNumber: r.PhoneNumber,
-                        role: "admin",
-                        createdAt: DateTime.Now
-                    ),
-                    new Company(
-                        id: user.CompanyId,
-                        owner_id: user.UserId,
-                        name: r.ClinicName,
-                        status: user.Status == "Active" ? "active" : "deactivated",
-                        module_tier: user.Tier
-                    )
-                );
-
-                try
-                {
-                    await _userController.UpdateAdminClientAsync(adminClient);
-
-                    // Update local state
-                    user.FullName = r.FullName;
-                    user.Email = r.Email;
-                    user.Phone = r.PhoneNumber;
-                    user.ClinicName = r.ClinicName;
-                    user.Username = r.Username;
-                    if (r.Password is not null)
-                        user.Password = r.Password;
-
-                    _vm.ApplyFilters();
-                    UpdateKpiCards();
-                    ToastHelper.Success(
-                        ToastBar,
-                        "Client updated",
-                        $"{r.FullName}'s details have been saved successfully."
-                    );
-                }
-                catch (Exception ex)
-                {
-                    ToastHelper.Error(ToastBar, "Failed to update client", ex.Message);
-                }
+                // TODO: replace stub with real controller call once UpdateClientAsync is implemented
+                //   await _companyController.UpdateClientAsync(...)
+                ToastHelper.Error(ToastBar, "Not implemented", "Edit client is not yet available.");
             }
         }
 
-        // ← UPDATED
+        // ──────────────────────────────────────────────────────
+        // MANAGE MODULES  — TODO: wire to new controller when ready
+        // ──────────────────────────────────────────────────────
         private async void ManageModules_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
 
             var user = _vm.FindUser(userId);
-            if (user == null)
-                return;
+            if (user == null) return;
 
             var dialog = new ManageModules(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
             if (dialog.Result is not null)
             {
-                string newTier = dialog.Result.Tier.ToLower(); // "Basic" → "basic"
-
-                try
-                {
-                    await _userController.UpdateAdminTierAsync(user.CompanyId, newTier);
-                    _vm.UpdateUserTier(userId, newTier);
-                    UpdateKpiCards();
-                    ToastHelper.Success(
-                        ToastBar,
-                        "Tier updated",
-                        $"{user.FullName}'s tier has been changed to {dialog.Result.Tier}."
-                    );
-                }
-                catch (Exception ex)
-                {
-                    ToastHelper.Error(ToastBar, "Failed to update tier", ex.Message);
-                }
+                // TODO: replace stub with real controller call once UpdateTierAsync is implemented
+                //   await _companyController.UpdateTierAsync(user.CompanyId, newTier)
+                ToastHelper.Error(ToastBar, "Not implemented", "Manage modules is not yet available.");
             }
         }
 
+        // ──────────────────────────────────────────────────────
+        // DEACTIVATE  — TODO: wire to new controller when ready
+        // ──────────────────────────────────────────────────────
         private async void DeactivateUser_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
 
             var user = _vm.FindUser(userId);
-            if (user == null)
-                return;
+            if (user == null) return;
 
             var dialog = new DeactivateClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
             if (dialog.Confirmed)
             {
-                try
-                {
-                    _vm.DeactivateUser(userId);
-                    await _companyController.UpdateCompanyStatusAsync(user.UserId, "deactivated");
-                    UpdateKpiCards();
-                    ToastHelper.Success(
-                        ToastBar,
-                        "Client deactivated",
-                        $"{user.FullName} has been deactivated."
-                    );
-                }
-                catch (Exception ex)
-                {
-                    ToastHelper.Error(ToastBar, "Failed to deactivate client", ex.Message);
-                }
+                // TODO: replace stub with real controller call once DeactivateClientAsync is implemented
+                //   await _companyController.DeactivateClientAsync(user.CompanyId)
+                //   _vm.DeactivateUser(userId);
+                ToastHelper.Error(ToastBar, "Not implemented", "Deactivate client is not yet available.");
             }
         }
 
+        // ──────────────────────────────────────────────────────
+        // REACTIVATE  — TODO: wire to new controller when ready
+        // ──────────────────────────────────────────────────────
         private async void ReactivateUser_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
 
             var user = _vm.FindUser(userId);
-            if (user == null)
-                return;
+            if (user == null) return;
 
             var dialog = new ReactivateClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
             if (dialog.Confirmed)
             {
-                try
-                {
-                    _vm.ReactivateUser(userId);
-                    await _companyController.UpdateCompanyStatusAsync(user.UserId, "active");
-                    UpdateKpiCards();
-                    ToastHelper.Success(
-                        ToastBar,
-                        "Client reactivated",
-                        $"{user.FullName} has been reactivated."
-                    );
-                }
-                catch (Exception ex)
-                {
-                    ToastHelper.Error(ToastBar, "Failed to reactivate client", ex.Message);
-                }
+                // TODO: replace stub with real controller call once ReactivateClientAsync is implemented
+                //   await _companyController.ReactivateClientAsync(user.CompanyId)
+                //   _vm.ReactivateUser(userId);
+                ToastHelper.Error(ToastBar, "Not implemented", "Reactivate client is not yet available.");
             }
         }
 
+        // ──────────────────────────────────────────────────────
+        // DELETE  — TODO: wire to new controller when ready
+        // ──────────────────────────────────────────────────────
         private async void DeleteUser_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
             int userId = (int)item.Tag;
 
             var user = _vm.FindUser(userId);
-            if (user == null || user.Status != "Deactivated")
-                return;
+            if (user == null || user.Status != "Deactivated") return;
 
             var dialog = new DeleteClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
             if (dialog.Confirmed)
             {
-                try
-                {
-                    await _userController.DeleteAdminClientAsync(user.UserId);
-                    _vm.DeleteUser(userId);
-                    UpdateKpiCards();
-                    ToastHelper.Success(
-                        ToastBar,
-                        "Client deleted",
-                        $"{user.FullName} has been permanently deleted."
-                    );
-                }
-                catch (Exception ex)
-                {
-                    ToastHelper.Error(ToastBar, "Failed to delete client", ex.Message);
-                }
+                // TODO: replace stub with real controller call once DeleteClientAsync is implemented
+                //   await _companyController.DeleteClientAsync(user.UserId)
+                //   _vm.DeleteUser(userId);
+                ToastHelper.Error(ToastBar, "Not implemented", "Delete client is not yet available.");
             }
         }
     }

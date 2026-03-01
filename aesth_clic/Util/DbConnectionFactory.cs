@@ -19,3 +19,18 @@ namespace aesth_clic.Data
 
     }
 }
+
+
+
+
+
+// users table after db creation for client
+//CREATE TABLE users (
+//    id INT AUTO_INCREMENT PRIMARY KEY,
+//    name VARCHAR(255),
+//    email VARCHAR(255) UNIQUE,
+//    password VARCHAR(255),
+//    role ENUM('admin','doctor','receptionist','pharmacist'),
+//    status ENUM('active','inactive') DEFAULT 'active',
+//    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//);

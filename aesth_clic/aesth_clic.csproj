@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>aesth_clic</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -79,6 +80,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260209005" />
@@ -86,7 +93,16 @@
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Master\Repository\" />
+    <Folder Include="Master\Util\" />
+    <Folder Include="Models\Master\" />
+    <Folder Include="Models\Tenant\" />
     <Folder Include="Services\AdminServices\" />
+    <Folder Include="Services\Master\" />
+    <Folder Include="Tenant\Controller\" />
+    <Folder Include="Tenant\Dto\" />
+    <Folder Include="Tenant\Repository\" />
+    <Folder Include="Tenant\Services\" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\SuperAdmin\Modals\UsersManagement\DeleteClient.xaml">

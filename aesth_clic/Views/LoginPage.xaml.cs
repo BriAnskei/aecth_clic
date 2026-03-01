@@ -16,12 +16,12 @@ namespace aesth_clic.Views
     public sealed partial class LoginPage : Page
     {
       
-        private readonly AuthController authController;
+  
 
         public LoginPage()
         {
             InitializeComponent();
-            authController = App.Services.GetRequiredService<AuthController>();
+       
         }
 
         private async void OnEnterPressed(object sender, KeyRoutedEventArgs e)
@@ -53,20 +53,13 @@ namespace aesth_clic.Views
 
             SetLoadingState(true);
 
-            
-            var (success, message) = await authController.LoginAsync(username, password, role);
-
+       
 
 
             SetLoadingState(false);
 
 
-            if(!success)
-            {
-                ShowError(message);
-                return;
-            }
-
+     
 
             // Success — maximize then navigate
             MaximizeWindow();

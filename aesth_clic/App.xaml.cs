@@ -1,13 +1,15 @@
-﻿using System;
-using System.Runtime.Versioning;
+﻿using aesth_clic.Context;
 using aesth_clic.Controller;
 using aesth_clic.Data;
 using aesth_clic.Repository;
-using aesth_clic.Services.AccountsServices;
-using aesth_clic.Services.AuthServices;
+
+using aesth_clic.Tenant.Uti;
 using aesth_clic.Util;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
+using System;
+using System.Runtime.Versioning;
 
 namespace aesth_clic
 {
@@ -27,25 +29,53 @@ namespace aesth_clic
         {
             var services = new ServiceCollection();
 
+
+
+            string masterConnection =
+      "Server=localhost\\SQLEXPRESS;Database=aesthic_clic;Trusted_Connection=True;TrustServerCertificate=True;";
+            // connect master
+            services.AddDbContext<MasterDbContext>(options =>
+     options.UseSqlServer(
+         masterConnection,
+         sqlOptions =>
+
+         {
+             sqlOptions.EnableRetryOnFailure(
+                 maxRetryCount: 5,
+                 maxRetryDelay: TimeSpan.FromSeconds(10),
+                 errorNumbersToAdd: null);
+         }));
+
+
+            services.AddSingleton<TenantDbContextFactory>();
+
+
+
+
+            services.AddTransient<aesth_clic.Master.Services.CompanyService>();
+            services.AddTransient<aesth_clic.Master.Controller.CompanyController>();
+
+
+
             // Infrastructure
             services.AddSingleton<DbConnectionFactory>();
             services.AddScoped<TransactionManager>();
 
             // Repositories
             //  -- users, auth
-            services.AddTransient<UserRepository>();
+            //services.AddTransient<UserRepository>();
             services.AddTransient<CompanyRepository>();
             services.AddTransient<AccountStatusRepository>();
             services.AddTransient<PaymentRepository>();
 
             // Services
-            services.AddTransient<AuthService>();
-            services.AddTransient<UserService>();
+            //services.AddTransient<AuthService>();
+            //services.AddTransient<UserService>();
             services.AddTransient<Services.SuperAdminServices.CompanyService>();
 
             // Controllers
-            services.AddTransient<AuthController>();
-            services.AddTransient<UserController_superAdmin>();
+            //services.AddTransient<AuthController>();
+            //services.AddTransient<UserController_superAdmin>();
             services.AddTransient<CompanyController>();
 
             return services.BuildServiceProvider();

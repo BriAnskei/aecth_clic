@@ -91,6 +91,39 @@ namespace aesth_clic.ViewModels.SuperAdmin
             ApplyFilters();
         }
 
+
+        public void LoadFromMock(
+    List<(aesth_clic.Master.Model.Client Client,
+          string FullName,
+          string Email,
+          string Phone,
+          string Username)> mockData)
+        {
+            _allUsers.Clear();
+            _nextId = 1;
+
+            foreach (var (client, fullName, email, phone, username) in mockData)
+            {
+                string status = client.Status.ToLower() == "active" ? "Active" : "Deactivated";
+
+                _allUsers.Add(new UserItem
+                {
+                    UserId = _nextId,        // placeholder — real tenant User.Id comes from DB later
+                    CompanyId = client.Id,      // Master Client.Id
+                    FullName = fullName,
+                    Email = email,
+                    Phone = phone,
+                    ClinicName = client.ClinicName,
+                    Status = status,
+                    Tier = client.Tier,
+                    Username = username,
+                });
+
+                _nextId++;
+            }
+
+            ApplyFilters();
+        }
         public void ApplyFilters()
         {
             DisplayedUsers.Clear();
