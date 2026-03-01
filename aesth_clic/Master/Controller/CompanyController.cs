@@ -22,5 +22,20 @@ namespace aesth_clic.Master.Controller
 
             await _companyService.CreateClinicAsync(newClientUserDto);
         }
+
+
+
+        public async Task UpdateClientStatusAsync(string clinicCode, string newStatus)
+        {
+            await _companyService.UpdateClientStatusAsync(clinicCode, newStatus); 
+        }
+
+        public async Task DeleteClientAsync(string clinicCode)
+        {
+            await _companyService.DeleteClientAsync(clinicCode);    
+
+        }
+
+
     }
 }

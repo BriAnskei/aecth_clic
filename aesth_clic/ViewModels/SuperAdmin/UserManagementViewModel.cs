@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using aesth_clic.Models.Users;
+using aesth_clic.Master.Dto;
 using aesth_clic.Views.Roles.SuperAdmin.Pages;
 
 namespace aesth_clic.ViewModels.SuperAdmin
@@ -12,118 +12,64 @@ namespace aesth_clic.ViewModels.SuperAdmin
     {
         private readonly List<UserItem> _allUsers = new();
         public ObservableCollection<UserItem> DisplayedUsers { get; } = new();
-        private int _nextId = 1;
 
         private string _searchText = string.Empty;
         public string SearchText
         {
             get => _searchText;
-            set
-            {
-                _searchText = value;
-                OnPropertyChanged();
-                ApplyFilters();
-            }
+            set { _searchText = value; OnPropertyChanged(); ApplyFilters(); }
         }
 
         private string _selectedStatus = "All";
         public string SelectedStatus
         {
             get => _selectedStatus;
-            set
-            {
-                _selectedStatus = value;
-                OnPropertyChanged();
-                ApplyFilters();
-            }
+            set { _selectedStatus = value; OnPropertyChanged(); ApplyFilters(); }
         }
 
         private string _selectedTier = "All";
         public string SelectedTier
         {
             get => _selectedTier;
-            set
-            {
-                _selectedTier = value;
-                OnPropertyChanged();
-                ApplyFilters();
-            }
+            set { _selectedTier = value; OnPropertyChanged(); ApplyFilters(); }
         }
 
         public int TotalUsers => _allUsers.Count;
         public int ActiveUsers => _allUsers.Count(u => u.Status == "Active");
         public int DeactivatedUsers => _allUsers.Count(u => u.Status == "Deactivated");
 
-        public void LoadFromDb(List<AdminClients> clients)
+        // ──────────────────────────────────────────────────────
+        // LOAD FROM DB  (maps AdminClinicDetailsDto → UserItem)
+        // ──────────────────────────────────────────────────────
+        public void LoadFromDb(List<AdminClinicDetailsDto> clinics)
         {
             _allUsers.Clear();
-            _nextId = 1;
 
-            foreach (var client in clients)
+            foreach (var dto in clinics)
             {
-                if (client.User is null)
-                    continue;
-
-                string rawStatus = client.Company?.status ?? "active";
-                string status = rawStatus.ToLower() == "active" ? "Active" : "Deactivated";
-                string tier = client.Company?.module_tier ?? "basic";
-
-                _allUsers.Add(
-                    new UserItem
-                    {
-                        UserId = client.User.Id,
-                        CompanyId = client.Company?.id ?? 0,
-                        FullName = client.User.FullName ?? string.Empty,
-                        Email = client.User.Email ?? string.Empty,
-                        Phone = client.User.PhoneNumber ?? string.Empty,
-                        ClinicName = client.Company?.name ?? string.Empty,
-                        Status = status,
-                        Tier = tier,
-                        Password = client.User.Password ?? string.Empty,
-                        Username = client.User.Username ?? string.Empty, // ← ADDED
-                    }
-                );
-
-                if (client.User.Id >= _nextId)
-                    _nextId = client.User.Id + 1;
-            }
-
-            ApplyFilters();
-        }
-
-
-        public void LoadFromMock(
-    List<(aesth_clic.Master.Model.Client Client,
-          string FullName,
-          string Email,
-          string Phone,
-          string Username)> mockData)
-        {
-            _allUsers.Clear();
-            _nextId = 1;
-
-            foreach (var (client, fullName, email, phone, username) in mockData)
-            {
-                string status = client.Status.ToLower() == "active" ? "Active" : "Deactivated";
+                string status = dto.Status.ToLower() == "active" ? "Active" : "Deactivated";
 
                 _allUsers.Add(new UserItem
                 {
-                    UserId = _nextId,        // placeholder — real tenant User.Id comes from DB later
-                    CompanyId = client.Id,      // Master Client.Id
-                    FullName = fullName,
-                    Email = email,
-                    Phone = phone,
-                    ClinicName = client.ClinicName,
+                    UserId = dto.UserId,
+                    CompanyId = dto.ClientId,
+                    ClinicCode = dto.ClinicCode,
+                    FullName = dto.FullName,
+                    Email = dto.Email,
+                    Phone = dto.PhoneNumber,
+                    Username = dto.Username,
+                    ClinicName = dto.ClinicName,
+                    Tier = dto.Tier,
                     Status = status,
-                    Tier = client.Tier,
-                    Username = username,
                 });
-
-                _nextId++;
             }
 
             ApplyFilters();
         }
+
+        // ──────────────────────────────────────────────────────
+        // FILTERS
+        // ──────────────────────────────────────────────────────
         public void ApplyFilters()
         {
             DisplayedUsers.Clear();
@@ -151,20 +97,16 @@ namespace aesth_clic.ViewModels.SuperAdmin
             OnPropertyChanged(nameof(DeactivatedUsers));
         }
 
-        public UserItem? FindUser(int userId) => _allUsers.FirstOrDefault(u => u.UserId == userId);
-
-        public void AddUser(UserItem user)
-        {
-            user.UserId = _nextId++;
-            _allUsers.Add(user);
-            ApplyFilters();
-        }
+        // ──────────────────────────────────────────────────────
+        // CRUD HELPERS
+        // ──────────────────────────────────────────────────────
+        public UserItem? FindUser(int userId) =>
+            _allUsers.FirstOrDefault(u => u.UserId == userId);
 
         public void DeactivateUser(int userId)
         {
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user == null)
-                return;
+            if (user == null) return;
             user.Status = "Deactivated";
             ApplyFilters();
         }
@@ -172,8 +114,7 @@ namespace aesth_clic.ViewModels.SuperAdmin
         public void ReactivateUser(int userId)
         {
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user == null)
-                return;
+            if (user == null) return;
             user.Status = "Active";
             ApplyFilters();
         }
@@ -181,8 +122,7 @@ namespace aesth_clic.ViewModels.SuperAdmin
         public void DeleteUser(int userId)
         {
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user == null || user.Status != "Deactivated")
-                return;
+            if (user == null || user.Status != "Deactivated") return;
             _allUsers.Remove(user);
             ApplyFilters();
         }
@@ -190,8 +130,7 @@ namespace aesth_clic.ViewModels.SuperAdmin
         public void UpdateUserTier(int userId, string newTier)
         {
             var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user == null)
-                return;
+            if (user == null) return;
             user.Tier = newTier;
             ApplyFilters();
         }

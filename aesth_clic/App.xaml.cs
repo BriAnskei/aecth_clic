@@ -56,6 +56,8 @@ namespace aesth_clic
             services.AddTransient<aesth_clic.Master.Controller.CompanyController>();
 
 
+            services.AddTransient<aesth_clic.Master.Services.AdminClientService>();
+            services.AddTransient<aesth_clic.Master.Controller.AdminUserController >();
 
             // Infrastructure
             services.AddSingleton<DbConnectionFactory>();

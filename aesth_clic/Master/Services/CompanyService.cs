@@ -11,18 +11,12 @@ using System.Threading.Tasks;
 
 namespace aesth_clic.Master.Services
 {
-    public sealed class CompanyService
+    public sealed class CompanyService(
+        MasterDbContext masterDb,
+        TenantDbContextFactory tenantFactory)
     {
-        private readonly MasterDbContext _masterDb;
-        private readonly TenantDbContextFactory _tenantFactory;
-
-        public CompanyService(
-            MasterDbContext masterDb,
-            TenantDbContextFactory tenantFactory)
-        {
-            _masterDb = masterDb ?? throw new ArgumentNullException(nameof(masterDb));
-            _tenantFactory = tenantFactory ?? throw new ArgumentNullException(nameof(tenantFactory));
-        }
+        private readonly MasterDbContext _masterDb = masterDb ?? throw new ArgumentNullException(nameof(masterDb));
+        private readonly TenantDbContextFactory _tenantFactory = tenantFactory ?? throw new ArgumentNullException(nameof(tenantFactory));
 
         public async Task CreateClinicAsync(NewClientUserDto request)
         {
@@ -136,7 +130,64 @@ namespace aesth_clic.Master.Services
             client.ClinicCode = code.ToString();
         }
 
+
+
+
         #endregion
+
+
+        public async Task UpdateClientStatusAsync(string clinicCode, string newStatus)
+        {
+         
+            // 1️⃣ Fetch client
+            var client = await _masterDb.Clients
+                .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
+
+            if (client == null)
+                throw new Exception("Client not found.");
+
+            // 2️⃣ Update status
+            client.Status = newStatus.ToLower();
+
+            // 3️⃣ Save changes
+            await _masterDb.SaveChangesAsync();
+        }
+
+
+        public async Task DeleteClientAsync(string clinicCode)
+        {
+
+            // 1️⃣ Get client from master
+            var client = await _masterDb.Clients
+                .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
+
+            if (client == null)
+                throw new Exception("Client not found.");
+
+            var dbName = client.DbName;
+
+            try
+            {
+                // 2️⃣ Delete the tenant database
+                var sqlDrop = $"DROP DATABASE [{dbName}]";
+                await _masterDb.Database.ExecuteSqlRawAsync(sqlDrop);
+
+                // 3️⃣ Delete the client from master
+                _masterDb.Clients.Remove(client);
+                await _masterDb.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Optionally log error
+                Debug.WriteLine($"Error deleting client {clinicCode}: {ex}");
+
+                throw new Exception(
+                    $"Failed to delete client {clinicCode}.", ex);
+            }
+        }
+
+
+
     }
 
     public class MasterDatabaseException : Exception
@@ -154,4 +205,13 @@ namespace aesth_clic.Master.Services
         {
         }
     }
+
+
+
+
+
+
+
+
+   
 }

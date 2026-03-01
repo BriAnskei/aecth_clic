@@ -2,6 +2,7 @@
 
 
 using aesth_clic.Tenant.Model;
+using System;
 
 namespace aesth_clic.Util
 {
@@ -19,6 +20,16 @@ namespace aesth_clic.Util
         public static bool VerifyPassword(string inputPassword, string storedPassword)
         {
             return BCrypt.Net.BCrypt.Verify(inputPassword, storedPassword);
+        }
+
+
+        public static string HashStringPaswword(string password)
+        {
+            if (password == "")
+                throw new ArgumentException("Password cannot be empty", nameof(password));
+
+            return  BCrypt.Net.BCrypt.HashPassword(password);
+     
         }
     }
 }

@@ -1,14 +1,17 @@
-using System;
-using System.Diagnostics;
+using aesth_clic.Master.Controller;
+using aesth_clic.Master.Dto.Company;
 using aesth_clic.Views.Roles.SuperAdmin.Pages;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
+using System.Diagnostics;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace aesth_clic.Views.Roles.SuperAdmin.Modals
 {
     // ─────────────────────────────────────────────────────────
-    // RESULT MODEL  –  returned to the caller on Primary click
+    // RESULT MODEL
     // ─────────────────────────────────────────────────────────
     public class EditClientResult
     {
@@ -19,8 +22,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
         public string Username { get; init; } = string.Empty;
 
         /// <summary>
-        /// Null means "user left password blank → keep existing password unchanged."
-        /// Non-null means "user typed a new password → apply this."
+        /// Null  → user left password blank, keep existing.
+        /// Non-null → new password was applied.
         /// </summary>
         public string? Password { get; init; }
     }
@@ -30,13 +33,11 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
     // ─────────────────────────────────────────────────────────
     public sealed partial class EditClient : ContentDialog
     {
-        // The UserItem being edited – passed in by the caller
         private readonly UserItem _user;
+        private readonly AdminUserController _adminUserController;
 
-        // Expose result to the caller after the dialog closes
         public EditClientResult? Result { get; private set; }
 
-        // Track reveal state for the icon toggles
         private bool _usernameRevealed = false;
         private bool _passwordRevealed = false;
 
@@ -44,92 +45,133 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
         public EditClient(UserItem user)
         {
             _user = user ?? throw new ArgumentNullException(nameof(user));
+
+            _adminUserController = App.Services
+                .GetRequiredService<AdminUserController>();
+
             InitializeComponent();
             PrePopulateFields();
         }
 
-        // ── Pre-populate from UserItem ─────────────────────────
+        // ── Pre-populate ───────────────────────────────────────
         private void PrePopulateFields()
         {
             FieldFullName.Text = _user.FullName;
             FieldEmail.Text = _user.Email;
             FieldPhone.Text = _user.Phone;
-            FieldClinicName.Text = _user.ClinicName;
-
             FieldUsername.Password = _user.Username;
+            // ClinicName intentionally omitted — not in UpdateAdminUserDto
         }
 
-        // ── Save handler ───────────────────────────────────────
-        private void OnSaveClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        // ── Save handler (async — defers dialog close) ─────────
+        private async void OnSaveClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            // Validate personal info (all four fields required)
-            if (
-                string.IsNullOrWhiteSpace(FieldFullName.Text)
-                || string.IsNullOrWhiteSpace(FieldEmail.Text)
-                || string.IsNullOrWhiteSpace(FieldPhone.Text)
-                || string.IsNullOrWhiteSpace(FieldClinicName.Text)
-            )
-            {
-                args.Cancel = true; // keep dialog open
-                ValidationBar.Title = "Missing information";
-                ValidationBar.Message =
-                    "Full Name, Email, Phone, and Clinic Name are all required.";
-                ValidationBar.IsOpen = true;
-                return;
-            }
+            ValidationBar.IsOpen = false;
 
-            // Validate username
-            if (string.IsNullOrWhiteSpace(FieldUsername.Password))
+            // ── 1. Read fields ────────────────────────────────────
+            string fullName = FieldFullName.Text.Trim();
+            string email = FieldEmail.Text.Trim();
+            string phone = FieldPhone.Text.Trim();
+            string username = FieldUsername.Password.Trim();
+            string password = FieldPassword.Password;
+            string confirmPw = FieldConfirmPassword.Password;
+
+            // ── 2. Client-side validation ─────────────────────────
+            if (string.IsNullOrWhiteSpace(fullName) ||
+                string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(phone) ||
+                string.IsNullOrWhiteSpace(username))
             {
+                ValidationBar.Title = "Missing information";
+                ValidationBar.Message = "Full Name, Email, Phone, and Username are all required.";
+                ValidationBar.IsOpen = true;
                 args.Cancel = true;
-                ValidationBar.Title = "Missing information";
-                ValidationBar.Message = "Username cannot be empty.";
-                ValidationBar.IsOpen = true;
                 return;
             }
 
-            // Password validation – only if the user typed something
             string? newPassword = null;
-            bool passwordEntered = !string.IsNullOrEmpty(FieldPassword.Password);
-
-            if (passwordEntered)
+            if (!string.IsNullOrEmpty(password))
             {
-                if (FieldPassword.Password != FieldConfirmPassword.Password)
+                if (password != confirmPw)
                 {
-                    args.Cancel = true;
                     ValidationBar.Title = "Password mismatch";
                     ValidationBar.Message = "The new password and confirmation do not match.";
                     ValidationBar.IsOpen = true;
+                    args.Cancel = true;
                     return;
                 }
-                newPassword = FieldPassword.Password;
+                newPassword = password;
             }
 
-            ValidationBar.IsOpen = false;
+            // ── 3. Block dialog close — we close manually on success ──
+            args.Cancel = true;
 
-            // Build result
-            Result = new EditClientResult
+            // ── 4. Enter saving state ─────────────────────────────
+            SetSavingState(true);
+
+            // ── 5. Build DTO ──────────────────────────────────────
+            var dto = new UpdateAdminUserDto
             {
-                FullName = FieldFullName.Text.Trim(),
-                Email = FieldEmail.Text.Trim(),
-                PhoneNumber = FieldPhone.Text.Trim(),
-                ClinicName = FieldClinicName.Text.Trim(),
-                Username = FieldUsername.Password.Trim(),
-                Password = newPassword,
+                ClinicCode = _user.ClinicCode,
+                FullName = fullName,
+                Email = email,
+                PhoneNumber = phone,
+                Username = username,
+                Password = newPassword,   // null = keep existing
             };
 
-            // ── Console / Debug output ─────────────────────────
             Debug.WriteLine("─────────────────────────────────────");
-            Debug.WriteLine("[EditClient] Saved changes:");
-            Debug.WriteLine($"  Full Name  : {Result.FullName}");
-            Debug.WriteLine($"  Email      : {Result.Email}");
-            Debug.WriteLine($"  Phone      : {Result.PhoneNumber}");
-            Debug.WriteLine($"  Clinic     : {Result.ClinicName}");
-            Debug.WriteLine($"  Username   : {Result.Username}");
-            Debug.WriteLine(
-                $"  Password   : {(Result.Password is null ? "(unchanged)" : "*** (updated)")}"
-            );
+            Debug.WriteLine("[EditClient] Saving changes:");
+            Debug.WriteLine($"  ClinicCode : {dto.ClinicCode}");
+            Debug.WriteLine($"  Full Name  : {dto.FullName}");
+            Debug.WriteLine($"  Email      : {dto.Email}");
+            Debug.WriteLine($"  Phone      : {dto.PhoneNumber}");
+            Debug.WriteLine($"  Username   : {dto.Username}");
+            Debug.WriteLine($"  Password   : {(dto.Password is null ? "(unchanged)" : "*** (updated)")}");
             Debug.WriteLine("─────────────────────────────────────");
+
+            // ── 6. Call controller ────────────────────────────────
+            try
+            {
+                await _adminUserController.UpdateClientAsync(dto);
+
+                // Success — populate Result and close
+                Result = new EditClientResult
+                {
+                    FullName = fullName,
+                    Email = email,
+                    PhoneNumber = phone,
+                    ClinicName = _user.ClinicName,   // unchanged, carry through
+                    Username = username,
+                    Password = newPassword,
+                };
+
+                Hide();
+            }
+            catch (System.ComponentModel.DataAnnotations.ValidationException vex)
+            {
+                ValidationBar.Title = "Validation error";
+                ValidationBar.Message = vex.Message;
+                ValidationBar.IsOpen = true;
+                SetSavingState(false);
+            }
+            catch (Exception ex)
+            {
+                ValidationBar.Title = "Failed to save changes";
+                ValidationBar.Message = ex.Message;
+                ValidationBar.IsOpen = true;
+                SetSavingState(false);
+            }
+        }
+
+        // ── Saving state helper ────────────────────────────────
+        private void SetSavingState(bool isSaving)
+        {
+            IsPrimaryButtonEnabled = !isSaving;
+            IsSecondaryButtonEnabled = !isSaving;
+            SavingOverlay.Visibility = isSaving
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         // ── Toggle Username visibility ─────────────────────────
@@ -139,8 +181,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             FieldUsername.PasswordRevealMode = _usernameRevealed
                 ? PasswordRevealMode.Visible
                 : PasswordRevealMode.Hidden;
-
-            // Eye / Eye-hide glyph swap
             ToggleUsernameIcon.Glyph = _usernameRevealed ? "\uED1A" : "\uE7B3";
         }
 
@@ -148,13 +188,11 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
         private void TogglePassword_Click(object sender, RoutedEventArgs e)
         {
             _passwordRevealed = !_passwordRevealed;
-            PasswordRevealMode mode = _passwordRevealed
+            var mode = _passwordRevealed
                 ? PasswordRevealMode.Visible
                 : PasswordRevealMode.Hidden;
-
             FieldPassword.PasswordRevealMode = mode;
             FieldConfirmPassword.PasswordRevealMode = mode;
-
             TogglePasswordIcon.Glyph = _passwordRevealed ? "\uED1A" : "\uE7B3";
         }
 
@@ -168,21 +206,12 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
 
             var rng = new Random();
 
-            // Username: "user" + 4 random digits  e.g. user3821
-            string username =
-                "user"
-                + string.Create(
-                    4,
-                    rng,
-                    (buf, r) =>
-                    {
-                        for (int i = 0; i < buf.Length; i++)
-                            buf[i] = digits[r.Next(digits.Length)];
-                    }
-                );
+            string username = "user" + string.Create(4, rng, (buf, r) =>
+            {
+                for (int i = 0; i < buf.Length; i++)
+                    buf[i] = digits[r.Next(digits.Length)];
+            });
 
-            // Password: 10 chars guaranteed to contain at least one letter,
-            // one digit, and one special character
             char[] pwd = new char[10];
             pwd[0] = letters[rng.Next(letters.Length)];
             pwd[1] = digits[rng.Next(digits.Length)];
@@ -190,7 +219,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             for (int i = 3; i < pwd.Length; i++)
                 pwd[i] = all[rng.Next(all.Length)];
 
-            // Shuffle so the guaranteed chars aren't always at the front
             for (int i = pwd.Length - 1; i > 0; i--)
             {
                 int j = rng.Next(i + 1);
@@ -202,7 +230,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             FieldPassword.Password = password;
             FieldConfirmPassword.Password = password;
 
-            // Auto-reveal so the admin can see what was generated
             FieldUsername.PasswordRevealMode = PasswordRevealMode.Visible;
             FieldPassword.PasswordRevealMode = PasswordRevealMode.Visible;
             FieldConfirmPassword.PasswordRevealMode = PasswordRevealMode.Visible;

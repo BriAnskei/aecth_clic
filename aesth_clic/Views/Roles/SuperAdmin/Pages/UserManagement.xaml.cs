@@ -1,4 +1,5 @@
-﻿using aesth_clic.Utils;
+﻿using aesth_clic.Master.Controller;
+using aesth_clic.Utils;
 using aesth_clic.ViewModels.SuperAdmin;
 using aesth_clic.Views.Roles.SuperAdmin.Modals;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         public int UserId { get; set; }
         public int CompanyId { get; set; }
         public int RowNumber { get; set; }
+        public string ClinicCode { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
@@ -125,14 +127,15 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
     public sealed partial class UserManagement : Page
     {
         private readonly UserManagementViewModel _vm = new();
-        private readonly aesth_clic.Master.Controller.CompanyController _companyController;
+        private readonly CompanyController _companyController;
+        private readonly AdminUserController _adminUserController;
 
         public UserManagement()
         {
             InitializeComponent();
 
-            _companyController = App.Services
-                .GetRequiredService<aesth_clic.Master.Controller.CompanyController>();
+            _companyController = App.Services.GetRequiredService<CompanyController>();
+            _adminUserController = App.Services.GetRequiredService<AdminUserController>();
 
             UserListControl.ItemsSource = _vm.DisplayedUsers;
 
@@ -149,56 +152,14 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ──────────────────────────────────────────────────────
-        // DATA LOADING  (mock until GetAllClientsAsync is ready)
+        // DATA LOADING
         // ──────────────────────────────────────────────────────
         private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
             try
             {
-                // TODO: swap mock list for real call once GetAllClientsAsync is implemented:
-                //   var clients = await _companyController.GetAllClientsAsync();
-                //   _vm.LoadFromDb(clients);
-
-                var mockClients = new List<(
-                    aesth_clic.Master.Model.Client Client,
-                    string FullName,
-                    string Email,
-                    string Phone,
-                    string Username)>
-                {
-                    (
-                        new aesth_clic.Master.Model.Client
-                        {
-                            Id = 1, ClinicName = "Santos Aesthetic Clinic",
-                            DbName = "Aesth_Santos_Aesthetic_Clinic",
-                            ClinicCode = "12345", Status = "active",
-                            Tier = "basic", CreatedAt = DateTime.UtcNow
-                        },
-                        "Maria Santos", "maria@santos.com", "09171234567", "santos_clinic1234"
-                    ),
-                    (
-                        new aesth_clic.Master.Model.Client
-                        {
-                            Id = 2, ClinicName = "Glow Skin Center",
-                            DbName = "Aesth_Glow_Skin_Center",
-                            ClinicCode = "67890", Status = "active",
-                            Tier = "premium", CreatedAt = DateTime.UtcNow
-                        },
-                        "Jose Reyes", "jose@glow.com", "09281234567", "glow_clinic5678"
-                    ),
-                    (
-                        new aesth_clic.Master.Model.Client
-                        {
-                            Id = 3, ClinicName = "Lumina Derma Clinic",
-                            DbName = "Aesth_Lumina_Derma_Clinic",
-                            ClinicCode = "11223", Status = "deactivated",
-                            Tier = "standard", CreatedAt = DateTime.UtcNow
-                        },
-                        "Ana Dela Cruz", "ana@lumina.com", "09391234567", "lumina_clinic9012"
-                    ),
-                };
-
-                _vm.LoadFromMock(mockClients);
+                var clinics = await _adminUserController.GetAllAdminClinicsAsync();
+                _vm.LoadFromDb(clinics);
                 UpdateKpiCards();
             }
             catch (Exception ex)
@@ -255,7 +216,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             var dialog = new AddNewClient { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
-            // Result is only non-null when the dialog saved successfully
             if (dialog.Result is null)
                 return;
 
@@ -269,9 +229,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 $"{r.FullName} ({r.ClinicName}) has been created successfully.");
         }
 
-
         // ──────────────────────────────────────────────────────
-        // EDIT CLIENT  — TODO: wire to new controller when ready
+        // EDIT CLIENT
         // ──────────────────────────────────────────────────────
         private async void EditUser_Click(object sender, RoutedEventArgs e)
         {
@@ -282,18 +241,23 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             if (user == null) return;
 
             var dialog = new EditClient(user) { XamlRoot = XamlRoot };
-            var dialogResult = await dialog.ShowAsync();
+            await dialog.ShowAsync();
 
-            if (dialogResult == ContentDialogResult.Primary && dialog.Result is not null)
-            {
-                // TODO: replace stub with real controller call once UpdateClientAsync is implemented
-                //   await _companyController.UpdateClientAsync(...)
-                ToastHelper.Error(ToastBar, "Not implemented", "Edit client is not yet available.");
-            }
+            if (dialog.Result is null)
+                return;
+
+            var r = dialog.Result;
+
+            await LoadFromDbAsync();
+
+            ToastHelper.Success(
+                ToastBar,
+                "Client updated",
+                $"{r.FullName} ({r.ClinicName}) has been updated successfully.");
         }
 
         // ──────────────────────────────────────────────────────
-        // MANAGE MODULES  — TODO: wire to new controller when ready
+        // MANAGE MODULES  — TODO: wire when UpdateTierAsync ready
         // ──────────────────────────────────────────────────────
         private async void ManageModules_Click(object sender, RoutedEventArgs e)
         {
@@ -308,14 +272,13 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
 
             if (dialog.Result is not null)
             {
-                // TODO: replace stub with real controller call once UpdateTierAsync is implemented
-                //   await _companyController.UpdateTierAsync(user.CompanyId, newTier)
+                // TODO: await _adminUserController.UpdateTierAsync(user.CompanyId, newTier)
                 ToastHelper.Error(ToastBar, "Not implemented", "Manage modules is not yet available.");
             }
         }
 
         // ──────────────────────────────────────────────────────
-        // DEACTIVATE  — TODO: wire to new controller when ready
+        // DEACTIVATE  — TODO: wire when DeactivateClientAsync ready
         // ──────────────────────────────────────────────────────
         private async void DeactivateUser_Click(object sender, RoutedEventArgs e)
         {
@@ -328,17 +291,26 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             var dialog = new DeactivateClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
-            if (dialog.Confirmed)
+            if (!dialog.Confirmed)
+                return;
+
+            try
             {
-                // TODO: replace stub with real controller call once DeactivateClientAsync is implemented
-                //   await _companyController.DeactivateClientAsync(user.CompanyId)
-                //   _vm.DeactivateUser(userId);
-                ToastHelper.Error(ToastBar, "Not implemented", "Deactivate client is not yet available.");
+                await _companyController.UpdateClientStatusAsync(user.ClinicCode, "deactivated");
+                _vm.DeactivateUser(userId);
+                ToastHelper.Success(
+                    ToastBar,
+                    "Client deactivated",
+                    $"{user.FullName} ({user.ClinicName}) has been deactivated.");
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to deactivate client", ex.Message);
             }
         }
 
         // ──────────────────────────────────────────────────────
-        // REACTIVATE  — TODO: wire to new controller when ready
+        // REACTIVATE  — TODO: wire when ReactivateClientAsync ready
         // ──────────────────────────────────────────────────────
         private async void ReactivateUser_Click(object sender, RoutedEventArgs e)
         {
@@ -351,17 +323,26 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             var dialog = new ReactivateClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
-            if (dialog.Confirmed)
+            if (!dialog.Confirmed)
+                return;
+
+            try
             {
-                // TODO: replace stub with real controller call once ReactivateClientAsync is implemented
-                //   await _companyController.ReactivateClientAsync(user.CompanyId)
-                //   _vm.ReactivateUser(userId);
-                ToastHelper.Error(ToastBar, "Not implemented", "Reactivate client is not yet available.");
+                await _companyController.UpdateClientStatusAsync(user.ClinicCode, "active");
+                _vm.ReactivateUser(userId);
+                ToastHelper.Success(
+                    ToastBar,
+                    "Client reactivated",
+                    $"{user.FullName} ({user.ClinicName}) has been reactivated.");
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to reactivate client", ex.Message);
             }
         }
 
         // ──────────────────────────────────────────────────────
-        // DELETE  — TODO: wire to new controller when ready
+        // DELETE  — TODO: wire when DeleteClientAsync ready
         // ──────────────────────────────────────────────────────
         private async void DeleteUser_Click(object sender, RoutedEventArgs e)
         {
@@ -374,12 +355,21 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             var dialog = new DeleteClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
-            if (dialog.Confirmed)
+            if (!dialog.Confirmed)
+                return;
+
+            try
             {
-                // TODO: replace stub with real controller call once DeleteClientAsync is implemented
-                //   await _companyController.DeleteClientAsync(user.UserId)
-                //   _vm.DeleteUser(userId);
-                ToastHelper.Error(ToastBar, "Not implemented", "Delete client is not yet available.");
+                await _companyController.DeleteClientAsync(user.ClinicCode);
+                await LoadFromDbAsync();
+                ToastHelper.Success(
+                    ToastBar,
+                    "Client deleted",
+                    $"{user.FullName} ({user.ClinicName}) has been permanently deleted.");
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to delete client", ex.Message);
             }
         }
     }
