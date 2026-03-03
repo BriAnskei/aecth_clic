@@ -4,9 +4,11 @@ using aesth_clic.Master.Model;
 using aesth_clic.Tenant.Model;
 using aesth_clic.Tenant.Uti;
 using aesth_clic.Util;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace aesth_clic.Master.Services
@@ -57,7 +59,6 @@ namespace aesth_clic.Master.Services
         private void InitializeClient(Client client)
         {
             client.GenerateDbName();
-            GenerateClinicCode(client);
         }
 
         private async Task SaveClientToMasterDatabaseAsync(Client client)
@@ -120,15 +121,7 @@ namespace aesth_clic.Master.Services
             Debug.WriteLine(ex.ToString());
         }
 
-        private void GenerateClinicCode(Client client)
-        {
-            // TODO: Ensure uniqueness check before assigning
-
-            var random = new Random();
-            var code = random.Next(10000, 100000);
-
-            client.ClinicCode = code.ToString();
-        }
+       
 
 
 
@@ -154,10 +147,34 @@ namespace aesth_clic.Master.Services
         }
 
 
-        public async Task DeleteClientAsync(string clinicCode)
+        public async Task UpdateClientTierAsync(string clinicCode, string newTier)
         {
 
-            // 1️⃣ Get client from master
+            // Normalize tier value
+            newTier = newTier.Trim().ToLower();
+
+
+            // Fetch client
+            var client = await _masterDb.Clients
+                .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
+
+            if (client == null)
+                throw new Exception("Client not found.");
+
+            // Update tier
+            client.Tier = newTier;
+
+            // Save changes
+            await _masterDb.SaveChangesAsync();
+        }
+
+
+
+        public async Task DeleteClientAsync(string clinicCode)
+        {
+            if (string.IsNullOrWhiteSpace(clinicCode))
+                throw new ArgumentException("Invalid clinic code.");
+
             var client = await _masterDb.Clients
                 .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
 
@@ -166,25 +183,41 @@ namespace aesth_clic.Master.Services
 
             var dbName = client.DbName;
 
+            // Safety validation (VERY important)
+            if (!System.Text.RegularExpressions.Regex.IsMatch(dbName, @"^[a-zA-Z0-9_]+$"))
+                throw new Exception("Invalid database name format.");
+
             try
             {
-                // 2️⃣ Delete the tenant database
-                var sqlDrop = $"DROP DATABASE [{dbName}]";
-                await _masterDb.Database.ExecuteSqlRawAsync(sqlDrop);
+                // Build safe dynamic SQL using QUOTENAME
+                var sql = @"
+            DECLARE @sql NVARCHAR(MAX);
 
-                // 3️⃣ Delete the client from master
+            SET @sql = N'
+                ALTER DATABASE ' + QUOTENAME(@dbName) + ' SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                DROP DATABASE ' + QUOTENAME(@dbName);
+
+            EXEC sp_executesql @sql;
+        ";
+
+                await _masterDb.Database.ExecuteSqlRawAsync(
+                    sql,
+                    new SqlParameter("@dbName", dbName)
+                );
+
+                // Remove client record from master
                 _masterDb.Clients.Remove(client);
                 await _masterDb.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                // Optionally log error
                 Debug.WriteLine($"Error deleting client {clinicCode}: {ex}");
 
                 throw new Exception(
                     $"Failed to delete client {clinicCode}.", ex);
             }
         }
+
 
 
 

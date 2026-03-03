@@ -19,6 +19,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
         private string _selectedTier = string.Empty;
         private bool _usernameVisible = false;
         private bool _passwordVisible = false;
+        private bool _clinicCodeGenerated = false; // tracks if code has been generated already
 
         private readonly CompanyController _companyController;
 
@@ -28,6 +29,27 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
 
             _companyController = App.Services
                 .GetRequiredService<CompanyController>();
+        }
+
+        // ─────────────────────────────────────────
+        // CLINIC CODE GENERATION
+        // Generates once when ClinicName first becomes non-empty
+        // ─────────────────────────────────────────
+        private void FieldClinicName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_clinicCodeGenerated) return;
+
+            string clinicName = FieldClinicName.Text.Trim();
+            if (string.IsNullOrEmpty(clinicName)) return;
+
+            FieldClinicCode.Text = GenerateClinicCode();
+            _clinicCodeGenerated = true;
+        }
+
+        private static string GenerateClinicCode()
+        {
+            var rng = new Random(Environment.TickCount);
+            return rng.Next(10000, 100000).ToString();
         }
 
         // ─────────────────────────────────────────
@@ -84,16 +106,20 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
 
         // ─────────────────────────────────────────
         // COPY CREDENTIALS
+        // Copies Clinic Code, Username, and Password to clipboard
         // ─────────────────────────────────────────
         private void CopyCredentials_Click(object sender, RoutedEventArgs e)
         {
+            string clinicCode = FieldClinicCode.Text;
             string username = FieldUsername.Password;
             string password = FieldPassword.Password;
 
-            if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(password)) return;
+            if (string.IsNullOrEmpty(clinicCode) &&
+                string.IsNullOrEmpty(username) &&
+                string.IsNullOrEmpty(password)) return;
 
             var package = new DataPackage();
-            package.SetText($"Username: {username} | Password: {password}");
+            package.SetText($"Clinic Code: {clinicCode} | Username: {username} | Password: {password}");
             Clipboard.SetContent(package);
         }
 
@@ -141,6 +167,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             string email = FieldEmail.Text.Trim();
             string phone = FieldPhone.Text.Trim();
             string clinicName = FieldClinicName.Text.Trim();
+            string clinicCode = FieldClinicCode.Text.Trim();
             string username = FieldUsername.Password.Trim();
             string password = FieldPassword.Password;
             string confirmPw = FieldConfirmPassword.Password;
@@ -150,6 +177,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             if (string.IsNullOrEmpty(fullName) ||
                 string.IsNullOrEmpty(email) ||
                 string.IsNullOrEmpty(clinicName) ||
+                string.IsNullOrEmpty(clinicCode) ||
                 string.IsNullOrEmpty(username) ||
                 string.IsNullOrEmpty(password) ||
                 string.IsNullOrEmpty(tier))
@@ -189,6 +217,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
                 client: new aesth_clic.Master.Model.Client
                 {
                     ClinicName = clinicName,
+                    ClinicCode = clinicCode, // set from modal, not generated in service
                     Tier = tier,
                 }
             );
@@ -199,6 +228,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             Debug.WriteLine($"  Email       : {email}");
             Debug.WriteLine($"  Phone       : {phone}");
             Debug.WriteLine($"  Clinic      : {clinicName}");
+            Debug.WriteLine($"  Clinic Code : {clinicCode}");
             Debug.WriteLine($"  Username    : {username}");
             Debug.WriteLine($"  Module Tier : {tier}");
             Debug.WriteLine($"  Created At  : {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
@@ -216,6 +246,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
                     Email = email,
                     PhoneNumber = phone,
                     ClinicName = clinicName,
+                    ClinicCode = clinicCode,
                     Username = username,
                     Password = password,
                     ModuleTier = tier,
@@ -244,7 +275,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
         private void SetSavingState(bool isSaving)
         {
             IsPrimaryButtonEnabled = !isSaving;
-            IsSecondaryButtonEnabled = !isSaving;   // Close / Cancel button
+            IsSecondaryButtonEnabled = !isSaving;
             SavingOverlay.Visibility = isSaving
                 ? Visibility.Visible
                 : Visibility.Collapsed;
@@ -259,6 +290,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Modals
             public string Email { get; set; } = string.Empty;
             public string PhoneNumber { get; set; } = string.Empty;
             public string ClinicName { get; set; } = string.Empty;
+            public string ClinicCode { get; set; } = string.Empty;
             public string Username { get; set; } = string.Empty;
             public string Password { get; set; } = string.Empty;
             public string ModuleTier { get; set; } = string.Empty;

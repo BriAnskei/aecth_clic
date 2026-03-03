@@ -12,8 +12,8 @@ namespace aesth_clic.Views.Roles.Admin.Modals
         private readonly StaffUserItem _user;
         public bool Confirmed { get; private set; }
 
-        private TextBlock ClientNameText;
-        private Border SavingOverlay;
+        private TextBlock? ClientNameText;
+        private Border? SavingOverlay;
 
         public ReactivateUser(StaffUserItem user)
         {
@@ -26,7 +26,7 @@ namespace aesth_clic.Views.Roles.Admin.Modals
             PrimaryButtonClick += OnConfirmClicked;
 
             BuildContent();
-            ClientNameText.Text = _user.FullName;
+            ClientNameText!.Text = _user.FullName;
         }
 
         private void BuildContent()
@@ -81,7 +81,7 @@ namespace aesth_clic.Views.Roles.Admin.Modals
         {
             IsPrimaryButtonEnabled = !isSaving;
             IsSecondaryButtonEnabled = !isSaving;
-            SavingOverlay.Visibility = isSaving ? Visibility.Visible : Visibility.Collapsed;
+            SavingOverlay!.Visibility = isSaving ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

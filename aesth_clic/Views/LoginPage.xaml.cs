@@ -1,7 +1,5 @@
-using aesth_clic.Controller;
 using aesth_clic.Services;
 using aesth_clic.Views.Roles;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -15,13 +13,9 @@ namespace aesth_clic.Views
 {
     public sealed partial class LoginPage : Page
     {
-      
-  
-
         public LoginPage()
         {
             InitializeComponent();
-       
         }
 
         private async void OnEnterPressed(object sender, KeyRoutedEventArgs e)
@@ -39,13 +33,10 @@ namespace aesth_clic.Views
         {
             var username = UsernameBox.Text?.Trim();
             var password = PasswordBox.Password;
-            var selectedItem = RoleComboBox.SelectedItem as ComboBoxItem;
-            var role = selectedItem?.Tag?.ToString();
-
-
+            var clinicCode = ClinicCodeBox.Text?.Trim();
 
             // Validate fields
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(role))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(clinicCode))
             {
                 ShowError("Please fill in all fields.");
                 return;
@@ -53,26 +44,19 @@ namespace aesth_clic.Views
 
             SetLoadingState(true);
 
-       
-
+            // TODO: wire up backend authentication using username, password, and clinicCode
 
             SetLoadingState(false);
-
-
-     
 
             // Success — maximize then navigate
             MaximizeWindow();
             HideError();
             NavigateByRole();
-
         }
 
-        private void NavigateByRole
-            ()
+        private void NavigateByRole()
         {
             string role = UserSession.CurrentUser?.Role ?? "";
-
             switch (role)
             {
                 case "super_admin": Frame.Navigate(typeof(SuperAdminShell)); break;
@@ -86,20 +70,13 @@ namespace aesth_clic.Views
         private void SetLoadingState(bool isLoading)
         {
             LoginButton.IsEnabled = !isLoading;
-
-            LoginButton.IsEnabled = !isLoading;
             LoginButtonText.Visibility = isLoading ? Visibility.Collapsed : Visibility.Visible;
             LoginLoadingPanel.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
 
-    
             UsernameBox.IsEnabled = !isLoading;
             PasswordBox.IsEnabled = !isLoading;
-            RoleComboBox.IsEnabled = !isLoading;
-
+            ClinicCodeBox.IsEnabled = !isLoading;
         }
-
-
-
 
         private void ShowError(string message)
         {
@@ -117,9 +94,11 @@ namespace aesth_clic.Views
         {
             var window = (Application.Current as App)?.MainWindow;
             if (window == null) return;
+
             var hwnd = WindowNative.GetWindowHandle(window);
             var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
             var appWindow = AppWindow.GetFromWindowId(windowId);
+
             if (appWindow.Presenter is OverlappedPresenter presenter)
                 presenter.Maximize();
         }

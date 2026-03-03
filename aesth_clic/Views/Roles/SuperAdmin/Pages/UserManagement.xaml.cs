@@ -146,9 +146,35 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                     or nameof(UserManagementViewModel.ActiveUsers)
                     or nameof(UserManagementViewModel.DeactivatedUsers))
                     UpdateKpiCards();
+
+                if (e.PropertyName == nameof(UserManagementViewModel.IsLoading))
+                    UpdateLoadingState(_vm.IsLoading);
             };
 
             _ = LoadFromDbAsync();
+        }
+
+        // ──────────────────────────────────────────────────────
+        // LOADING STATE
+        // ──────────────────────────────────────────────────────
+        private void UpdateLoadingState(bool isLoading)
+        {
+            // KPI cards — Grid is a Panel (not a Control), so use IsHitTestVisible to block interaction
+            KpiGrid.IsHitTestVisible = !isLoading;
+            KpiGrid.Opacity = isLoading ? 0.4 : 1.0;
+
+            // Search + filter toolbar
+            FilterToolbar.IsHitTestVisible = !isLoading;
+            FilterToolbar.Opacity = isLoading ? 0.4 : 1.0;
+
+            // Table visibility: swap skeleton ↔ real table
+            SkeletonTable.Visibility = isLoading
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            RealTable.Visibility = isLoading
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         }
 
         // ──────────────────────────────────────────────────────
@@ -156,6 +182,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         // ──────────────────────────────────────────────────────
         private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
+            _vm.IsLoading = true;
             try
             {
                 var clinics = await _adminUserController.GetAllAdminClinicsAsync();
@@ -165,6 +192,10 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             catch (Exception ex)
             {
                 ToastHelper.Error(ToastBar, "Failed to load clients", ex.Message);
+            }
+            finally
+            {
+                _vm.IsLoading = false;
             }
         }
 
@@ -235,10 +266,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         private async void EditUser_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuFlyoutItem item) return;
-            int userId = (int)item.Tag;
-
-            var user = _vm.FindUser(userId);
-            if (user == null) return;
+            if (item.DataContext is not UserItem user) return;
 
             var dialog = new EditClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
@@ -246,47 +274,60 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             if (dialog.Result is null)
                 return;
 
-            var r = dialog.Result;
-
             await LoadFromDbAsync();
 
             ToastHelper.Success(
                 ToastBar,
                 "Client updated",
-                $"{r.FullName} ({r.ClinicName}) has been updated successfully.");
+                $"{user.FullName} ({user.ClinicName}) has been updated successfully.");
         }
 
         // ──────────────────────────────────────────────────────
-        // MANAGE MODULES  — TODO: wire when UpdateTierAsync ready
+        // MANAGE MODULES
         // ──────────────────────────────────────────────────────
         private async void ManageModules_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuFlyoutItem item) return;
-            int userId = (int)item.Tag;
-
-            var user = _vm.FindUser(userId);
-            if (user == null) return;
+            if (item.DataContext is not UserItem user) return;
 
             var dialog = new ManageModules(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
-            if (dialog.Result is not null)
+            if (dialog.Result is null)
+                return;
+
+            var newTier = dialog.Result.Tier;
+
+            if (string.Equals(user.Tier, newTier, StringComparison.OrdinalIgnoreCase))
             {
-                // TODO: await _adminUserController.UpdateTierAsync(user.CompanyId, newTier)
-                ToastHelper.Error(ToastBar, "Not implemented", "Manage modules is not yet available.");
+                ToastHelper.Info(ToastBar, "No changes made",
+                    $"{user.FullName}'s tier is already {newTier}.");
+                return;
+            }
+
+            try
+            {
+                await _companyController.UpdateClientTierAsync(user.ClinicCode, newTier);
+                await LoadFromDbAsync();
+
+                ToastHelper.Success(
+                    ToastBar,
+                    "Tier updated",
+                    $"{user.FullName} ({user.ClinicName}) moved to {newTier} tier.");
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to update tier", ex.Message);
             }
         }
 
         // ──────────────────────────────────────────────────────
-        // DEACTIVATE  — TODO: wire when DeactivateClientAsync ready
+        // DEACTIVATE
         // ──────────────────────────────────────────────────────
         private async void DeactivateUser_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuFlyoutItem item) return;
-            int userId = (int)item.Tag;
-
-            var user = _vm.FindUser(userId);
-            if (user == null) return;
+            if (item.DataContext is not UserItem user) return;
 
             var dialog = new DeactivateClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
@@ -297,7 +338,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             try
             {
                 await _companyController.UpdateClientStatusAsync(user.ClinicCode, "deactivated");
-                _vm.DeactivateUser(userId);
+                await LoadFromDbAsync();
+
                 ToastHelper.Success(
                     ToastBar,
                     "Client deactivated",
@@ -310,15 +352,12 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ──────────────────────────────────────────────────────
-        // REACTIVATE  — TODO: wire when ReactivateClientAsync ready
+        // REACTIVATE
         // ──────────────────────────────────────────────────────
         private async void ReactivateUser_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuFlyoutItem item) return;
-            int userId = (int)item.Tag;
-
-            var user = _vm.FindUser(userId);
-            if (user == null) return;
+            if (item.DataContext is not UserItem user) return;
 
             var dialog = new ReactivateClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
@@ -329,7 +368,8 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             try
             {
                 await _companyController.UpdateClientStatusAsync(user.ClinicCode, "active");
-                _vm.ReactivateUser(userId);
+                await LoadFromDbAsync();
+
                 ToastHelper.Success(
                     ToastBar,
                     "Client reactivated",
@@ -342,15 +382,15 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
         }
 
         // ──────────────────────────────────────────────────────
-        // DELETE  — TODO: wire when DeleteClientAsync ready
+        // DELETE
         // ──────────────────────────────────────────────────────
         private async void DeleteUser_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuFlyoutItem item) return;
-            int userId = (int)item.Tag;
+            if (item.DataContext is not UserItem user) return;
 
-            var user = _vm.FindUser(userId);
-            if (user == null || user.Status != "Deactivated") return;
+            if (user.Status != "Deactivated")
+                return;
 
             var dialog = new DeleteClient(user) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
@@ -362,10 +402,11 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             {
                 await _companyController.DeleteClientAsync(user.ClinicCode);
                 await LoadFromDbAsync();
+
                 ToastHelper.Success(
                     ToastBar,
                     "Client deleted",
-                    $"{user.FullName} ({user.ClinicName}) has been permanently deleted.");
+                    $"{user.FullName} ({user.ClinicName}) permanently deleted.");
             }
             catch (Exception ex)
             {

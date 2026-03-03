@@ -30,6 +30,14 @@ namespace aesth_clic.Master.Controller
             await _companyService.UpdateClientStatusAsync(clinicCode, newStatus); 
         }
 
+        public async Task UpdateClientTierAsync(string clinicCode, string newTier) {
+
+            await _companyService.UpdateClientTierAsync(clinicCode, newTier);
+        
+        }
+
+
+
         public async Task DeleteClientAsync(string clinicCode)
         {
             await _companyService.DeleteClientAsync(clinicCode);    

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using aesth_clic.Master.Dto;
+using aesth_clic.Views.Roles.SuperAdmin.Pages;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using aesth_clic.Master.Dto;
-using aesth_clic.Views.Roles.SuperAdmin.Pages;
 
 namespace aesth_clic.ViewModels.SuperAdmin
 {
@@ -12,6 +13,16 @@ namespace aesth_clic.ViewModels.SuperAdmin
     {
         private readonly List<UserItem> _allUsers = new();
         public ObservableCollection<UserItem> DisplayedUsers { get; } = new();
+
+        // ──────────────────────────────────────────────────────
+        // LOADING STATE
+        // ──────────────────────────────────────────────────────
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set { _isLoading = value; OnPropertyChanged(); }
+        }
 
         private string _searchText = string.Empty;
         public string SearchText
@@ -72,24 +83,21 @@ namespace aesth_clic.ViewModels.SuperAdmin
         // ──────────────────────────────────────────────────────
         public void ApplyFilters()
         {
-            DisplayedUsers.Clear();
-
             var filtered = _allUsers.Where(u =>
-                (
-                    string.IsNullOrEmpty(SearchText)
-                    || u.FullName.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase)
-                    || u.Email.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase)
-                    || u.ClinicName.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase)
-                )
+                (string.IsNullOrEmpty(SearchText)
+                    || u.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                    || u.Email.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                    || u.ClinicName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
                 && (SelectedStatus == "All" || u.Status == SelectedStatus)
                 && (SelectedTier == "All" || u.Tier == SelectedTier)
-            );
+            ).ToList();
 
-            int row = 1;
-            foreach (var user in filtered)
+            DisplayedUsers.Clear();
+
+            for (int i = 0; i < filtered.Count; i++)
             {
-                user.RowNumber = row++;
-                DisplayedUsers.Add(user);
+                filtered[i].RowNumber = i + 1;
+                DisplayedUsers.Add(filtered[i]);
             }
 
             OnPropertyChanged(nameof(TotalUsers));
