@@ -1,0 +1,132 @@
+<ContentDialog
+  x:Class="aesth_clic.Views.Roles.Admin.Modals.DeactivateUser"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Title="Deactivate User"
+  PrimaryButtonText="Yes, Deactivate"
+  CloseButtonText="Cancel"
+  DefaultButton="Close"
+  PrimaryButtonStyle="{StaticResource PurplePrimaryButtonStyle}"
+  CloseButtonStyle="{StaticResource GrayCloseButtonStyle}"
+>
+    <ContentDialog.Resources>
+        <!-- Dialog chrome -->
+        <SolidColorBrush x:Key="ContentDialogBackground"              Color="White" />
+        <SolidColorBrush x:Key="ContentDialogBorderBrush"             Color="#E4DAF5" />
+        <SolidColorBrush x:Key="ContentDialogTopOverlayBackground"    Color="White" />
+        <SolidColorBrush x:Key="ContentDialogButtonAreaBackground"    Color="White" />
+
+        <!-- Foreground / Cancel button -->
+        <SolidColorBrush x:Key="ContentDialogForeground"                          Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForeground"               Color="#5B2D8E" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPointerOver"    Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPressed"        Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackground"               Color="White"   />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPointerOver"    Color="#EDE4F9" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPressed"        Color="#E4DAF5" />
+    </ContentDialog.Resources>
+
+    <!-- Root Grid — form layer + overlay layer -->
+    <Grid>
+
+        <StackPanel Spacing="16" Width="420">
+
+            <!-- Icon + Name -->
+            <StackPanel HorizontalAlignment="Center" Spacing="12">
+                <Border
+          Width="72" Height="72"
+          CornerRadius="36"
+          Background="#1AD83B01"
+          HorizontalAlignment="Center"
+        >
+                    <FontIcon
+            Glyph="&#xEA8C;"
+            FontSize="32"
+            Foreground="#D83B01"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+          />
+                </Border>
+
+                <TextBlock
+          x:Name="UserNameText"
+          Text=""
+          FontSize="16"
+          FontWeight="SemiBold"
+          HorizontalAlignment="Center"
+          TextAlignment="Center"
+          Foreground="#2D1554"
+        />
+            </StackPanel>
+
+            <!-- Divider -->
+            <Border Height="1" Background="#E4DAF5" />
+
+            <!-- Warning message -->
+            <StackPanel Spacing="8">
+                <TextBlock
+          Text="Are you sure you want to deactivate this staff account?"
+          FontSize="13"
+          TextWrapping="Wrap"
+          Foreground="#2D1554"
+        />
+                <TextBlock
+          Text="This staff member will no longer be able to log in to the system. You can reactivate their account at any time from the User Management page."
+          FontSize="12"
+          TextWrapping="Wrap"
+          Foreground="#9B80C4"
+        />
+            </StackPanel>
+
+            <!-- Info strip -->
+            <Border
+        Background="#1AD83B01"
+        BorderBrush="#40D83B01"
+        BorderThickness="1"
+        CornerRadius="6"
+        Padding="12,10"
+      >
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <FontIcon
+            Glyph="&#xE783;"
+            FontSize="14"
+            Foreground="#D83B01"
+            VerticalAlignment="Top"
+          />
+                    <TextBlock
+            Text="This action is reversible. The staff member's data and credentials will be preserved."
+            FontSize="12"
+            TextWrapping="Wrap"
+            Foreground="#D83B01"
+          />
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+
+        <!-- Loading overlay (shown while awaiting controller) -->
+        <Border
+      x:Name="SavingOverlay"
+      Visibility="Collapsed"
+      Background="White"
+      Opacity="0.90"
+      CornerRadius="8"
+    >
+            <StackPanel
+        Orientation="Horizontal"
+        Spacing="10"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+      >
+                <ProgressRing IsActive="True" Width="20" Height="20" Foreground="#5B2D8E" />
+                <TextBlock
+          Text="Deactivating…"
+          VerticalAlignment="Center"
+          FontSize="13"
+          Foreground="#9B80C4"
+        />
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</ContentDialog>

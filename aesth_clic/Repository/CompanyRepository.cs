@@ -1,231 +1,231 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using aesth_clic.Data;
-using aesth_clic.Models.Companies;
-using MySqlConnector;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Threading.Tasks;
+//using aesth_clic.Data;
 
-namespace aesth_clic.Repository
-{
-    internal class CompanyRepository
-    {
-        private readonly DbConnectionFactory _db;
+//using MySqlConnector;
 
-        public CompanyRepository(DbConnectionFactory db)
-        {
-            _db = db ?? throw new ArgumentNullException(nameof(db));
-        }
+//namespace aesth_clic.Repository
+//{
+//    internal class CompanyRepository
+//    {
+//        private readonly DbConnectionFactory _db;
 
-        // ==============================
-        // CREATE
-        // ==============================
-        public async Task<int> CreateAsync(
-            Company company,
-            MySqlConnection conn,
-            MySqlTransaction transaction
-        )
-        {
-            using var cmd = conn.CreateCommand();
-            cmd.Transaction = transaction;
+//        public CompanyRepository(DbConnectionFactory db)
+//        {
+//            _db = db ?? throw new ArgumentNullException(nameof(db));
+//        }
 
-            cmd.CommandText =
-                @"
-        INSERT INTO company (owner_id, name, status, module_tier)
-        VALUES (@owner_id, @name, @status, @module_tier);
-        SELECT LAST_INSERT_ID();";
+//        // ==============================
+//        // CREATE
+//        // ==============================
+//        public async Task<int> CreateAsync(
+//            Company company,
+//            MySqlConnection conn,
+//            MySqlTransaction transaction
+//        )
+//        {
+//            using var cmd = conn.CreateCommand();
+//            cmd.Transaction = transaction;
 
-            cmd.Parameters.AddWithValue("@owner_id", company.owner_id);
-            cmd.Parameters.AddWithValue("@name", company.name);
-            cmd.Parameters.AddWithValue("@status", company.status);
-            cmd.Parameters.AddWithValue("@module_tier", company.module_tier);
+//            cmd.CommandText =
+//                @"
+//        INSERT INTO company (owner_id, name, status, module_tier)
+//        VALUES (@owner_id, @name, @status, @module_tier);
+//        SELECT LAST_INSERT_ID();";
 
-            var result = await cmd.ExecuteScalarAsync();
-            return Convert.ToInt32(result);
-        }
+//            cmd.Parameters.AddWithValue("@owner_id", company.owner_id);
+//            cmd.Parameters.AddWithValue("@name", company.name);
+//            cmd.Parameters.AddWithValue("@status", company.status);
+//            cmd.Parameters.AddWithValue("@module_tier", company.module_tier);
 
-        // ==============================
-        // READ - Get By Id
-        // ==============================
-        public async Task<Company?> GetByIdAsync(int companyId)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//            var result = await cmd.ExecuteScalarAsync();
+//            return Convert.ToInt32(result);
+//        }
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                @"
-                SELECT id, owner_id, name, status, module_tier
-                FROM company
-                WHERE id = @id
-                LIMIT 1";
+//        // ==============================
+//        // READ - Get By Id
+//        // ==============================
+//        public async Task<Company?> GetByIdAsync(int companyId)
+//        {
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@id", companyId);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText =
+//                @"
+//                SELECT id, owner_id, name, status, module_tier
+//                FROM company
+//                WHERE id = @id
+//                LIMIT 1";
 
-            using var reader = await cmd.ExecuteReaderAsync();
+//            cmd.Parameters.AddWithValue("@id", companyId);
 
-            if (!await reader.ReadAsync())
-                return null;
+//            using var reader = await cmd.ExecuteReaderAsync();
 
-            return MapCompany(reader);
-        }
+//            if (!await reader.ReadAsync())
+//                return null;
 
-        // ==============================
-        // READ - Get By Owner Id
-        // ==============================
-        public async Task<Company?> GetCompanyByOwnerIdAsync(int ownerId)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//            return MapCompany(reader);
+//        }
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                @"
-                SELECT id, owner_id, name, status, module_tier
-                FROM company
-                WHERE owner_id = @owner_id
-                LIMIT 1";
+//        // ==============================
+//        // READ - Get By Owner Id
+//        // ==============================
+//        public async Task<Company?> GetCompanyByOwnerIdAsync(int ownerId)
+//        {
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@owner_id", ownerId);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText =
+//                @"
+//                SELECT id, owner_id, name, status, module_tier
+//                FROM company
+//                WHERE owner_id = @owner_id
+//                LIMIT 1";
 
-            using var reader = await cmd.ExecuteReaderAsync();
+//            cmd.Parameters.AddWithValue("@owner_id", ownerId);
 
-            if (!await reader.ReadAsync())
-                return null;
+//            using var reader = await cmd.ExecuteReaderAsync();
 
-            return MapCompany(reader);
-        }
+//            if (!await reader.ReadAsync())
+//                return null;
 
-        // ==============================
-        // READ - Get All
-        // ==============================
-        public async Task<List<Company>> GetAllAsync()
-        {
-            var companies = new List<Company>();
+//            return MapCompany(reader);
+//        }
 
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//        // ==============================
+//        // READ - Get All
+//        // ==============================
+//        public async Task<List<Company>> GetAllAsync()
+//        {
+//            var companies = new List<Company>();
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                @"
-                SELECT id, owner_id, name, status, module_tier
-                FROM company";
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            using var reader = await cmd.ExecuteReaderAsync();
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText =
+//                @"
+//                SELECT id, owner_id, name, status, module_tier
+//                FROM company";
 
-            while (await reader.ReadAsync())
-            {
-                companies.Add(MapCompany(reader));
-            }
+//            using var reader = await cmd.ExecuteReaderAsync();
 
-            return companies;
-        }
+//            while (await reader.ReadAsync())
+//            {
+//                companies.Add(MapCompany(reader));
+//            }
 
-        // ==============================
-        // UPDATE
-        // ==============================
-        public async Task<bool> Updatetier(int id, string newTier)
-        {
-            if (id == 0)
-                throw new ArgumentNullException("Invalid id");
+//            return companies;
+//        }
 
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//        // ==============================
+//        // UPDATE
+//        // ==============================
+//        public async Task<bool> Updatetier(int id, string newTier)
+//        {
+//            if (id == 0)
+//                throw new ArgumentNullException("Invalid id");
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                @"
-                UPDATE company
-                SET
-                    module_tier = @module_tier
-                WHERE id = @id";
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@module_tier", newTier);
-            cmd.Parameters.AddWithValue("@id", id);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText =
+//                @"
+//                UPDATE company
+//                SET
+//                    module_tier = @module_tier
+//                WHERE id = @id";
 
-            var rowsAffected = await cmd.ExecuteNonQueryAsync();
-            return rowsAffected > 0;
-        }
+//            cmd.Parameters.AddWithValue("@module_tier", newTier);
+//            cmd.Parameters.AddWithValue("@id", id);
 
-        public async Task UpdateCompanyNameAsync(
-            Company company,
-            MySqlConnection conn,
-            MySqlTransaction transaction
-        )
-        {
-            using var cmd = conn.CreateCommand();
-            cmd.Transaction = transaction;
+//            var rowsAffected = await cmd.ExecuteNonQueryAsync();
+//            return rowsAffected > 0;
+//        }
 
-            cmd.CommandText =
-                @"
-        UPDATE company
-        SET name = @name
-        WHERE owner_id = @ownerId";
+//        public async Task UpdateCompanyNameAsync(
+//            Company company,
+//            MySqlConnection conn,
+//            MySqlTransaction transaction
+//        )
+//        {
+//            using var cmd = conn.CreateCommand();
+//            cmd.Transaction = transaction;
 
-            cmd.Parameters.AddWithValue("@name", company.name);
-            cmd.Parameters.AddWithValue("@ownerId", company.owner_id);
+//            cmd.CommandText =
+//                @"
+//        UPDATE company
+//        SET name = @name
+//        WHERE owner_id = @ownerId";
 
-            var affected = await cmd.ExecuteNonQueryAsync();
+//            cmd.Parameters.AddWithValue("@name", company.name);
+//            cmd.Parameters.AddWithValue("@ownerId", company.owner_id);
 
-            if (affected == 0)
-                throw new InvalidOperationException("Company was not updated.");
-        }
+//            var affected = await cmd.ExecuteNonQueryAsync();
 
-        public async Task<bool> UpdateStatusAsync(int ownerId, string newStatus)
-        {
-            if (ownerId <= 0)
-                throw new ArgumentException("Invalid company ID.", nameof(ownerId));
+//            if (affected == 0)
+//                throw new InvalidOperationException("Company was not updated.");
+//        }
 
-            if (string.IsNullOrWhiteSpace(newStatus))
-                throw new ArgumentException("Status cannot be empty.", nameof(newStatus));
+//        public async Task<bool> UpdateStatusAsync(int ownerId, string newStatus)
+//        {
+//            if (ownerId <= 0)
+//                throw new ArgumentException("Invalid company ID.", nameof(ownerId));
 
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//            if (string.IsNullOrWhiteSpace(newStatus))
+//                throw new ArgumentException("Status cannot be empty.", nameof(newStatus));
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                @"
-        UPDATE company
-        SET status = @status
-        WHERE owner_id = @id";
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@status", newStatus);
-            cmd.Parameters.AddWithValue("@id", ownerId);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText =
+//                @"
+//        UPDATE company
+//        SET status = @status
+//        WHERE owner_id = @id";
 
-            var rowsAffected = await cmd.ExecuteNonQueryAsync();
+//            cmd.Parameters.AddWithValue("@status", newStatus);
+//            cmd.Parameters.AddWithValue("@id", ownerId);
 
-            return rowsAffected > 0;
-        }
+//            var rowsAffected = await cmd.ExecuteNonQueryAsync();
 
-        // ==============================
-        // DELETE
-        // ==============================
-        public async Task<bool> DeleteAsync(int companyId)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//            return rowsAffected > 0;
+//        }
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                @"
-                DELETE FROM company
-                WHERE id = @id";
+//        // ==============================
+//        // DELETE
+//        // ==============================
+//        public async Task<bool> DeleteAsync(int companyId)
+//        {
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@id", companyId);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText =
+//                @"
+//                DELETE FROM company
+//                WHERE id = @id";
 
-            var rowsAffected = await cmd.ExecuteNonQueryAsync();
-            return rowsAffected > 0;
-        }
+//            cmd.Parameters.AddWithValue("@id", companyId);
 
-        private Company MapCompany(dynamic reader)
-        {
-            return new Company(
-                id: reader.GetInt32("id"),
-                owner_id: reader.GetInt32("owner_id"),
-                name: reader.GetString("name"),
-                status: reader.GetString("status"),
-                module_tier: reader.GetString("module_tier")
-            );
-        }
-    }
-}
+//            var rowsAffected = await cmd.ExecuteNonQueryAsync();
+//            return rowsAffected > 0;
+//        }
+
+//        private Company MapCompany(dynamic reader)
+//        {
+//            return new Company(
+//                id: reader.GetInt32("id"),
+//                owner_id: reader.GetInt32("owner_id"),
+//                name: reader.GetString("name"),
+//                status: reader.GetString("status"),
+//                module_tier: reader.GetString("module_tier")
+//            );
+//        }
+//    }
+//}

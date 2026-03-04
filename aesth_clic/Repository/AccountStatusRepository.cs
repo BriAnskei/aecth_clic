@@ -1,203 +1,203 @@
-﻿using aesth_clic.Data;
-using aesth_clic.Models.Users;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿//using aesth_clic.Data;
 
-namespace aesth_clic.Repository
-{
-    internal class AccountStatusRepository
-    {
-        private readonly DbConnectionFactory _db;
+//using System;
+//using System.Collections.Generic;
+//using System.Threading.Tasks;
 
-        public AccountStatusRepository(DbConnectionFactory db)
-        {
-            _db = db ?? throw new ArgumentNullException(nameof(db));
-        }
+//namespace aesth_clic.Repository
+//{
+//    internal class AccountStatusRepository
+//    {
+//        private readonly DbConnectionFactory _db;
 
-        // ==============================
-        // CREATE
-        // ==============================
-        public async Task<int> CreateAsync(AccountStatus accountStatus)
-        {
-            if (accountStatus == null)
-                throw new ArgumentNullException(nameof(accountStatus));
+//        public AccountStatusRepository(DbConnectionFactory db)
+//        {
+//            _db = db ?? throw new ArgumentNullException(nameof(db));
+//        }
 
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//        // ==============================
+//        // CREATE
+//        // ==============================
+//        public async Task<int> CreateAsync(AccountStatus accountStatus)
+//        {
+//            if (accountStatus == null)
+//                throw new ArgumentNullException(nameof(accountStatus));
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                INSERT INTO account_status (company_id, user_id, status)
-                VALUES (@company_id, @user_id, @status);
-                SELECT LAST_INSERT_ID();";
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@company_id", accountStatus.CompanyId);
-            cmd.Parameters.AddWithValue("@user_id", accountStatus.UserId);
-            cmd.Parameters.AddWithValue("@status", accountStatus.Status);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText = @"
+//                INSERT INTO account_status (company_id, user_id, status)
+//                VALUES (@company_id, @user_id, @status);
+//                SELECT LAST_INSERT_ID();";
 
-            var result = await cmd.ExecuteScalarAsync();
-            return Convert.ToInt32(result);
-        }
+//            cmd.Parameters.AddWithValue("@company_id", accountStatus.CompanyId);
+//            cmd.Parameters.AddWithValue("@user_id", accountStatus.UserId);
+//            cmd.Parameters.AddWithValue("@status", accountStatus.Status);
 
-        // ==============================
-        // READ - Get By Id
-        // ==============================
-        public async Task<AccountStatus?> GetByIdAsync(int id)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//            var result = await cmd.ExecuteScalarAsync();
+//            return Convert.ToInt32(result);
+//        }
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT id, company_id, user_id, status
-                FROM account_status
-                WHERE id = @id
-                LIMIT 1";
+//        // ==============================
+//        // READ - Get By Id
+//        // ==============================
+//        public async Task<AccountStatus?> GetByIdAsync(int id)
+//        {
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@id", id);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText = @"
+//                SELECT id, company_id, user_id, status
+//                FROM account_status
+//                WHERE id = @id
+//                LIMIT 1";
 
-            using var reader = await cmd.ExecuteReaderAsync();
+//            cmd.Parameters.AddWithValue("@id", id);
 
-            if (!await reader.ReadAsync())
-                return null;
+//            using var reader = await cmd.ExecuteReaderAsync();
 
-            return MapAccountStatus(reader);
-        }
+//            if (!await reader.ReadAsync())
+//                return null;
 
-        // ==============================
-        // READ - Get By User Id
-        // ==============================
-        public async Task<AccountStatus?> GetByUserIdAsync(int userId)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//            return MapAccountStatus(reader);
+//        }
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT id, company_id, user_id, status
-                FROM account_status
-                WHERE user_id = @user_id
-                LIMIT 1";
+//        // ==============================
+//        // READ - Get By User Id
+//        // ==============================
+//        public async Task<AccountStatus?> GetByUserIdAsync(int userId)
+//        {
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@user_id", userId);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText = @"
+//                SELECT id, company_id, user_id, status
+//                FROM account_status
+//                WHERE user_id = @user_id
+//                LIMIT 1";
 
-            using var reader = await cmd.ExecuteReaderAsync();
+//            cmd.Parameters.AddWithValue("@user_id", userId);
 
-            if (!await reader.ReadAsync())
-                return null;
+//            using var reader = await cmd.ExecuteReaderAsync();
 
-            return MapAccountStatus(reader);
-        }
+//            if (!await reader.ReadAsync())
+//                return null;
 
-        // ==============================
-        // READ - Get By Company Id
-        // ==============================
-        public async Task<AccountStatus?> GetByCompanyIdAsync(int companyId)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//            return MapAccountStatus(reader);
+//        }
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT id, company_id, user_id, status
-                FROM account_status
-                WHERE company_id = @company_id
-                LIMIT 1";
+//        // ==============================
+//        // READ - Get By Company Id
+//        // ==============================
+//        public async Task<AccountStatus?> GetByCompanyIdAsync(int companyId)
+//        {
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@company_id", companyId);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText = @"
+//                SELECT id, company_id, user_id, status
+//                FROM account_status
+//                WHERE company_id = @company_id
+//                LIMIT 1";
 
-            using var reader = await cmd.ExecuteReaderAsync();
+//            cmd.Parameters.AddWithValue("@company_id", companyId);
 
-            if (!await reader.ReadAsync())
-                return null;
+//            using var reader = await cmd.ExecuteReaderAsync();
 
-            return MapAccountStatus(reader);
-        }
+//            if (!await reader.ReadAsync())
+//                return null;
 
-        // ==============================
-        // READ - Get All
-        // ==============================
-        public async Task<List<AccountStatus>> GetAllAsync()
-        {
-            var results = new List<AccountStatus>();
+//            return MapAccountStatus(reader);
+//        }
 
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//        // ==============================
+//        // READ - Get All
+//        // ==============================
+//        public async Task<List<AccountStatus>> GetAllAsync()
+//        {
+//            var results = new List<AccountStatus>();
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT id, company_id, user_id, status
-                FROM account_status";
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            using var reader = await cmd.ExecuteReaderAsync();
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText = @"
+//                SELECT id, company_id, user_id, status
+//                FROM account_status";
 
-            while (await reader.ReadAsync())
-            {
-                results.Add(MapAccountStatus(reader));
-            }
+//            using var reader = await cmd.ExecuteReaderAsync();
 
-            return results;
-        }
+//            while (await reader.ReadAsync())
+//            {
+//                results.Add(MapAccountStatus(reader));
+//            }
 
-        // ==============================
-        // UPDATE
-        // ==============================
-        public async Task<bool> UpdateAsync(AccountStatus accountStatus)
-        {
-            if (accountStatus == null)
-                throw new ArgumentNullException(nameof(accountStatus));
+//            return results;
+//        }
 
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//        // ==============================
+//        // UPDATE
+//        // ==============================
+//        public async Task<bool> UpdateAsync(AccountStatus accountStatus)
+//        {
+//            if (accountStatus == null)
+//                throw new ArgumentNullException(nameof(accountStatus));
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                UPDATE account_status
-                SET company_id = @company_id,
-                    user_id = @user_id,
-                    status = @status
-                WHERE id = @id";
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@id", accountStatus.Id);
-            cmd.Parameters.AddWithValue("@company_id", accountStatus.CompanyId);
-            cmd.Parameters.AddWithValue("@user_id", accountStatus.UserId);
-            cmd.Parameters.AddWithValue("@status", accountStatus.Status);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText = @"
+//                UPDATE account_status
+//                SET company_id = @company_id,
+//                    user_id = @user_id,
+//                    status = @status
+//                WHERE id = @id";
 
-            var rowsAffected = await cmd.ExecuteNonQueryAsync();
-            return rowsAffected > 0;
-        }
+//            cmd.Parameters.AddWithValue("@id", accountStatus.Id);
+//            cmd.Parameters.AddWithValue("@company_id", accountStatus.CompanyId);
+//            cmd.Parameters.AddWithValue("@user_id", accountStatus.UserId);
+//            cmd.Parameters.AddWithValue("@status", accountStatus.Status);
 
-        // ==============================
-        // DELETE
-        // ==============================
-        public async Task<bool> DeleteAsync(int id)
-        {
-            using var conn = _db.GetConnection();
-            await conn.OpenAsync();
+//            var rowsAffected = await cmd.ExecuteNonQueryAsync();
+//            return rowsAffected > 0;
+//        }
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                DELETE FROM account_status
-                WHERE id = @id";
+//        // ==============================
+//        // DELETE
+//        // ==============================
+//        public async Task<bool> DeleteAsync(int id)
+//        {
+//            using var conn = _db.GetConnection();
+//            await conn.OpenAsync();
 
-            cmd.Parameters.AddWithValue("@id", id);
+//            using var cmd = conn.CreateCommand();
+//            cmd.CommandText = @"
+//                DELETE FROM account_status
+//                WHERE id = @id";
 
-            var rowsAffected = await cmd.ExecuteNonQueryAsync();
-            return rowsAffected > 0;
-        }
+//            cmd.Parameters.AddWithValue("@id", id);
 
-        // ==============================
-        // Mapper
-        // ==============================
-        private AccountStatus MapAccountStatus(dynamic reader)
-        {
-            return new AccountStatus(
-                id: reader.GetInt32("id"),
-                userId: reader.GetInt32("user_id"),
-                companyId: reader.GetInt32("company_id"),
-                status: reader.GetString("status")
-            );
-        }
-    }
-}
+//            var rowsAffected = await cmd.ExecuteNonQueryAsync();
+//            return rowsAffected > 0;
+//        }
+
+//        // ==============================
+//        // Mapper
+//        // ==============================
+//        private AccountStatus MapAccountStatus(dynamic reader)
+//        {
+//            return new AccountStatus(
+//                id: reader.GetInt32("id"),
+//                userId: reader.GetInt32("user_id"),
+//                companyId: reader.GetInt32("company_id"),
+//                status: reader.GetString("status")
+//            );
+//        }
+//    }
+//}

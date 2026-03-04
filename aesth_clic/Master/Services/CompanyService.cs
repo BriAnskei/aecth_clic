@@ -2,7 +2,7 @@
 using aesth_clic.Master.Dto.Company;
 using aesth_clic.Master.Model;
 using aesth_clic.Tenant.Model;
-using aesth_clic.Tenant.Uti;
+
 using aesth_clic.Util;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +59,7 @@ namespace aesth_clic.Master.Services
         private void InitializeClient(Client client)
         {
             client.GenerateDbName();
+         
         }
 
         private async Task SaveClientToMasterDatabaseAsync(Client client)
@@ -80,7 +81,7 @@ namespace aesth_clic.Master.Services
         {
             try
             {
-                var tenantDb = _tenantFactory.Create(dbName);
+              using  var tenantDb = _tenantFactory.Create(dbName);
 
                 // migrate all tables of tenant
                 await tenantDb.Database.EnsureCreatedAsync();
@@ -122,6 +123,21 @@ namespace aesth_clic.Master.Services
         }
 
        
+
+
+           public async Task<Client> FetchClientAdminByCLinicCOde(string clinicCode)
+        {
+            var client = await _masterDb.Clients
+                .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
+
+            if (client == null)
+                throw new Exception("Client not found.");
+
+            return client;
+        }
+
+
+
 
 
 

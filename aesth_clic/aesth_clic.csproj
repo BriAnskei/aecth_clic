@@ -15,9 +15,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Services\AdminServices\**" />
     <Compile Remove="Views\Roles\Admin\Modal\**" />
+    <EmbeddedResource Remove="Services\AdminServices\**" />
     <EmbeddedResource Remove="Views\Roles\Admin\Modal\**" />
+    <None Remove="Services\AdminServices\**" />
     <None Remove="Views\Roles\Admin\Modal\**" />
+    <Page Remove="Services\AdminServices\**" />
     <Page Remove="Views\Roles\Admin\Modal\**" />
   </ItemGroup>
   <ItemGroup>
@@ -25,6 +29,9 @@
     <None Remove="Views\LoginPage.xaml" />
     <None Remove="Views\RoleSelectionPage .xaml" />
     <None Remove="Views\Roles\AdminClientShell.xaml" />
+    <None Remove="Views\Roles\Admin\Modals\UsersManagement\DeactivateUser.xaml" />
+    <None Remove="Views\Roles\Admin\Modals\UsersManagement\DeleteUser.xaml" />
+    <None Remove="Views\Roles\Admin\Modals\UsersManagement\ReactivateUser.xaml" />
     <None Remove="Views\Roles\Admin\Pages\AdminDashboard.xaml" />
     <None Remove="Views\Roles\Admin\Pages\TermsAndConditions.xaml" />
     <None Remove="Views\Roles\Admin\Pages\UsersManagement.xaml" />
@@ -95,14 +102,8 @@
   <ItemGroup>
     <Folder Include="Master\Repository\" />
     <Folder Include="Master\Util\" />
-    <Folder Include="Models\Master\" />
-    <Folder Include="Models\Tenant\" />
-    <Folder Include="Services\AdminServices\" />
     <Folder Include="Services\Master\" />
-    <Folder Include="Tenant\Controller\" />
-    <Folder Include="Tenant\Dto\" />
     <Folder Include="Tenant\Repository\" />
-    <Folder Include="Tenant\Services\" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\SuperAdmin\Modals\UsersManagement\DeleteClient.xaml">
@@ -289,6 +290,24 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Admin\Pages\AdminDashboard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <PRIResource Remove="Services\AdminServices\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Admin\Modals\UsersManagement\DeleteUser.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Admin\Modals\UsersManagement\ReactivateUser.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Admin\Modals\UsersManagement\DeactivateUser.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

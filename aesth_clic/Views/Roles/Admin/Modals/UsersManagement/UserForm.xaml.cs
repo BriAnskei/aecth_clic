@@ -1,3 +1,5 @@
+using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.Dto.UserManagement;
 using System;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Xaml;
@@ -10,19 +12,27 @@ namespace aesth_clic.Views.Roles.Admin.Modals
     {
         public NewUserResult? Result { get; private set; }
 
+        // Exposed so the page code-behind can read it and show a toast
+        public Exception? SaveError { get; private set; }
+
+        private readonly UserController _userController;
+
         private bool _usernameVisible = false;
         private bool _passwordVisible = false;
         private bool _isEditMode = false;
+        private int _editUserId = 0;           // ← stored when LoadForEdit() is called
 
-        public AddNewUser()
+        public AddNewUser(UserController userController)
         {
             InitializeComponent();
+            _userController = userController;
         }
 
         // ─────────────────────────────────────────
         // EDIT MODE — call this before ShowAsync()
         // ─────────────────────────────────────────
         public void LoadForEdit(
+            int userId,          // ← NEW: required so UpdateUserAsync gets a valid Id
             string fullName,
             string email,
             string phone,
@@ -31,6 +41,7 @@ namespace aesth_clic.Views.Roles.Admin.Modals
         )
         {
             _isEditMode = true;
+            _editUserId = userId;
 
             Title = "Edit User";
             PrimaryButtonText = "Save Changes";
@@ -125,7 +136,7 @@ namespace aesth_clic.Views.Roles.Admin.Modals
         // ─────────────────────────────────────────
         // SAVE
         // ─────────────────────────────────────────
-        private void OnSaveClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        private async void OnSaveClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
             ValidationBar.IsOpen = false;
 
@@ -134,12 +145,10 @@ namespace aesth_clic.Views.Roles.Admin.Modals
             string phone = FieldPhone.Text.Trim();
             string role = (FieldRole.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? string.Empty;
 
-            // Validate shared fields
-            if (
-                string.IsNullOrEmpty(fullName)
+            // ── Validate shared fields ──
+            if (string.IsNullOrEmpty(fullName)
                 || string.IsNullOrEmpty(email)
-                || string.IsNullOrEmpty(role)
-            )
+                || string.IsNullOrEmpty(role))
             {
                 ValidationBar.Message = "Full Name, Email, and Role are required.";
                 ValidationBar.IsOpen = true;
@@ -153,7 +162,7 @@ namespace aesth_clic.Views.Roles.Admin.Modals
 
             if (!_isEditMode)
             {
-                // Add mode — username and password are required
+                // ── Add mode: username + password are mandatory ──
                 if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 {
                     ValidationBar.Message = "Username and Password are required.";
@@ -172,7 +181,7 @@ namespace aesth_clic.Views.Roles.Admin.Modals
             }
             else
             {
-                // Edit mode — password is optional; only validate if something was typed
+                // ── Edit mode: only validate password if the user typed something ──
                 bool changingPassword =
                     !string.IsNullOrEmpty(password) || !string.IsNullOrEmpty(confirmPw);
 
@@ -183,11 +192,9 @@ namespace aesth_clic.Views.Roles.Admin.Modals
                     args.Cancel = true;
                     return;
                 }
-
-                // If left blank, password stays as empty string — caller should
-                // check string.IsNullOrEmpty(Result.Password) and skip password update
             }
 
+            // ── Validation passed — build result ──
             Result = new NewUserResult
             {
                 FullName = fullName,
@@ -199,9 +206,51 @@ namespace aesth_clic.Views.Roles.Admin.Modals
                 CreatedAt = DateTime.Now,
             };
 
+            // ── Block dialog from closing and show overlay ──
+            args.Cancel = true;
             SavingOverlay.Visibility = Visibility.Visible;
             IsPrimaryButtonEnabled = false;
             IsSecondaryButtonEnabled = false;
+
+            // ── Call the appropriate controller method ──
+            try
+            {
+                if (_isEditMode)
+                {
+                    await _userController.UpdateUserAsync(new UpdateUserDto
+                    {
+                        Id = _editUserId,
+                        FullName = Result.FullName,
+                        Email = Result.Email,
+                        PhoneNumber = Result.Phone,
+                        UserName = Result.Username,
+                        // Null = keep existing password; non-empty = change it
+                        Password = string.IsNullOrEmpty(Result.Password) ? null : Result.Password,
+                        Role = Result.Role,
+                    });
+                }
+                else
+                {
+                    await _userController.AddUserAsync(new NewUserDto
+                    {
+                        FullName = Result.FullName,
+                        Email = Result.Email,
+                        PhoneNumber = Result.Phone,
+                        UserName = Result.Username,
+                        Password = Result.Password,
+                        Role = Result.Role,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                SaveError = ex;
+            }
+            finally
+            {
+                // Always close — success/error toast handled by the page after ShowAsync() returns.
+                Hide();
+            }
         }
 
         // ─────────────────────────────────────────

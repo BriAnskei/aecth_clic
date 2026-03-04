@@ -2,13 +2,12 @@
 using aesth_clic.Master.Controller;
 using aesth_clic.Master.Dto;
 using aesth_clic.Master.Dto.Company;
-using aesth_clic.Tenant.Uti;
+
 using aesth_clic.Util;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using System.Threading.Tasks;
 
 namespace aesth_clic.Master.Services

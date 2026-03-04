@@ -1,0 +1,150 @@
+<ContentDialog
+    x:Class="aesth_clic.Views.Roles.Admin.Modals.DeleteUser"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Delete User"
+    PrimaryButtonText="Yes, Delete Permanently"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    PrimaryButtonStyle="{StaticResource PurplePrimaryButtonStyle}"
+    CloseButtonStyle="{StaticResource GrayCloseButtonStyle}">
+
+    <ContentDialog.Resources>
+        <!-- Dialog chrome — matches AddNewUser -->
+        <SolidColorBrush x:Key="ContentDialogBackground"                       Color="White" />
+        <SolidColorBrush x:Key="ContentDialogBorderBrush"                      Color="#E4DAF5" />
+        <SolidColorBrush x:Key="ContentDialogTopOverlayBackground"             Color="White" />
+        <SolidColorBrush x:Key="ContentDialogButtonAreaBackground"             Color="White" />
+        <SolidColorBrush x:Key="ContentDialogForeground"                       Color="#2D1554" />
+
+        <!-- Close button — matches AddNewUser -->
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForeground"            Color="#5B2D8E" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPointerOver" Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPressed"     Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackground"            Color="White" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPointerOver" Color="#EDE4F9" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPressed"     Color="#E4DAF5" />
+
+        <!-- CheckBox foreground fix -->
+        <SolidColorBrush x:Key="CheckBoxForeground"                            Color="#2D1554" />
+        <SolidColorBrush x:Key="CheckBoxForegroundPointerOver"                 Color="#2D1554" />
+        <SolidColorBrush x:Key="CheckBoxForegroundPressed"                     Color="#2D1554" />
+        <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked"           Color="White" />
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked"            Color="#5B2D8E" />
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked"          Color="#5B2D8E" />
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeUnchecked"        Color="#C4B0E0" />
+    </ContentDialog.Resources>
+
+    <!-- Root Grid — form layer + overlay layer -->
+    <Grid>
+
+        <StackPanel Spacing="16" Width="420">
+
+            <!-- ── Icon + Name + Role ───────────────────────────── -->
+            <StackPanel HorizontalAlignment="Center" Spacing="12">
+                <Border
+                    Width="72" Height="72"
+                    CornerRadius="36"
+                    Background="#1AC50F1F"
+                    HorizontalAlignment="Center">
+                    <FontIcon
+                        Glyph="&#xE74D;"
+                        FontSize="32"
+                        Foreground="#C50F1F"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel HorizontalAlignment="Center" Spacing="3">
+                    <TextBlock
+                        x:Name="UserNameText"
+                        Text="Staff Name"
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        HorizontalAlignment="Center"
+                        TextAlignment="Center"
+                        Foreground="#2D1554" />
+                    <TextBlock
+                        x:Name="UserRoleText"
+                        Text="Role"
+                        FontSize="12"
+                        HorizontalAlignment="Center"
+                        TextAlignment="Center"
+                        Foreground="#9B80C4" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ── Divider ──────────────────────────────────────── -->
+            <Border Height="1" Background="#E4DAF5" />
+
+            <!-- ── Warning message ──────────────────────────────── -->
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Text="Are you sure you want to permanently delete this user account?"
+                    FontSize="13"
+                    TextWrapping="Wrap"
+                    FontWeight="SemiBold"
+                    Foreground="#2D1554" />
+                <TextBlock
+                    Text="This action cannot be undone. All data associated with this user — including their login credentials, activity history, and role assignments — will be permanently removed from the system."
+                    FontSize="12"
+                    TextWrapping="Wrap"
+                    Foreground="#9B80C4" />
+            </StackPanel>
+
+            <!-- ── Danger strip ─────────────────────────────────── -->
+            <Border
+                Background="#1AC50F1F"
+                BorderBrush="#40C50F1F"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,10">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <FontIcon
+                        Glyph="&#xE814;"
+                        FontSize="14"
+                        Foreground="#C50F1F"
+                        VerticalAlignment="Top" />
+                    <TextBlock
+                        Text="This is a permanent and irreversible action. Only proceed if you are absolutely sure."
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        TextWrapping="Wrap"
+                        Foreground="#C50F1F" />
+                </StackPanel>
+            </Border>
+
+            <!-- ── Checkbox gate ────────────────────────────────── -->
+            <CheckBox
+                x:Name="ConfirmCheckBox"
+                Content="I understand this action cannot be undone"
+                FontSize="13"
+                Foreground="#2D1554"
+                Checked="ConfirmCheckBox_Changed"
+                Unchecked="ConfirmCheckBox_Changed" />
+
+        </StackPanel>
+
+        <!-- Loading overlay (shown while awaiting controller) -->
+        <Border
+            x:Name="SavingOverlay"
+            Visibility="Collapsed"
+            Background="White"
+            Opacity="0.90"
+            CornerRadius="8">
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <ProgressRing IsActive="True" Width="20" Height="20" Foreground="#5B2D8E" />
+                <TextBlock
+                    Text="Deleting user…"
+                    VerticalAlignment="Center"
+                    FontSize="13"
+                    Foreground="#9B80C4" />
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</ContentDialog>

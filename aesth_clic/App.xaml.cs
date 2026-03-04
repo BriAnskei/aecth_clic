@@ -3,7 +3,7 @@ using aesth_clic.Controller;
 using aesth_clic.Data;
 using aesth_clic.Repository;
 
-using aesth_clic.Tenant.Uti;
+
 using aesth_clic.Util;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +51,8 @@ namespace aesth_clic
 
 
 
+            services.AddSingleton<AuthService>();
+            services.AddTransient<AuthController>();
 
             services.AddTransient<aesth_clic.Master.Services.CompanyService>();
             services.AddTransient<aesth_clic.Master.Controller.CompanyController>();
@@ -59,6 +61,10 @@ namespace aesth_clic
             services.AddTransient<aesth_clic.Master.Services.AdminClientService>();
             services.AddTransient<aesth_clic.Master.Controller.AdminUserController >();
 
+
+            services.AddTransient<aesth_clic.Tenant.Services.UserService>();
+            services.AddTransient<aesth_clic.Tenant.Controller.UserController>();
+
             // Infrastructure
             services.AddSingleton<DbConnectionFactory>();
             services.AddScoped<TransactionManager>();
@@ -66,19 +72,14 @@ namespace aesth_clic
             // Repositories
             //  -- users, auth
             //services.AddTransient<UserRepository>();
-            services.AddTransient<CompanyRepository>();
-            services.AddTransient<AccountStatusRepository>();
+            //services.AddTransient<CompanyRepository>();
+            //services.AddTransient<AccountStatusRepository>();
             services.AddTransient<PaymentRepository>();
 
-            // Services
-            //services.AddTransient<AuthService>();
-            //services.AddTransient<UserService>();
-            services.AddTransient<Services.SuperAdminServices.CompanyService>();
+            //services.AddTransient<Services.SuperAdminServices.CompanyService>();
 
-            // Controllers
-            //services.AddTransient<AuthController>();
-            //services.AddTransient<UserController_superAdmin>();
-            services.AddTransient<CompanyController>();
+         
+            //services.AddTransient<CompanyController>();
 
             return services.BuildServiceProvider();
         }

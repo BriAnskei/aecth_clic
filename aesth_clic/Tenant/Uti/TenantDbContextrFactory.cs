@@ -1,24 +1,28 @@
 ﻿using aesth_clic.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace aesth_clic.Tenant.Uti
+public class TenantDbContextFactory
 {
-    public class TenantDbContextFactory
+    private readonly string _baseConnection;
+
+    public TenantDbContextFactory()
     {
-        public TenantDbContext Create(string databaseName)
-        {
-            var options = new DbContextOptionsBuilder<TenantDbContext>();
+        _baseConnection =
+            "Server=localhost\\SQLEXPRESS;Trusted_Connection=True;TrustServerCertificate=True;";
+    }
 
-            string connection =
-       $"Server=localhost\\SQLEXPRESS;Database={databaseName};Trusted_Connection=True;TrustServerCertificate=True;";
-            options.UseSqlServer(connection);
+    public TenantDbContext Create(string databaseName)
+    {
+        if (string.IsNullOrWhiteSpace(databaseName))
+            throw new ArgumentException("Invalid database name.");
 
-            return new TenantDbContext(options.Options);
-        }
+        var options = new DbContextOptionsBuilder<TenantDbContext>();
+
+        var connection = $"{_baseConnection}Database={databaseName};";
+
+        options.UseSqlServer(connection);
+
+        return new TenantDbContext(options.Options);
     }
 }

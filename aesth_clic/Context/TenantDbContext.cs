@@ -1,16 +1,25 @@
 ﻿using aesth_clic.Tenant.Model;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace aesth_clic.Context
 {
-    public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbContext(options)
+    public class TenantDbContext : DbContext
     {
+        public TenantDbContext(DbContextOptions<TenantDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<AccountStatus> AccountsStatus { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AccountStatus>()
+                .HasOne(a => a.User)
+                .WithOne(u => u.AccountStatus)
+                .HasForeignKey<AccountStatus>(a => a.AccountId)
+                .IsRequired(false)  // <-- optional
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

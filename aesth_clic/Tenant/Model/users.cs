@@ -23,6 +23,8 @@ namespace aesth_clic.Tenant.Model
 
         public DateTime CreatedAt { get; set; }
 
+        public AccountStatus? AccountStatus { get; set; } // excluded for admin.
+
         // Validate for insertion/creation: all required fields
         public void ValidateForInsert()
         {
@@ -49,7 +51,7 @@ namespace aesth_clic.Tenant.Model
             if (string.IsNullOrWhiteSpace(Role))
                 throw new ValidationException("Role is required.");
 
-            var allowedRoles = new[] { "Admin", "Doctor", "Reciptionist", "Pharmacist" };
+            var allowedRoles = new[] { "admin", "doctor", "reciptionist", "pharmacist" };
             if (!allowedRoles.Any(r => string.Equals(r, Role, StringComparison.OrdinalIgnoreCase)))
                 throw new ValidationException("Role must be Admin, Doctor, Reciptionist, or Pharmacist.");
         }

@@ -1,418 +1,323 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using aesth_clic.Tenant.Controller;
 using aesth_clic.Utils;
+using aesth_clic.ViewModels.Admin;
 using aesth_clic.Views.Roles.Admin.Modals;
-using Microsoft.UI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Media;
-using Windows.UI;
+using System;
+using System.Linq;
 
 namespace aesth_clic.Views.Roles.Admin.Pages
 {
-    // ── Converter: hex string → SolidColorBrush ───────────────────
-    public class StringToBrushConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value is string hex && !string.IsNullOrWhiteSpace(hex))
-            {
-                try
-                {
-                    hex = hex.TrimStart('#');
-                    byte a = 255,
-                        r,
-                        g,
-                        b;
-                    if (hex.Length == 6)
-                    {
-                        r = System.Convert.ToByte(hex[..2], 16);
-                        g = System.Convert.ToByte(hex.Substring(2, 2), 16);
-                        b = System.Convert.ToByte(hex.Substring(4, 2), 16);
-                    }
-                    else if (hex.Length == 8)
-                    {
-                        a = System.Convert.ToByte(hex[..2], 16);
-                        r = System.Convert.ToByte(hex.Substring(2, 2), 16);
-                        g = System.Convert.ToByte(hex.Substring(4, 2), 16);
-                        b = System.Convert.ToByte(hex.Substring(6, 2), 16);
-                    }
-                    else
-                        return new SolidColorBrush(Colors.Transparent);
-
-                    return new SolidColorBrush(Color.FromArgb(a, r, g, b));
-                }
-                catch
-                {
-                    return new SolidColorBrush(Colors.Transparent);
-                }
-            }
-            return new SolidColorBrush(Colors.Transparent);
-        }
-
-        public object ConvertBack(
-            object value,
-            Type targetType,
-            object parameter,
-            string language
-        ) => throw new NotImplementedException();
-    }
-
-    // ── Converter: "Visible"/"Collapsed" string → Visibility ──────
-    public class StringToVisibilityConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language) =>
-            value is string s && s.Equals("Visible", StringComparison.OrdinalIgnoreCase)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-
-        public object ConvertBack(
-            object value,
-            Type targetType,
-            object parameter,
-            string language
-        ) => value is Visibility v && v == Visibility.Visible ? "Visible" : "Collapsed";
-    }
-
-    // ── Data model ────────────────────────────────────────────────
-    public class StaffUserItem
+    public class StaffUserItem : System.ComponentModel.INotifyPropertyChanged
     {
         public string UserId { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string Initials { get; set; } = string.Empty;
-        public string AvatarColor { get; set; } = "#5B2D8E";
-        public string RoleBadgeColor { get; set; } = string.Empty;
-        public string RoleBadgeText { get; set; } = string.Empty;
-        public string StatusBadgeColor { get; set; } = string.Empty;
-        public string StatusBadgeText { get; set; } = string.Empty;
-        public string DeactivateVisible { get; set; } = "Visible";
-        public string ReactivateVisible { get; set; } = "Collapsed";
-        public string DeleteVisible { get; set; } = "Collapsed";
-    }
 
-    // ── Page code-behind ──────────────────────────────────────────
+        public Microsoft.UI.Xaml.Media.SolidColorBrush AvatarColor { get; set; } = new(Windows.UI.Color.FromArgb(255, 91, 45, 142));
+        public Microsoft.UI.Xaml.Media.SolidColorBrush RoleBadgeColor { get; set; } = new(Microsoft.UI.Colors.Gray);
+
+        private string _status = "Active";
+        public string Status
+        {
+            get => _status;
+            set
+            {
+                _status = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(StatusBadgeColor));
+                OnPropertyChanged(nameof(DeactivateVisible));
+                OnPropertyChanged(nameof(ReactivateVisible));
+                OnPropertyChanged(nameof(DeleteVisible));
+            }
+        }
+
+        public Microsoft.UI.Xaml.Media.SolidColorBrush StatusBadgeColor =>
+            Status == "Active"
+                ? new(Windows.UI.Color.FromArgb(255, 14, 164, 122))
+                : new(Windows.UI.Color.FromArgb(255, 192, 57, 43));
+
+        public Microsoft.UI.Xaml.Visibility DeactivateVisible =>
+            Status == "Active" ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility ReactivateVisible =>
+            Status == "Deactivated" ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public Microsoft.UI.Xaml.Visibility DeleteVisible =>
+            Status == "Deactivated" ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged(
+            [System.Runtime.CompilerServices.CallerMemberName] string? name = null) =>
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PAGE CODE-BEHIND
+// ─────────────────────────────────────────────────────────────
+
+namespace aesth_clic.Views.Roles.Admin.Pages
+{
     public sealed partial class UserManagement : Page
     {
-        private List<StaffUserItem> _allUsers = new();
+        private readonly UserManagementViewModel _vm = new();
+        private readonly UserController _userController;
 
         public UserManagement()
         {
             InitializeComponent();
-            LoadSampleData();
-            Loaded += (_, _) => ApplyFilters();
+
+            _userController = App.Services.GetRequiredService<UserController>();
+
+            UserListControl.ItemsSource = _vm.DisplayedUsers;
+
+            _vm.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName
+                    is nameof(UserManagementViewModel.TotalUsers)
+                    or nameof(UserManagementViewModel.ActiveUsers)
+                    or nameof(UserManagementViewModel.DeactivatedUsers))
+                    UpdateKpiCards();
+
+                if (e.PropertyName == nameof(UserManagementViewModel.IsLoading))
+                    UpdateLoadingState(_vm.IsLoading);
+            };
+
+            _ = LoadFromDbAsync();
         }
 
-        // ── Sample / seed data ────────────────────────────────────
-        private void LoadSampleData()
+        // ──────────────────────────────────────────────────────
+        // LOADING STATE
+        // ──────────────────────────────────────────────────────
+        private void UpdateLoadingState(bool isLoading)
         {
-            _allUsers = new List<StaffUserItem>
-            {
-                BuildItem(
-                    "u1",
-                    "Dr. Maria Santos",
-                    "maria@clinic.com",
-                    "0912-345-6789",
-                    "Doctor",
-                    "Active",
-                    "maria_staff1234"
-                ),
-                BuildItem(
-                    "u2",
-                    "Jose Reyes",
-                    "jose@clinic.com",
-                    "0923-456-7890",
-                    "Receptionist",
-                    "Active",
-                    "jose_staff5678"
-                ),
-                BuildItem(
-                    "u3",
-                    "Ana Cruz",
-                    "ana@clinic.com",
-                    "0934-567-8901",
-                    "Pharmacist",
-                    "Active",
-                    "ana_staff9012"
-                ),
-                BuildItem(
-                    "u4",
-                    "Dr. Carlo Mendoza",
-                    "carlo@clinic.com",
-                    "0945-678-9012",
-                    "Doctor",
-                    "Deactivated",
-                    "carlo_staff3456"
-                ),
-                BuildItem(
-                    "u5",
-                    "Liza Flores",
-                    "liza@clinic.com",
-                    "0956-789-0123",
-                    "Receptionist",
-                    "Deactivated",
-                    "liza_staff7890"
-                ),
-            };
+            KpiGrid.IsHitTestVisible = !isLoading;
+            KpiGrid.Opacity = isLoading ? 0.4 : 1.0;
+            FilterToolbar.IsHitTestVisible = !isLoading;
+            FilterToolbar.Opacity = isLoading ? 0.4 : 1.0;
+
+            SkeletonTable.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+            RealTable.Visibility = isLoading ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        // ── Factory helper ────────────────────────────────────────
-        private static StaffUserItem BuildItem(
-            string id,
-            string name,
-            string email,
-            string phone,
-            string role,
-            string status,
-            string username = ""
-        )
+        // ──────────────────────────────────────────────────────
+        // DATA LOADING
+        // ──────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
-            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var initials =
-                parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}"
-                : name.Length > 0 ? name[0].ToString()
-                : "?";
-
-            var avatarColor = role switch
+            _vm.IsLoading = true;
+            try
             {
-                "Doctor" => "#5B2D8E",
-                "Receptionist" => "#0078D4",
-                "Pharmacist" => "#E67E22",
-                _ => "#888888",
-            };
+                var users = await _userController.GetAllUsersAsync();
 
-            var (roleBg, roleFg) = role switch
+                _vm.LoadFromDb(users.Select(u => (
+                    Id: u.Id.ToString(),
+                    Name: u.FullName,
+                    Email: u.Email,
+                    Phone: u.PhoneNumber,
+                    Role: u.Role,
+                    Status: u.AccountStatus?.Status ?? "active",
+                    Username: u.Username
+                )));
+
+                // Reassign ItemsSource to force ItemsControl to fully re-render
+                // all rows. x:Bind is one-time by default, so without this the
+                // table won't reflect updated Status, badge colours, etc.
+                UserListControl.ItemsSource = null;
+                UserListControl.ItemsSource = _vm.DisplayedUsers;
+
+                UpdateKpiCards();
+            }
+            catch (Exception ex)
             {
-                "Doctor" => ("#EDE7F6", "#5B2D8E"),
-                "Receptionist" => ("#E3F2FD", "#0078D4"),
-                "Pharmacist" => ("#FEF3E2", "#E67E22"),
-                _ => ("#F0F0F0", "#555555"),
-            };
-
-            bool isActive = status == "Active";
-
-            return new StaffUserItem
+                Console.WriteLine($"[LoadFromDbAsync] Exception: {ex.Message}");
+                ToastHelper.Error(ToastBar, "Failed to load users", ex.Message);
+            }
+            finally
             {
-                UserId = id,
-                FullName = name,
-                Email = email,
-                Phone = phone,
-                Role = role,
-                Status = status,
-                Username = username,
-                Initials = initials.ToUpper(),
-                AvatarColor = avatarColor,
-                RoleBadgeColor = roleBg,
-                RoleBadgeText = roleFg,
-                StatusBadgeColor = isActive ? "#E6F4F1" : "#FBE9E7",
-                StatusBadgeText = isActive ? "#0EA47A" : "#D83B01",
-                DeactivateVisible = isActive ? "Visible" : "Collapsed",
-                ReactivateVisible = !isActive ? "Visible" : "Collapsed",
-                DeleteVisible = !isActive ? "Visible" : "Collapsed",
-            };
+                _vm.IsLoading = false;
+            }
         }
 
-        // ── Filtering ─────────────────────────────────────────────
-        private void ApplyFilters()
+        // ──────────────────────────────────────────────────────
+        // KPI CARDS
+        // ──────────────────────────────────────────────────────
+        private void UpdateKpiCards()
         {
-            if (UserListControl is null)
+            if (TxtTotalUsers is null || TxtActiveUsers is null ||
+                TxtInactiveUsers is null || TxtRowCount is null)
                 return;
 
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
-            var roleTag = (RoleFilter?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
-            var statusTag = (StatusFilter?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
-
-            var filtered = _allUsers
-                .Where(u =>
-                {
-                    bool matchSearch =
-                        string.IsNullOrEmpty(search)
-                        || u.FullName.ToLower().Contains(search)
-                        || u.Email.ToLower().Contains(search)
-                        || u.Phone.Contains(search);
-                    bool matchRole = roleTag == "All" || u.Role == roleTag;
-                    bool matchStatus = statusTag == "All" || u.Status == statusTag;
-                    return matchSearch && matchRole && matchStatus;
-                })
-                .ToList();
-
-            UserListControl.ItemsSource = filtered;
-
-            if (TxtTotalUsers is not null)
-                TxtTotalUsers.Text = _allUsers.Count.ToString();
-            if (TxtActiveUsers is not null)
-                TxtActiveUsers.Text = _allUsers.Count(u => u.Status == "Active").ToString();
-            if (TxtInactiveUsers is not null)
-                TxtInactiveUsers.Text = _allUsers.Count(u => u.Status == "Deactivated").ToString();
-            if (TxtRowCount is not null)
-                TxtRowCount.Text =
-                    $"Showing {filtered.Count} user{(filtered.Count == 1 ? "" : "s")}";
+            TxtTotalUsers.Text = _vm.TotalUsers.ToString();
+            TxtActiveUsers.Text = _vm.ActiveUsers.ToString();
+            TxtInactiveUsers.Text = _vm.DeactivatedUsers.ToString();
+            TxtRowCount.Text =
+                $"Showing {_vm.DisplayedUsers.Count} of {_vm.TotalUsers} " +
+                $"user{(_vm.TotalUsers != 1 ? "s" : "")}";
         }
 
-        // ── Toolbar event handlers ────────────────────────────────
-        private void SearchBox_TextChanged(
-            AutoSuggestBox sender,
-            AutoSuggestBoxTextChangedEventArgs args
-        ) => ApplyFilters();
+        // ──────────────────────────────────────────────────────
+        // SEARCH + FILTERS
+        // ──────────────────────────────────────────────────────
+        private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            _vm.SearchText = sender.Text;
+            UpdateKpiCards();
+        }
 
-        private void RoleFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
-            ApplyFilters();
+        private void RoleFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _vm.SelectedRole =
+                (RoleFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+            UpdateKpiCards();
+        }
 
-        private void StatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
-            ApplyFilters();
+        private void StatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _vm.SelectedStatus =
+                (StatusFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+            UpdateKpiCards();
+        }
 
-        // ── Add User ──────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────
+        // ADD USER
+        // ──────────────────────────────────────────────────────
         private async void AddUserButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new AddNewUser { XamlRoot = XamlRoot };
+            var dialog = new AddNewUser(_userController) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
 
-            if (dialog.Result is null)
+            // User cancelled
+            if (dialog.Result is null && dialog.SaveError is null) return;
+
+            // Controller threw — show error toast
+            if (dialog.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to add user", dialog.SaveError.Message);
                 return;
+            }
 
-            var r = dialog.Result;
-
-            var newUser = BuildItem(
-                id: Guid.NewGuid().ToString(),
-                name: r.FullName,
-                email: r.Email,
-                phone: r.Phone,
-                role: r.Role,
-                status: "Active",
-                username: r.Username
-            );
-
-            _allUsers.Add(newUser);
-            ApplyFilters();
-            ToastHelper.Success(
-                ToastBar,
-                "User added",
-                $"{r.FullName} has been added as {r.Role}."
-            );
+            // Success — refresh from DB then show toast
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "User added",
+                $"{dialog.Result!.FullName} has been added as {dialog.Result.Role}.");
         }
 
-        // ── Edit ──────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────
+        // EDIT USER
+        // ──────────────────────────────────────────────────────
         private async void EditUser_Click(object sender, RoutedEventArgs e)
         {
-            var userId = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user is null)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
+            if (item.DataContext is not StaffUserItem user) return;
 
-            var dialog = new AddNewUser { XamlRoot = XamlRoot };
-            dialog.LoadForEdit(user.FullName, user.Email, user.Phone, user.Role, user.Username);
+            var dialog = new AddNewUser(_userController) { XamlRoot = XamlRoot };
+            dialog.LoadForEdit(int.Parse(user.UserId), user.FullName, user.Email, user.Phone, user.Role, user.Username);
             await dialog.ShowAsync();
 
-            if (dialog.Result is null)
+            // User cancelled
+            if (dialog.Result is null && dialog.SaveError is null) return;
+
+            // Controller threw — show error toast
+            if (dialog.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to update user", dialog.SaveError.Message);
                 return;
+            }
 
-            var r = dialog.Result;
-            var index = _allUsers.IndexOf(user);
-
-            _allUsers[index] = BuildItem(
-                id: user.UserId,
-                name: r.FullName,
-                email: r.Email,
-                phone: r.Phone,
-                role: r.Role,
-                status: user.Status,
-                // Keep existing username if admin left the field blank
-                username: string.IsNullOrEmpty(r.Username) ? user.Username : r.Username
-            );
-
-            ApplyFilters();
-            ToastHelper.Success(ToastBar, "User updated", $"{r.FullName} has been updated.");
+            // Success — refresh from DB then show toast
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "User updated",
+                $"{dialog.Result!.FullName} has been updated.");
         }
 
-        // ── Deactivate ────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────
+        // DEACTIVATE
+        // ──────────────────────────────────────────────────────
         private async void DeactivateUser_Click(object sender, RoutedEventArgs e)
         {
-            var userId = (sender as Button)?.Tag?.ToString();
-            var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user is null)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
+            if (item.DataContext is not StaffUserItem user) return;
 
-            var dlg = new DeactivateUser(user);
-            dlg.XamlRoot = XamlRoot;
+            var dlg = new DeactivateUser(user, _userController) { XamlRoot = XamlRoot };
             await dlg.ShowAsync();
 
-            if (dlg.Confirmed)
-            {
-                user.Status = "Deactivated";
-                user.DeactivateVisible = "Collapsed";
-                user.ReactivateVisible = "Visible";
-                user.DeleteVisible = "Visible";
-                user.StatusBadgeColor = "#FBE9E7";
-                user.StatusBadgeText = "#D83B01";
+            // User cancelled — admin closed dialog without confirming
+            if (!dlg.Confirmed) return;
 
-                ApplyFilters();
-                ToastHelper.Warning(
-                    ToastBar,
-                    "User deactivated",
-                    $"{user.FullName} has been deactivated."
-                );
+            // Controller threw — show error toast
+            if (dlg.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to deactivate user", dlg.SaveError.Message);
+                return;
             }
+
+            // Success — refresh from DB then show toast
+            await LoadFromDbAsync();
+            ToastHelper.Warning(ToastBar, "User deactivated",
+                $"{user.FullName} has been deactivated.");
         }
 
-        // ── Reactivate ────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────
+        // REACTIVATE
+        // ──────────────────────────────────────────────────────
         private async void ReactivateUser_Click(object sender, RoutedEventArgs e)
         {
-            var userId = (sender as Button)?.Tag?.ToString();
-            var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user is null)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
+            if (item.DataContext is not StaffUserItem user) return;
 
-            var dlg = new ReactivateUser(user);
-            dlg.XamlRoot = XamlRoot;
+            var dlg = new ReactivateUser(user, _userController) { XamlRoot = XamlRoot };
             await dlg.ShowAsync();
 
-            if (dlg.Confirmed)
-            {
-                user.Status = "Active";
-                user.DeactivateVisible = "Visible";
-                user.ReactivateVisible = "Collapsed";
-                user.DeleteVisible = "Collapsed";
-                user.StatusBadgeColor = "#E6F4F1";
-                user.StatusBadgeText = "#0EA47A";
+            // User cancelled — admin closed dialog without confirming
+            if (!dlg.Confirmed) return;
 
-                ApplyFilters();
-                ToastHelper.Success(
-                    ToastBar,
-                    "User reactivated",
-                    $"{user.FullName} has been reactivated."
-                );
+            // Controller threw — show error toast
+            if (dlg.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to reactivate user", dlg.SaveError.Message);
+                return;
             }
+
+            // Success — refresh from DB then show toast
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "User reactivated",
+                $"{user.FullName} has been reactivated.");
         }
 
-        // ── Delete ────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────
+        // DELETE
+        // ──────────────────────────────────────────────────────
         private async void DeleteUser_Click(object sender, RoutedEventArgs e)
         {
-            var userId = (sender as Button)?.Tag?.ToString();
-            var user = _allUsers.FirstOrDefault(u => u.UserId == userId);
-            if (user is null)
-                return;
+            if (sender is not MenuFlyoutItem item) return;
+            if (item.DataContext is not StaffUserItem user) return;
+            if (user.Status != "Deactivated") return;
 
-            var confirm = new ContentDialog
+            var dlg = new DeleteUser(user, _userController) { XamlRoot = XamlRoot };
+            await dlg.ShowAsync();
+
+            // User cancelled
+            if (!dlg.Confirmed) return;
+
+            // Controller threw — show error toast
+            if (dlg.SaveError is not null)
             {
-                Title = "Delete User",
-                Content = $"Permanently delete {user.FullName}? This cannot be undone.",
-                PrimaryButtonText = "Delete",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = XamlRoot,
-            };
-
-            if (await confirm.ShowAsync() != ContentDialogResult.Primary)
+                ToastHelper.Error(ToastBar, "Failed to delete user", dlg.SaveError.Message);
                 return;
+            }
 
-            _allUsers.Remove(user);
-            ApplyFilters();
+            // Success — refresh from DB then show toast
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "User deleted",
+                $"{user.FullName} has been permanently deleted.");
         }
     }
 }

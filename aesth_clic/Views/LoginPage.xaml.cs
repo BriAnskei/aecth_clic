@@ -1,10 +1,14 @@
-using aesth_clic.Services;
+using aesth_clic.Controller;
+
+using aesth_clic.Session;
 using aesth_clic.Views.Roles;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using System;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using WinRT.Interop;
@@ -13,9 +17,15 @@ namespace aesth_clic.Views
 {
     public sealed partial class LoginPage : Page
     {
+        private readonly AuthController _authController;
+
         public LoginPage()
         {
             InitializeComponent();
+
+            // Initialize AuthController with AuthService
+            _authController  = App.Services.GetRequiredService<AuthController>();
+          
         }
 
         private async void OnEnterPressed(object sender, KeyRoutedEventArgs e)
@@ -43,27 +53,65 @@ namespace aesth_clic.Views
             }
 
             SetLoadingState(true);
-
-            // TODO: wire up backend authentication using username, password, and clinicCode
-
-            SetLoadingState(false);
-
-            // Success — maximize then navigate
-            MaximizeWindow();
             HideError();
-            NavigateByRole();
+
+            try
+            {
+                // Call authentication backend
+                // Note: AuthService already handles AppSession.Instance.Login() internally
+                var user = await _authController.LoginAsync(clinicCode, username, password);
+
+                if (user != null && AppSession.Instance.IsLoggedIn)
+                {
+                    SetLoadingState(false);
+
+                    // Success — maximize then navigate
+                    MaximizeWindow();
+                    NavigateByRole();
+                }
+                else
+                {
+                    SetLoadingState(false);
+                    ShowError("Login failed. Please try again.");
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                SetLoadingState(false);
+                ShowError(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                SetLoadingState(false);
+                ShowError(ex.Message);
+            }
         }
 
         private void NavigateByRole()
         {
-            string role = UserSession.CurrentUser?.Role ?? "";
-            switch (role)
+            string role = AppSession.Instance.CurrentUser?.Role ?? "";
+
+            switch (role.ToLower())
             {
-                case "super_admin": Frame.Navigate(typeof(SuperAdminShell)); break;
-                case "admin": Frame.Navigate(typeof(AdminClientShell)); break;
-                case "doctor": Frame.Navigate(typeof(DoctorShell)); break;
-                case "receptionist": Frame.Navigate(typeof(ReceptionistShell)); break;
-                case "pharmacist": Frame.Navigate(typeof(PharmacistShell)); break;
+                case "super_admin":
+                    Frame.Navigate(typeof(SuperAdminShell));
+                    break;
+                case "admin":
+                    Frame.Navigate(typeof(AdminClientShell));
+                    break;
+                case "doctor":
+                    Frame.Navigate(typeof(DoctorShell));
+                    break;
+                case "receptionist":
+                    Frame.Navigate(typeof(ReceptionistShell));
+                    break;
+                case "pharmacist":
+                    Frame.Navigate(typeof(PharmacistShell));
+                    break;
+                default:
+                    ShowError($"Unknown role: {role}. Please contact administrator.");
+                    AppSession.Instance.Logout(); // Clear invalid session
+                    break;
             }
         }
 
@@ -72,7 +120,6 @@ namespace aesth_clic.Views
             LoginButton.IsEnabled = !isLoading;
             LoginButtonText.Visibility = isLoading ? Visibility.Collapsed : Visibility.Visible;
             LoginLoadingPanel.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
-
             UsernameBox.IsEnabled = !isLoading;
             PasswordBox.IsEnabled = !isLoading;
             ClinicCodeBox.IsEnabled = !isLoading;

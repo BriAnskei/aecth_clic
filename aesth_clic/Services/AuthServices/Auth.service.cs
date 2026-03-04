@@ -1,106 +1,118 @@
-﻿//using System.Threading.Tasks;
-//using aesth_clic.Models.Companies;
-//using aesth_clic.Models.Users;
-//using aesth_clic.Repository;
-//using aesth_clic.Util;
+﻿using aesth_clic.Context;
+using aesth_clic.Master.Model;
+using aesth_clic.Session;
+using aesth_clic.Tenant.Model;
+using aesth_clic.Util;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading.Tasks;
 
-//namespace aesth_clic.Services.AuthServices
-//{
-//    internal class AuthService(
-//        UserRepository userRepository,
-//        CompanyRepository companyRepository,
-//        AccountStatusRepository accountStatusRepository
-//    )
-//    {
-//        private readonly UserRepository _userRepository = userRepository;
-//        private readonly CompanyRepository _companyRepository = companyRepository;
-//        private readonly AccountStatusRepository _accountStatusRepository = accountStatusRepository;
+public class AuthService
+{
+    private readonly MasterDbContext _masterDb;
+    private readonly TenantDbContextFactory _tenantFactory;
 
-//        private const string SuperAdminRole = "super_admin";
+    public AuthService(
+        MasterDbContext masterDb,
+        TenantDbContextFactory tenantFactory)
+    {
+        _masterDb = masterDb;
+        _tenantFactory = tenantFactory;
+    }
 
-//        public async Task<(bool Success, string Message)> LoginAsync(
-//            string username,
-//            string password,
-//            string role
-//        )
-//        {
-//            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-//                return (false, "Username and password are required.");
+    public async Task<User> LoginAsync(
+      string clinicCode,
+      string username,
+      string password)
+    {
+        Client? client = null;
+        User? user = null;
 
-//            var user = await _userRepository.GetByUsernameAsync(username);
+        if (clinicCode == "0000")
+        {
+            user = await VerifySuperAdmin(username, password);
+            client = new Client();
+        }
+        else
+        {
+            var clientAuthResponse = await ClientLogin(username, password, clinicCode);
+            client = clientAuthResponse.client;
+            user = clientAuthResponse.user;
+        }
 
-//            bool isPasswordValid = BycrptUtil.VerifyPassword(
-//                password,
-//                user?.Password ?? string.Empty
-//            );
+        AppSession.Instance.Login(client, user);
+        return user;
+    }
 
-//            if (user is null || isPasswordValid || user.Role != role)
-//            {
-//                return (false, "Invalid username or password.");
-//            }
 
-//            var accessCheck = await VerifyAccountAccessibility(user);
-//            if (!accessCheck.Success)
-//                return accessCheck;
+    private async Task<(User user, Client client)> ClientLogin(string username, string password, string clinicCode)
+    {
+     
+        var client = await _masterDb.Clients
+            .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
 
-//            await BuildSessionAsync(user);
+        if (client == null)
+            throw new Exception("Clinic not found or inactive.");
 
-//            return (true, "Login successful.");
-//        }
+        if (client.Status != "active")
+            throw new UnauthorizedAccessException("Your Company has been deactivated by the administrator.");
 
-//        private async Task<(bool Success, string Message)> VerifyAccountAccessibility(User user)
-//        {
-//            bool isUserSuperAdmin = user.Role == "super_admin";
-//            bool isUserAdmin = user.Role == "admin";
+      
+        using var tenantDb = _tenantFactory.Create(client.DbName);
 
-//            if (!isUserSuperAdmin)
-//            {
-//                Company? company = null;
-//                AccountStatus? accountStatus = null;
+  
+        var user = await tenantDb.Users
+            .Include(u => u.AccountStatus) // include account status
+            .FirstOrDefaultAsync(u => u.Username == username);
 
-//                if (isUserAdmin)
-//                {
-//                    company = await _companyRepository.GetCompanyByOwnerIdAsync(user.Id);
-//                }
-//                else
-//                {
-//                    accountStatus = await _accountStatusRepository.GetByUserIdAsync(user.Id);
+        if (user == null)
+            throw new Exception("Invalid credentials.");
 
-//                    if (accountStatus is null)
-//                        return (false, "Account status not found.");
+     
+        if (!user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase))
+        {
+            if (user.AccountStatus == null)
+            {
+                throw new Exception("Account status not found for this user.");
+            }
 
-//                    company = await _companyRepository.GetByIdAsync(accountStatus.CompanyId);
-//                }
+            if (!user.AccountStatus.Status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException("Your account has been deactivated by the administrator.");
+            }
+        }
 
-//                if (company is null)
-//                    return (false, "Company not found.");
+       
+        if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
+            throw new Exception("Invalid credentials.");
 
-//                if (accountStatus != null && accountStatus.Status == "inactive")
-//                    return (false, "Your account is inactive.");
+      
+        return (user, client);
+    }
 
-//                if (company.status == "inactive")
-//                    return (false, "Company is inactive.");
-//            }
 
-//            return (true, "Access granted");
-//        }
+    private async  Task<User> VerifySuperAdmin(string username, string password)
+    {
+        var admin = await _masterDb.Admins.FirstOrDefaultAsync(u => u.Username == username);
 
-//        private async Task BuildSessionAsync(User user)
-//        {
-//            if (user.Role == SuperAdminRole)
-//            {
-//                _ = new UserSession(user, new Company());
-//                return;
-//            }
 
-//            var company = await _companyRepository.GetCompanyByOwnerIdAsync(user.Id);
+        if (admin == null || admin != null && admin.Password != password)
+        {
+            throw new Exception("Invalid credentials.");
+        }
 
-//            _ = new UserSession(user, company ?? new Company());
-//        }
+     
+        return new User
+        {
+            Id = admin!.Id,
+            FullName = admin.FullName!,
+            Username = admin.Username!,
+            Password = admin.Password!,
+            Email = "", 
+            PhoneNumber = "",
+            Role = "super_admin", // Set role as Admin
+            CreatedAt = DateTime.UtcNow
+        };
 
-//        public void Logout()
-//        {
-//            UserSession.Clear();
-//        }
-//    }
-//}
+    }
+}
