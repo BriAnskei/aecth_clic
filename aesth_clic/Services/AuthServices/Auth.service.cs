@@ -2,7 +2,6 @@
 using aesth_clic.Master.Model;
 using aesth_clic.Session;
 using aesth_clic.Tenant.Model;
-using aesth_clic.Util;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
@@ -47,7 +46,7 @@ public class AuthService
 
     private async Task<(User user, Client client)> ClientLogin(string username, string password, string clinicCode)
     {
-     
+
         var client = await _masterDb.Clients
             .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
 
@@ -57,10 +56,10 @@ public class AuthService
         if (client.Status != "active")
             throw new UnauthorizedAccessException("Your Company has been deactivated by the administrator.");
 
-      
+
         using var tenantDb = _tenantFactory.Create(client.DbName);
 
-  
+
         var user = await tenantDb.Users
             .Include(u => u.AccountStatus) // include account status
             .FirstOrDefaultAsync(u => u.Username == username);
@@ -68,7 +67,7 @@ public class AuthService
         if (user == null)
             throw new Exception("Invalid credentials.");
 
-     
+
         if (!user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase))
         {
             if (user.AccountStatus == null)
@@ -82,16 +81,16 @@ public class AuthService
             }
         }
 
-       
+
         if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
             throw new Exception("Invalid credentials.");
 
-      
+
         return (user, client);
     }
 
 
-    private async  Task<User> VerifySuperAdmin(string username, string password)
+    private async Task<User> VerifySuperAdmin(string username, string password)
     {
         var admin = await _masterDb.Admins.FirstOrDefaultAsync(u => u.Username == username);
 
@@ -101,14 +100,14 @@ public class AuthService
             throw new Exception("Invalid credentials.");
         }
 
-     
+
         return new User
         {
             Id = admin!.Id,
             FullName = admin.FullName!,
             Username = admin.Username!,
             Password = admin.Password!,
-            Email = "", 
+            Email = "",
             PhoneNumber = "",
             Role = "super_admin", // Set role as Admin
             CreatedAt = DateTime.UtcNow

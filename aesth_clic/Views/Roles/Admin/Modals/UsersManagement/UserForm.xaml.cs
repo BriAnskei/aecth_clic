@@ -1,9 +1,9 @@
 using aesth_clic.Tenant.Controller;
 using aesth_clic.Tenant.Dto.UserManagement;
-using System;
-using System.Text.RegularExpressions;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
+using System.Text.RegularExpressions;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace aesth_clic.Views.Roles.Admin.Modals

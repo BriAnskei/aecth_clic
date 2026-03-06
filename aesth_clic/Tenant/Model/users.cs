@@ -51,8 +51,8 @@ namespace aesth_clic.Tenant.Model
             if (string.IsNullOrWhiteSpace(Role))
                 throw new ValidationException("Role is required.");
 
-            var allowedRoles = new[] { "admin", "doctor", "reciptionist", "pharmacist" };
-            if (!allowedRoles.Any(r => string.Equals(r, Role, StringComparison.OrdinalIgnoreCase)))
+            var allowedRoles = new[] { "admin", "doctor", "receptionist", "pharmacist" };
+            if (!allowedRoles.Any(r => string.Equals(r, Role.ToLower(), StringComparison.OrdinalIgnoreCase)))
                 throw new ValidationException("Role must be Admin, Doctor, Reciptionist, or Pharmacist.");
         }
 
@@ -72,11 +72,11 @@ namespace aesth_clic.Tenant.Model
             if (string.IsNullOrWhiteSpace(Role))
                 throw new ValidationException("Role is required.");
 
-            var allowedRoles = new[] { "admin", "doctor", "reciptionist", "pharmacist" };
+            var allowedRoles = new[] { "admin", "doctor", "receptionist", "pharmacist" };
             if (!allowedRoles.Contains(Role.ToLower()))
-                throw new ValidationException("Role must be Admin, Doctor, Reciptionist, or Pharmacist.");
+                throw new ValidationException("Role must be Admin, Doctor, Receptionist, or Pharmacist.");
         }
 
-     
+
     }
 }

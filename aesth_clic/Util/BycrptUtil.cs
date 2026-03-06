@@ -28,8 +28,8 @@ namespace aesth_clic.Util
             if (password == "")
                 throw new ArgumentException("Password cannot be empty", nameof(password));
 
-            return  BCrypt.Net.BCrypt.HashPassword(password);
-     
+            return BCrypt.Net.BCrypt.HashPassword(password);
+
         }
     }
 }

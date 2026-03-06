@@ -1,11 +1,9 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
-using aesth_clic.Views.Roles;
-using Microsoft.UI.Windowing;
+﻿using aesth_clic.Views.Roles;
 using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
-using aesth_clic;  // ← add this so App.MainWindow is visible
 
 namespace aesth_clic.Views
 {

@@ -9,6 +9,8 @@ namespace aesth_clic.Context
     {
         public DbSet<Client> Clients { get; set; }
         public DbSet<Admin> Admins { get; set; }
-   
+
+
+        public DbSet<Subscription> Subscription { get; set; }
     }
 }

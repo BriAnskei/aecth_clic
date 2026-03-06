@@ -1,6 +1,8 @@
 ﻿using aesth_clic.Context;
 using aesth_clic.Controller;
 using aesth_clic.Data;
+using aesth_clic.Master.Controller;
+using aesth_clic.Master.Services;
 using aesth_clic.Repository;
 
 
@@ -8,6 +10,7 @@ using aesth_clic.Util;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
+using QuestPDF.Infrastructure;
 using System;
 using System.Runtime.Versioning;
 
@@ -23,6 +26,7 @@ namespace aesth_clic
         {
             InitializeComponent();
             Services = ConfigureServices();
+            QuestPDF.Settings.License = LicenseType.Community;
         }
 
         private static ServiceProvider ConfigureServices()
@@ -54,12 +58,16 @@ namespace aesth_clic
             services.AddSingleton<AuthService>();
             services.AddTransient<AuthController>();
 
+
+            services.AddScoped<SubscriptionService>();
+            services.AddScoped<SubscriptionController>();
+
             services.AddTransient<aesth_clic.Master.Services.CompanyService>();
             services.AddTransient<aesth_clic.Master.Controller.CompanyController>();
 
 
             services.AddTransient<aesth_clic.Master.Services.AdminClientService>();
-            services.AddTransient<aesth_clic.Master.Controller.AdminUserController >();
+            services.AddTransient<aesth_clic.Master.Controller.AdminUserController>();
 
 
             services.AddTransient<aesth_clic.Tenant.Services.UserService>();
@@ -78,7 +86,7 @@ namespace aesth_clic
 
             //services.AddTransient<Services.SuperAdminServices.CompanyService>();
 
-         
+
             //services.AddTransient<CompanyController>();
 
             return services.BuildServiceProvider();

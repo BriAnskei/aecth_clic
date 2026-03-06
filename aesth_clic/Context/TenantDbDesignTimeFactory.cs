@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using aesth_clic.Context;
 
 namespace aesth_clic.Context
 {

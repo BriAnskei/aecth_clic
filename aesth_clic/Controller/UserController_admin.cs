@@ -1,7 +1,4 @@
-﻿using System;
-using aesth_clic.Repository;
-
-namespace aesth_clic.Controller
+﻿namespace aesth_clic.Controller
 {
     internal class UserController_admin
     {

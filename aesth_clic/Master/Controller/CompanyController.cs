@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using aesth_clic.Master.Dto.Company;
+﻿using aesth_clic.Master.Dto.Company;
 using aesth_clic.Master.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace aesth_clic.Master.Controller
 {
@@ -27,20 +27,21 @@ namespace aesth_clic.Master.Controller
 
         public async Task UpdateClientStatusAsync(string clinicCode, string newStatus)
         {
-            await _companyService.UpdateClientStatusAsync(clinicCode, newStatus); 
+            await _companyService.UpdateClientStatusAsync(clinicCode, newStatus);
         }
 
-        public async Task UpdateClientTierAsync(string clinicCode, string newTier) {
+        public async Task UpdateClientTierAsync(string clinicCode, string newTier)
+        {
 
             await _companyService.UpdateClientTierAsync(clinicCode, newTier);
-        
+
         }
 
 
 
         public async Task DeleteClientAsync(string clinicCode)
         {
-            await _companyService.DeleteClientAsync(clinicCode);    
+            await _companyService.DeleteClientAsync(clinicCode);
 
         }
 

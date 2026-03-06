@@ -72,6 +72,13 @@
             <Setter Property="FontSize"            Value="13" />
         </Style>
 
+        <Style x:Key="SkeletonBlockStyle" TargetType="Border">
+            <Setter Property="Background"    Value="#EDE4F9" />
+            <Setter Property="CornerRadius"  Value="4" />
+            <Setter Property="Height"        Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -81,9 +88,13 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- ROW 0 · Page Header -->
+            <!-- ══════════════════════════════════════
+                 ROW 0 · Page Header
+            ══════════════════════════════════════ -->
             <Grid Grid.Row="0">
                 <StackPanel Spacing="2">
                     <TextBlock
@@ -96,8 +107,20 @@
                 </StackPanel>
             </Grid>
 
-            <!-- ROW 1 · KPI Cards -->
-            <Grid Grid.Row="1" ColumnSpacing="16">
+            <!-- ══════════════════════════════════════
+                 ROW 1 · Toast InfoBar
+            ══════════════════════════════════════ -->
+            <InfoBar
+                Grid.Row="1"
+                x:Name="ToastBar"
+                IsOpen="False"
+                IsClosable="True"
+                Margin="0,-8,0,-8" />
+
+            <!-- ══════════════════════════════════════
+                 ROW 2 · KPI Cards
+            ══════════════════════════════════════ -->
+            <Grid Grid.Row="2" x:Name="KpiGrid" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -147,9 +170,12 @@
                 </Border>
             </Grid>
 
-            <!-- ROW 2 · Search + Filter Toolbar -->
+            <!-- ══════════════════════════════════════
+                 ROW 3 · Search + Filter Toolbar
+            ══════════════════════════════════════ -->
             <Border
-                Grid.Row="2"
+                Grid.Row="3"
+                x:Name="FilterToolbar"
                 Background="White"
                 BorderBrush="#E4DAF5"
                 BorderThickness="1"
@@ -163,7 +189,6 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Search by procedure name -->
                     <TextBox
                         Grid.Column="0"
                         x:Name="SearchBox"
@@ -184,7 +209,6 @@
                         </TextBox.Resources>
                     </TextBox>
 
-                    <!-- Filter by Doctor -->
                     <ComboBox
                         Grid.Column="1"
                         x:Name="DoctorFilter"
@@ -197,7 +221,6 @@
                         <ComboBoxItem Content="All Doctors" Tag="All" IsSelected="True" />
                     </ComboBox>
 
-                    <!-- Filter by Price Range -->
                     <ComboBox
                         Grid.Column="2"
                         x:Name="PriceFilter"
@@ -207,21 +230,143 @@
                             <SolidColorBrush x:Key="ComboBoxFocusedBorderBrush"     Color="#5B2D8E" />
                             <SolidColorBrush x:Key="ComboBoxPointerOverBorderBrush" Color="#9B80C4" />
                         </ComboBox.Resources>
-                        <ComboBoxItem Content="All Prices"      Tag="All"   IsSelected="True" />
-                        <ComboBoxItem Content="Under ₱500"      Tag="U500" />
-                        <ComboBoxItem Content="₱500 – ₱2,000"  Tag="500to2000" />
+                        <ComboBoxItem Content="All Prices"       Tag="All"        IsSelected="True" />
+                        <ComboBoxItem Content="Under ₱500"       Tag="U500" />
+                        <ComboBoxItem Content="₱500 – ₱2,000"   Tag="500to2000" />
                         <ComboBoxItem Content="₱2,000 – ₱5,000" Tag="2000to5000" />
-                        <ComboBoxItem Content="Above ₱5,000"   Tag="A5000" />
+                        <ComboBoxItem Content="Above ₱5,000"    Tag="A5000" />
                     </ComboBox>
 
-                    <!-- Spacer -->
                     <Grid Grid.Column="3" />
                 </Grid>
             </Border>
 
-            <!-- ROW 3 · Services Table -->
+            <!-- ══════════════════════════════════════
+                 ROW 4 · Skeleton Table (loading)
+            ══════════════════════════════════════ -->
             <Border
-                Grid.Row="3"
+                Grid.Row="4"
+                x:Name="SkeletonTable"
+                Visibility="Visible"
+                Background="White"
+                BorderBrush="#E4DAF5"
+                BorderThickness="1"
+                CornerRadius="12">
+                <StackPanel>
+
+                    <!-- Skeleton header bar -->
+                    <Border
+                        Background="#F7F4FD"
+                        CornerRadius="12,12,0,0"
+                        Padding="20,12"
+                        Height="44" />
+
+                    <!-- 5 skeleton rows -->
+                    <Border BorderThickness="0,0,0,1" BorderBrush="#F0EAF8" Padding="20,0">
+                        <Grid MinHeight="60">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="200" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="140" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Style="{StaticResource SkeletonBlockStyle}" Width="80" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="110" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border BorderThickness="0,0,0,1" BorderBrush="#F0EAF8" Padding="20,0">
+                        <Grid MinHeight="60">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="200" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="160" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Style="{StaticResource SkeletonBlockStyle}" Width="70" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="130" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border BorderThickness="0,0,0,1" BorderBrush="#F0EAF8" Padding="20,0">
+                        <Grid MinHeight="60">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="200" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="120" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Style="{StaticResource SkeletonBlockStyle}" Width="90" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="100" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border BorderThickness="0,0,0,1" BorderBrush="#F0EAF8" Padding="20,0">
+                        <Grid MinHeight="60">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="200" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="150" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Style="{StaticResource SkeletonBlockStyle}" Width="75" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="120" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Padding="20,0">
+                        <Grid MinHeight="60">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="180" />
+                                <ColumnDefinition Width="200" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="130" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Style="{StaticResource SkeletonBlockStyle}" Width="85" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#EDE4F9" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="115" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                </StackPanel>
+            </Border>
+
+            <!-- ══════════════════════════════════════
+                 ROW 5 · Real Services Table
+            ══════════════════════════════════════ -->
+            <Border
+                Grid.Row="5"
+                x:Name="RealTable"
+                Visibility="Collapsed"
                 Background="White"
                 BorderBrush="#E4DAF5"
                 BorderThickness="1"
@@ -244,7 +389,7 @@
                             <TextBlock Text="Procedure List" FontSize="15" FontWeight="SemiBold" Foreground="#2D1554" />
                             <TextBlock Text="All services currently offered by the clinic" FontSize="12" Foreground="#9B80C4" />
                         </StackPanel>
-                        <Border Grid.Column="1" Background="#EDE4F9" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
+                        <Border Grid.Column="1" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
                             <TextBlock x:Name="TxtRowCount" Text="Showing 0 services" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
                         </Border>
                     </Grid>

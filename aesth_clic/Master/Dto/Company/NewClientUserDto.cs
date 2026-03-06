@@ -1,6 +1,5 @@
 ﻿using aesth_clic.Master.Model;
 using aesth_clic.Tenant.Model;
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace aesth_clic.Master.Dto.Company

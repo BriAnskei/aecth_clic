@@ -33,7 +33,7 @@ namespace aesth_clic.Tenant.Controller
             await _userService.AddUserAsync(user);
         }
 
-     
+
         public async Task<List<User>> GetAllUsersAsync()
         {
             return await _userService.GetAllUsersAsync();

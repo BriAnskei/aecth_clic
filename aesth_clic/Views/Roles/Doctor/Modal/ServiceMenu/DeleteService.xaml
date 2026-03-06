@@ -1,0 +1,115 @@
+<ContentDialog
+  x:Class="aesth_clic.Views.Roles.Doctor.Modals.DeleteService"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Title="Delete Service"
+  PrimaryButtonText="Delete"
+  CloseButtonText="Cancel"
+  DefaultButton="Close"
+  PrimaryButtonClick="OnDeleteClicked"
+  PrimaryButtonStyle="{StaticResource DangerPrimaryButtonStyle}"
+  CloseButtonStyle="{StaticResource GrayCloseButtonStyle}">
+
+    <ContentDialog.Resources>
+        <!-- Dialog background -->
+        <SolidColorBrush x:Key="ContentDialogBackground"            Color="White" />
+        <SolidColorBrush x:Key="ContentDialogBorderBrush"           Color="#E4DAF5" />
+        <SolidColorBrush x:Key="ContentDialogTopOverlayBackground"  Color="White" />
+        <SolidColorBrush x:Key="ContentDialogButtonAreaBackground"  Color="White" />
+
+        <!-- Foreground / close button fixes -->
+        <SolidColorBrush x:Key="ContentDialogForeground"                            Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForeground"                 Color="#5B2D8E" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPointerOver"      Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPressed"          Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackground"                 Color="White" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPointerOver"      Color="#EDE4F9" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPressed"          Color="#E4DAF5" />
+    </ContentDialog.Resources>
+
+    <Grid>
+
+        <!-- ══════════════════════════════════════
+         CONFIRMATION CONTENT
+    ══════════════════════════════════════ -->
+        <StackPanel Spacing="16" Width="400">
+
+            <!-- Warning icon + message -->
+            <StackPanel Spacing="12">
+                <Border
+          Width="52" Height="52"
+          CornerRadius="26"
+          Background="#FEE2E2"
+          HorizontalAlignment="Left">
+                    <FontIcon
+            Glyph="&#xE74D;"
+            FontSize="22"
+            Foreground="#C50F1F"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel Spacing="6">
+                    <TextBlock
+            Text="Are you sure you want to delete this service?"
+            FontSize="14" FontWeight="SemiBold"
+            Foreground="#2D1554"
+            TextWrapping="Wrap" />
+
+                    <!-- Service name pill -->
+                    <Border
+            Background="#FEF2F2"
+            BorderBrush="#FECACA"
+            BorderThickness="1"
+            CornerRadius="6"
+            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8FD;" FontSize="13" Foreground="#C50F1F" />
+                            <TextBlock
+                x:Name="ServiceNameLabel"
+                Text="—"
+                FontSize="13" FontWeight="SemiBold"
+                Foreground="#C50F1F"
+                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock
+            Text="This action cannot be undone. The service will be permanently removed from the clinic menu."
+            FontSize="12"
+            Foreground="#9B80C4"
+            TextWrapping="Wrap" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Error InfoBar (shown if delete fails) -->
+            <InfoBar
+        x:Name="ErrorBar"
+        IsOpen="False"
+        Severity="Error"
+        IsClosable="False" />
+
+        </StackPanel>
+
+        <!-- ══════════════════════════════════════
+         LOADING OVERLAY
+    ══════════════════════════════════════ -->
+        <Border
+      x:Name="DeletingOverlay"
+      Visibility="Collapsed"
+      Background="White"
+      Opacity="0.90"
+      CornerRadius="8">
+            <StackPanel
+        Orientation="Horizontal" Spacing="10"
+        HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressRing IsActive="True" Width="20" Height="20" Foreground="#C50F1F" />
+                <TextBlock
+          Text="Deleting service…"
+          VerticalAlignment="Center"
+          FontSize="13" Foreground="#9B80C4" />
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</ContentDialog>

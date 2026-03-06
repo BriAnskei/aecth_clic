@@ -8,7 +8,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace aesth_clic.Master.Services
@@ -29,7 +28,11 @@ namespace aesth_clic.Master.Services
 
             InitializeClient(client);
 
+
+
             await SaveClientToMasterDatabaseAsync(client);
+
+            await CreateClientSubscription(client);
 
             try
             {
@@ -42,7 +45,40 @@ namespace aesth_clic.Master.Services
             }
         }
 
+
         #region Private Methods
+
+
+        private async Task CreateClientSubscription(Client client)
+        {
+            try
+            {
+                decimal tierAmount = client.Tier.ToLower() switch
+                {
+                    "basic" => 1000,
+                    "standard" => 2500,
+                    "premium" => 4500,
+                    _ => 1000
+                };
+
+                var Subcription = new Subscription
+                {
+                    ClientId = client.Id,
+                    MonthlyAmount = tierAmount,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(30),
+
+                };
+
+                _masterDb.Subscription.Add(Subcription);
+                await _masterDb.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                LogError("Failed to create initial payment.", ex);
+                throw;
+            }
+        }
 
         private static void ValidateRequest(NewClientUserDto request)
         {
@@ -59,7 +95,7 @@ namespace aesth_clic.Master.Services
         private void InitializeClient(Client client)
         {
             client.GenerateDbName();
-         
+
         }
 
         private async Task SaveClientToMasterDatabaseAsync(Client client)
@@ -81,7 +117,7 @@ namespace aesth_clic.Master.Services
         {
             try
             {
-              using  var tenantDb = _tenantFactory.Create(dbName);
+                using var tenantDb = _tenantFactory.Create(dbName);
 
                 // migrate all tables of tenant
                 await tenantDb.Database.EnsureCreatedAsync();
@@ -122,10 +158,10 @@ namespace aesth_clic.Master.Services
             Debug.WriteLine(ex.ToString());
         }
 
-       
 
 
-           public async Task<Client> FetchClientAdminByCLinicCOde(string clinicCode)
+
+        public async Task<Client> FetchClientAdminByCLinicCOde(string clinicCode)
         {
             var client = await _masterDb.Clients
                 .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
@@ -147,7 +183,7 @@ namespace aesth_clic.Master.Services
 
         public async Task UpdateClientStatusAsync(string clinicCode, string newStatus)
         {
-         
+
             // 1️⃣ Fetch client
             var client = await _masterDb.Clients
                 .FirstOrDefaultAsync(c => c.ClinicCode == clinicCode);
@@ -262,5 +298,5 @@ namespace aesth_clic.Master.Services
 
 
 
-   
+
 }

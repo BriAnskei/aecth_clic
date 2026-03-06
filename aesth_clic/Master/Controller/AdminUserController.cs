@@ -4,8 +4,6 @@ using aesth_clic.Master.Services;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace aesth_clic.Master.Controller
@@ -18,14 +16,14 @@ namespace aesth_clic.Master.Controller
 
         public async Task UpdateClientAsync(UpdateAdminUserDto updateAdminUserDto)
         {
-         await  adminClientService.UpdateAdminUserAsync(updateAdminUserDto);
+            await adminClientService.UpdateAdminUserAsync(updateAdminUserDto);
         }
 
         public async Task<List<AdminClinicDetailsDto>> GetAllAdminClinicsAsync()
         {
-            var res =  await _adminCLientService.GetAllAdminClinicsAsync();
+            var res = await _adminCLientService.GetAllAdminClinicsAsync();
 
-          return res;
+            return res;
         }
     }
 }

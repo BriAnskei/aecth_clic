@@ -9,6 +9,9 @@ namespace aesth_clic.Context
 
         public DbSet<User> Users { get; set; }
         public DbSet<AccountStatus> AccountsStatus { get; set; }
+        public DbSet<ServiceMenu> ServiceMenu { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -18,8 +21,18 @@ namespace aesth_clic.Context
                 .HasOne(a => a.User)
                 .WithOne(u => u.AccountStatus)
                 .HasForeignKey<AccountStatus>(a => a.AccountId)
-                .IsRequired(false)  // <-- optional
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
+
+
+            // service -> docter
+            modelBuilder.Entity<ServiceMenu>()
+            .HasOne(s => s.User)
+            .WithMany()
+            .HasForeignKey(s => s.AddedBy);
+
+
+
         }
     }
 }

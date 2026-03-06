@@ -36,6 +36,7 @@
     <None Remove="Views\Roles\Admin\Pages\TermsAndConditions.xaml" />
     <None Remove="Views\Roles\Admin\Pages\UsersManagement.xaml" />
     <None Remove="Views\Roles\DoctorShell.xaml" />
+    <None Remove="Views\Roles\Doctor\Modal\ServiceMenu\DeleteService.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\AppointmentManagement.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\PatientManament.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\ProcedureManagement.xaml" />
@@ -54,6 +55,7 @@
     <None Remove="Views\Roles\SuperAdmin\Modals\AddNewClient.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Modals\EditClient.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Modals\ManageModules.xaml" />
+    <None Remove="Views\Roles\SuperAdmin\Modals\PaymentManagement\ConfirmMarkAsPaid.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Modals\UsersManagement\DeactivateClient.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Modals\UsersManagement\DeleteClient.xaml" />
     <None Remove="Views\Roles\SuperAdmin\Modals\UsersManagement\ReactivateClient.xaml" />
@@ -98,6 +100,7 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260209005" />
     <PackageReference Include="MySqlConnector" Version="2.5.0" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+    <PackageReference Include="QuestPDF" Version="2026.2.3" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Master\Repository\" />
@@ -295,6 +298,21 @@
   </ItemGroup>
   <ItemGroup>
     <PRIResource Remove="Services\AdminServices\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\SuperAdmin\Modals\PaymentManagement\ConfirmMarkAsPaid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Modal\ServiceMenu\DeleteService.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Modal\ServiceMenu\AddEditService.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Admin\Modals\UsersManagement\DeleteUser.xaml">

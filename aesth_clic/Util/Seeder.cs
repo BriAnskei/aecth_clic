@@ -1,5 +1,4 @@
-﻿using BCrypt.Net;
-using MySqlConnector;
+﻿using MySqlConnector;
 using System;
 
 namespace aesth_clic.Data

@@ -24,8 +24,8 @@ namespace aesth_clic.Views
             InitializeComponent();
 
             // Initialize AuthController with AuthService
-            _authController  = App.Services.GetRequiredService<AuthController>();
-          
+            _authController = App.Services.GetRequiredService<AuthController>();
+
         }
 
         private async void OnEnterPressed(object sender, KeyRoutedEventArgs e)

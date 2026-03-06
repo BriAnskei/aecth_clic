@@ -1,5 +1,4 @@
 ﻿using aesth_clic.Context;
-using aesth_clic.Master.Controller;
 using aesth_clic.Master.Dto;
 using aesth_clic.Master.Dto.Company;
 
@@ -12,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace aesth_clic.Master.Services
 {
- 
-        public sealed class AdminClientService(
-       MasterDbContext masterDb,
-       TenantDbContextFactory tenantFactory)
-        {
-            private readonly MasterDbContext _masterDb = masterDb ?? throw new ArgumentNullException(nameof(masterDb));
-            private readonly TenantDbContextFactory _tenantFactory = tenantFactory ?? throw new ArgumentNullException(nameof(tenantFactory));
+
+    public sealed class AdminClientService(
+   MasterDbContext masterDb,
+   TenantDbContextFactory tenantFactory)
+    {
+        private readonly MasterDbContext _masterDb = masterDb ?? throw new ArgumentNullException(nameof(masterDb));
+        private readonly TenantDbContextFactory _tenantFactory = tenantFactory ?? throw new ArgumentNullException(nameof(tenantFactory));
 
 
         public async Task UpdateAdminUserAsync(UpdateAdminUserDto request)
@@ -101,7 +100,7 @@ namespace aesth_clic.Master.Services
         {
             var result = new List<AdminClinicDetailsDto>();
 
-        
+
             var clients = await _masterDb.Clients
                 .AsNoTracking()
                 .ToListAsync();
@@ -120,7 +119,7 @@ namespace aesth_clic.Master.Services
                     if (adminUser == null)
                         continue; // skip if no admin found
 
-                    // 4️⃣ Map to DTO
+
                     result.Add(new AdminClinicDetailsDto
                     {
                         ClientId = client.Id,

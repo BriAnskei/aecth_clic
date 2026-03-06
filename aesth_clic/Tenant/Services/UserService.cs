@@ -5,12 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace aesth_clic.Tenant.Services
 {
-    public sealed class UserService(TenantDbContextFactory tenantFactory): TenantServiceBase
+    public sealed class UserService(TenantDbContextFactory tenantFactory) : TenantServiceBase
     {
 
         private readonly TenantDbContextFactory _tenantFactory = tenantFactory;
@@ -83,7 +82,7 @@ namespace aesth_clic.Tenant.Services
             if (existingUser == null)
                 throw new Exception("User not found.");
 
-         
+
 
             existingUser.FullName = updatedUser.FullName;
             existingUser.Email = updatedUser.Email;

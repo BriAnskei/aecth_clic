@@ -1,7 +1,6 @@
-﻿using System.Runtime.Versioning;  // ← add this
+﻿using aesth_clic.Views;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using aesth_clic.Views;
+using System.Runtime.Versioning;  // ← add this
 
 namespace aesth_clic
 {

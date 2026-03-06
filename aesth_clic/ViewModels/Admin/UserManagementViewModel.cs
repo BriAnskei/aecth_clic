@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Xml.Linq;
 using Windows.UI;
 
 namespace aesth_clic.ViewModels.Admin

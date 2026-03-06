@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.Services;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.Receptionist;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 
 namespace aesth_clic.Views.Roles.Receptionist.Pages
 {
-    // ── Data model ────────────────────────────────────────────────
     public class ServiceItem
     {
         public string ServiceId { get; set; } = string.Empty;
@@ -16,126 +17,127 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
         public string DoctorName { get; set; } = string.Empty;
     }
 
-    // ── Page code-behind ──────────────────────────────────────────
     public sealed partial class ServiceMenu : Page
     {
-        private List<ServiceItem> _allServices = new();
+        private readonly MenuController _menuController;
+        private readonly ServiceMenuViewModel _vm;
+        private bool _isPopulating = false;
 
         public ServiceMenu()
         {
             InitializeComponent();
-            LoadSampleData();
-            PopulateDoctorFilter();
-            Loaded += (_, _) => ApplyFilters();
+
+            _menuController = new MenuController(new MenuService());
+            _vm = new ServiceMenuViewModel(_menuController);
+
+            ServiceListControl.ItemsSource = _vm.DisplayedServices;
+
+            _vm.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(ServiceMenuViewModel.IsLoading))
+                    UpdateLoadingState(_vm.IsLoading);
+
+                if (e.PropertyName
+                    is nameof(ServiceMenuViewModel.TotalServices)
+                    or nameof(ServiceMenuViewModel.LowestPrice)
+                    or nameof(ServiceMenuViewModel.HighestPrice))
+                    UpdateKpiCards();
+            };
+
+            _ = LoadDataAsync();
         }
 
-        // ── Sample data ───────────────────────────────────────────
-        private void LoadSampleData()
+        // ──────────────────────────────────────────────────────
+        // LOADING STATE
+        // ──────────────────────────────────────────────────────
+        private void UpdateLoadingState(bool isLoading)
         {
-            _allServices = new List<ServiceItem>
-            {
-                Build("s1",  "Facial Rejuvenation",       1500m,  "Dr. Maria Santos"),
-                Build("s2",  "Botox Injection",           3500m,  "Dr. Maria Santos"),
-                Build("s3",  "Chemical Peel",              800m,  "Dr. Jose Reyes"),
-                Build("s4",  "Dermal Filler",             5000m,  "Dr. Jose Reyes"),
-                Build("s5",  "Laser Hair Removal",        2500m,  "Dr. Ana Cruz"),
-                Build("s6",  "Microdermabrasion",          600m,  "Dr. Ana Cruz"),
-                Build("s7",  "Hydrafacial",               1200m,  "Dr. Carlo Mendoza"),
-                Build("s8",  "Teeth Whitening",           1800m,  "Dr. Carlo Mendoza"),
-                Build("s9",  "PRP Hair Treatment",        7500m,  "Dr. Maria Santos"),
-                Build("s10", "Skin Tag Removal",           350m,  "Dr. Jose Reyes"),
-                Build("s11", "Acne Scar Treatment",       4200m,  "Dr. Ana Cruz"),
-                Build("s12", "Eyebrow Threading",          250m,  "Dr. Carlo Mendoza"),
-            };
+            KpiGrid.IsHitTestVisible = !isLoading;
+            KpiGrid.Opacity = isLoading ? 0.4 : 1.0;
+
+            FilterToolbar.IsHitTestVisible = !isLoading;
+            FilterToolbar.Opacity = isLoading ? 0.4 : 1.0;
+
+            SkeletonTable.Visibility = isLoading
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            RealTable.Visibility = isLoading
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         }
 
-        private static ServiceItem Build(string id, string name, decimal price, string doctor) =>
-            new ServiceItem
+        // ──────────────────────────────────────────────────────
+        // INITIAL LOAD
+        // ──────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadDataAsync()
+        {
+            try
             {
-                ServiceId = id,
-                ProcedureName = name,
-                Price = price,
-                FormattedPrice = $"₱{price:N0}",
-                DoctorName = doctor,
-            };
+                await _vm.LoadFromBackendAsync();
+                PopulateDoctorFilter();
+                UpdateKpiCards();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load services", ex.Message);
+            }
+        }
 
-        // ── Populate doctor filter dynamically from data ──────────
+        // ──────────────────────────────────────────────────────
+        // DOCTOR FILTER — populated after data loads
+        // ──────────────────────────────────────────────────────
         private void PopulateDoctorFilter()
         {
-            var doctors = _allServices
-                .Select(s => s.DoctorName)
-                .Distinct()
-                .OrderBy(d => d)
-                .ToList();
+            _isPopulating = true;
+            DoctorFilter.Items.Clear();
+            DoctorFilter.Items.Add(new ComboBoxItem { Content = "All Doctors", Tag = "All" });
 
-            foreach (var doctor in doctors)
-            {
-                DoctorFilter.Items.Add(new ComboBoxItem
-                {
-                    Content = doctor,
-                    Tag = doctor
-                });
-            }
+            foreach (var name in _vm.DoctorNames)
+                DoctorFilter.Items.Add(new ComboBoxItem { Content = name, Tag = name });
 
-            DoctorFilter.SelectedIndex = 0; // "All Doctors"
+            DoctorFilter.SelectedIndex = 0;
+            _isPopulating = false;
         }
 
-        // ── Filtering logic ───────────────────────────────────────
-        private void ApplyFilters()
+        // ──────────────────────────────────────────────────────
+        // KPI CARDS
+        // ──────────────────────────────────────────────────────
+        private void UpdateKpiCards()
         {
-            if (ServiceListControl is null) return;
+            TxtTotalServices.Text = _vm.TotalServices.ToString();
+            TxtLowestPrice.Text = $"₱{_vm.LowestPrice:N0}";
+            TxtHighestPrice.Text = $"₱{_vm.HighestPrice:N0}";
 
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
-            var doctorTag = (DoctorFilter?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
-            var priceTag = (PriceFilter?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
-
-            var filtered = _allServices.Where(s =>
-            {
-                bool matchSearch = string.IsNullOrEmpty(search)
-                    || s.ProcedureName.ToLower().Contains(search);
-
-                bool matchDoctor = doctorTag == "All" || s.DoctorName == doctorTag;
-
-                bool matchPrice = priceTag switch
-                {
-                    "U500" => s.Price < 500m,
-                    "500to2000" => s.Price >= 500m && s.Price <= 2000m,
-                    "2000to5000" => s.Price > 2000m && s.Price <= 5000m,
-                    "A5000" => s.Price > 5000m,
-                    _ => true
-                };
-
-                return matchSearch && matchDoctor && matchPrice;
-            }).ToList();
-
-            ServiceListControl.ItemsSource = filtered;
-
-            // KPI cards (always reflect full dataset)
-            if (TxtTotalServices is not null)
-                TxtTotalServices.Text = _allServices.Count.ToString();
-
-            if (TxtLowestPrice is not null)
-                TxtLowestPrice.Text = _allServices.Any()
-                    ? $"₱{_allServices.Min(s => s.Price):N0}"
-                    : "₱0";
-
-            if (TxtHighestPrice is not null)
-                TxtHighestPrice.Text = _allServices.Any()
-                    ? $"₱{_allServices.Max(s => s.Price):N0}"
-                    : "₱0";
-
-            if (TxtRowCount is not null)
-                TxtRowCount.Text = $"Showing {filtered.Count} service{(filtered.Count == 1 ? "" : "s")}";
+            TxtRowCount.Text =
+                $"Showing {_vm.DisplayedServices.Count} " +
+                $"service{(_vm.DisplayedServices.Count == 1 ? "" : "s")}";
         }
 
-        // ── Event handlers ────────────────────────────────────────
+        // ──────────────────────────────────────────────────────
+        // EVENT HANDLERS
+        // ──────────────────────────────────────────────────────
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
-            => ApplyFilters();
+        {
+            if (_vm is null || _isPopulating) return;
+            _vm.SearchText = SearchBox.Text;
+            UpdateKpiCards();
+        }
 
         private void DoctorFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => ApplyFilters();
+        {
+            if (_vm is null || _isPopulating) return;
+            _vm.SelectedDoctor =
+                (DoctorFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+            UpdateKpiCards();
+        }
 
         private void PriceFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => ApplyFilters();
+        {
+            if (_vm is null || _isPopulating) return;
+            _vm.SelectedPriceRange =
+                (PriceFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+            UpdateKpiCards();
+        }
     }
 }
