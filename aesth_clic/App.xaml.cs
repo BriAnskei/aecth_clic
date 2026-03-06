@@ -4,8 +4,8 @@ using aesth_clic.Data;
 using aesth_clic.Master.Controller;
 using aesth_clic.Master.Services;
 using aesth_clic.Repository;
-
-
+using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.Services;
 using aesth_clic.Util;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,13 +54,18 @@ namespace aesth_clic
             services.AddSingleton<TenantDbContextFactory>();
 
 
-
+            // -- Master
             services.AddSingleton<AuthService>();
             services.AddTransient<AuthController>();
 
 
             services.AddScoped<SubscriptionService>();
             services.AddScoped<SubscriptionController>();
+
+
+            services.AddScoped<TncMasterService>();
+            services.AddScoped<TncMasterController>();
+
 
             services.AddTransient<aesth_clic.Master.Services.CompanyService>();
             services.AddTransient<aesth_clic.Master.Controller.CompanyController>();
@@ -69,25 +74,36 @@ namespace aesth_clic
             services.AddTransient<aesth_clic.Master.Services.AdminClientService>();
             services.AddTransient<aesth_clic.Master.Controller.AdminUserController>();
 
+            // --
 
+
+
+
+
+            // -- Tenant
             services.AddTransient<aesth_clic.Tenant.Services.UserService>();
             services.AddTransient<aesth_clic.Tenant.Controller.UserController>();
+
+
+            services.AddTransient<TncTenantService>();
+            services.AddTransient<TncTenantController>();
+
+
+
+
+            // --
 
             // Infrastructure
             services.AddSingleton<DbConnectionFactory>();
             services.AddScoped<TransactionManager>();
 
-            // Repositories
-            //  -- users, auth
-            //services.AddTransient<UserRepository>();
-            //services.AddTransient<CompanyRepository>();
-            //services.AddTransient<AccountStatusRepository>();
-            services.AddTransient<PaymentRepository>();
-
-            //services.AddTransient<Services.SuperAdminServices.CompanyService>();
+       
+      
 
 
-            //services.AddTransient<CompanyController>();
+
+
+
 
             return services.BuildServiceProvider();
         }

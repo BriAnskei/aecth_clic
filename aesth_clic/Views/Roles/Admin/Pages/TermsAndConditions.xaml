@@ -45,7 +45,6 @@
             <Setter Property="Margin"     Value="0,2,0,0" />
         </Style>
 
-        <!-- Admin TNC section styles -->
         <Style x:Key="ClinicTncCardStyle" TargetType="Border">
             <Setter Property="Background"      Value="#FDFBFF" />
             <Setter Property="BorderBrush"     Value="#E4DAF5" />
@@ -101,183 +100,197 @@
             <Setter Property="FontSize"        Value="13" />
         </Style>
 
+        <!-- Skeleton block placeholder -->
+        <Style x:Key="SkeletonBlockStyle" TargetType="Border">
+            <Setter Property="Background"        Value="#EDE4F9" />
+            <Setter Property="CornerRadius"      Value="4" />
+            <Setter Property="Height"            Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid Padding="28,24,28,32" RowSpacing="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+    <!-- Root grid so ToastBar can float over the page -->
+    <Grid>
 
-            <!-- PAGE HEADER -->
-            <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,4">
-                <TextBlock
-                    Text="Terms and Conditions"
-                    FontSize="26"
-                    FontWeight="Bold"
-                    Foreground="#2D1554" />
-                <TextBlock
-                    Text="Review and manage the clinic's terms and conditions."
-                    FontSize="13"
-                    Foreground="#9B80C4" />
-            </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid Padding="28,24,28,32" RowSpacing="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <!-- INFO BANNER -->
-            <Border
-                Grid.Row="1"
-                Background="#EDE4F9"
-                BorderBrush="#C9A8E8"
-                BorderThickness="1"
-                CornerRadius="10"
-                Padding="16,12">
-                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE946;" FontSize="16" Foreground="#5B2D8E" VerticalAlignment="Center" />
+                <!-- ══════════════════════════════════
+                     ROW 0 · Page Header
+                ══════════════════════════════════ -->
+                <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,4">
                     <TextBlock
-                        Text="The system provisions below are set by the system administrator and are read-only. You may add and manage your own clinic-specific provisions in the section below."
-                        FontSize="12"
-                        Foreground="#5B2D8E"
-                        TextWrapping="Wrap"
-                        VerticalAlignment="Center" />
+                        Text="Terms and Conditions"
+                        FontSize="26"
+                        FontWeight="Bold"
+                        Foreground="#2D1554" />
+                    <TextBlock
+                        Text="Review and manage the clinic's terms and conditions."
+                        FontSize="13"
+                        Foreground="#9B80C4" />
                 </StackPanel>
-            </Border>
 
-            <!-- SYSTEM TNC CARD (read-only) -->
-            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="0">
-
-                    <Grid Margin="0,0,0,20">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Text="System Terms and Conditions" Style="{StaticResource CardTitleStyle}" />
-                            <TextBlock Text="Effective date: January 1, 2025 · Read-only" Style="{StaticResource CardSubtitleStyle}" />
-                        </StackPanel>
-                        <Border
-                            Grid.Column="1"
-                            Background="#EDE4F9"
-                            CornerRadius="6"
-                            Padding="10,4"
-                            VerticalAlignment="Center">
-                            <TextBlock Text="8 provisions" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
-                        </Border>
-                    </Grid>
-
-                    <Border Height="1" Background="#F0EAF8" Margin="0,0,0,20" />
-
-                    <StackPanel Spacing="0">
-                        <Border Padding="16,18" CornerRadius="8">
-                            <StackPanel Spacing="0">
-                                <TextBlock Text="Patient Consent" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock Text="All patients must provide informed written consent prior to undergoing any aesthetic procedure. Consent forms must be signed on the day of the appointment and retained in the patient's file." Style="{StaticResource TncDescStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Height="1" Background="#F0EAF8" Margin="16,0" />
-
-                        <Border Padding="16,18" CornerRadius="8">
-                            <StackPanel Spacing="0">
-                                <TextBlock Text="Appointment Policy" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock Text="Patients are required to arrive at least 10 minutes before their scheduled appointment. Late arrivals beyond 15 minutes may result in rescheduling at the clinic's discretion." Style="{StaticResource TncDescStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Height="1" Background="#F0EAF8" Margin="16,0" />
-
-                        <Border Padding="16,18" CornerRadius="8">
-                            <StackPanel Spacing="0">
-                                <TextBlock Text="Cancellation and Rescheduling" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock Text="Cancellations must be made at least 24 hours in advance. Failure to notify the clinic within this window may incur a cancellation fee equivalent to 20% of the procedure cost." Style="{StaticResource TncDescStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Height="1" Background="#F0EAF8" Margin="16,0" />
-
-                        <Border Padding="16,18" CornerRadius="8">
-                            <StackPanel Spacing="0">
-                                <TextBlock Text="Payment Terms" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock Text="Full payment is required upon completion of each procedure. The clinic accepts cash, credit/debit cards, and approved digital wallets. Installment arrangements must be pre-approved by management." Style="{StaticResource TncDescStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Height="1" Background="#F0EAF8" Margin="16,0" />
-
-                        <Border Padding="16,18" CornerRadius="8">
-                            <StackPanel Spacing="0">
-                                <TextBlock Text="Confidentiality and Privacy" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock Text="All patient information, medical records, and treatment history are treated as strictly confidential in accordance with applicable data privacy laws. Records will not be shared with third parties without explicit patient consent." Style="{StaticResource TncDescStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Height="1" Background="#F0EAF8" Margin="16,0" />
-
-                        <Border Padding="16,18" CornerRadius="8">
-                            <StackPanel Spacing="0">
-                                <TextBlock Text="Refund Policy" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock Text="Payments for completed procedures are non-refundable. Refunds may be considered only in cases of documented adverse reactions directly attributable to clinic negligence, subject to management review." Style="{StaticResource TncDescStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Height="1" Background="#F0EAF8" Margin="16,0" />
-
-                        <Border Padding="16,18" CornerRadius="8">
-                            <StackPanel Spacing="0">
-                                <TextBlock Text="Code of Conduct" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock Text="Patients and accompanying individuals are expected to conduct themselves respectfully within clinic premises. The clinic reserves the right to refuse service to anyone exhibiting disruptive or inappropriate behavior." Style="{StaticResource TncDescStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Height="1" Background="#F0EAF8" Margin="16,0" />
-
-                        <Border Padding="16,18" CornerRadius="8">
-                            <StackPanel Spacing="0">
-                                <TextBlock Text="Amendments to Terms" Style="{StaticResource TncTitleStyle}" />
-                                <TextBlock Text="The clinic reserves the right to update or amend these terms and conditions at any time. Patients and staff will be notified of significant changes through official clinic communications." Style="{StaticResource TncDescStyle}" />
-                            </StackPanel>
-                        </Border>
+                <!-- ══════════════════════════════════
+                     ROW 1 · Info Banner
+                ══════════════════════════════════ -->
+                <Border
+                    Grid.Row="1"
+                    Background="#EDE4F9"
+                    BorderBrush="#C9A8E8"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="16,12">
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE946;" FontSize="16" Foreground="#5B2D8E" VerticalAlignment="Center" />
+                        <TextBlock
+                            Text="The system provisions below are set by the system administrator and are read-only. You may add and manage your own clinic-specific provisions in the section below."
+                            FontSize="12"
+                            Foreground="#5B2D8E"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center" />
                     </StackPanel>
+                </Border>
 
-                </StackPanel>
-            </Border>
+                <!-- ══════════════════════════════════
+                     ROW 2 · System TNC Card (read-only)
+                ══════════════════════════════════ -->
+                <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="0">
 
-            <!-- CLINIC-SPECIFIC TNC CARD (admin-managed) -->
-            <Border Grid.Row="3" Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="0">
+                        <!-- Card header -->
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="System Terms and Conditions" Style="{StaticResource CardTitleStyle}" />
+                                <TextBlock Text="Set by system administrator · Read-only" Style="{StaticResource CardSubtitleStyle}" />
+                            </StackPanel>
+                            <Border
+                                Grid.Column="1"
+                                Background="#EDE4F9"
+                                CornerRadius="6"
+                                Padding="10,4"
+                                VerticalAlignment="Center">
+                                <TextBlock
+                                    x:Name="TxtMasterEntryCount"
+                                    Text="0 provisions"
+                                    FontSize="12"
+                                    Foreground="#5B2D8E"
+                                    FontWeight="SemiBold" />
+                            </Border>
+                        </Grid>
 
-                    <!-- Card Header -->
-                    <Grid Margin="0,0,0,20">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                        <Border Height="1" Background="#F0EAF8" Margin="0,0,0,20" />
 
-                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                            <TextBlock Text="Clinic-Specific Terms" Style="{StaticResource CardTitleStyle}" />
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE8A9;" FontSize="11" Foreground="#9B80C4" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="TxtEntryCount" Text="2 entries" Style="{StaticResource CardSubtitleStyle}" VerticalAlignment="Center"/>
+                        <!-- ── MASTER SKELETON ── -->
+                        <StackPanel x:Name="MasterSkeletonList" Spacing="16" Visibility="Visible">
+                            <StackPanel Spacing="10">
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="180" HorizontalAlignment="Left" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="420" HorizontalAlignment="Left" Height="10" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="380" HorizontalAlignment="Left" Height="10" />
+                            </StackPanel>
+                            <Border Height="1" Background="#F0EAF8" />
+                            <StackPanel Spacing="10">
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="210" HorizontalAlignment="Left" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="400" HorizontalAlignment="Left" Height="10" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="360" HorizontalAlignment="Left" Height="10" />
+                            </StackPanel>
+                            <Border Height="1" Background="#F0EAF8" />
+                            <StackPanel Spacing="10">
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="160" HorizontalAlignment="Left" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="440" HorizontalAlignment="Left" Height="10" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="390" HorizontalAlignment="Left" Height="10" />
                             </StackPanel>
                         </StackPanel>
 
-                        <Button
-                            x:Name="BtnAddNew"
-                            Grid.Column="1"
-                            Click="BtnAddNew_Click"
-                            Style="{StaticResource SaveButtonStyle}"
-                            VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE710;" FontSize="12" Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock Text="Add Provision" FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                        <!-- ── MASTER REAL LIST ── -->
+                        <StackPanel x:Name="MasterTncList" Spacing="0" Visibility="Collapsed" />
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ══════════════════════════════════
+                     ROW 3 · Clinic-Specific TNC Card
+                ══════════════════════════════════ -->
+                <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="0">
+
+                        <!-- Card header -->
+                        <Grid x:Name="ClinicCardToolbar" Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Clinic-Specific Terms" Style="{StaticResource CardTitleStyle}" />
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8A9;" FontSize="11" Foreground="#9B80C4" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="TxtEntryCount" Text="0 entries" Style="{StaticResource CardSubtitleStyle}" VerticalAlignment="Center" />
+                                </StackPanel>
                             </StackPanel>
-                        </Button>
-                    </Grid>
 
-                    <!-- Divider -->
-                    <Border Height="1" Background="#F0EAF8" Margin="0,0,0,16" />
+                            <Button
+                                x:Name="BtnAddNew"
+                                Grid.Column="1"
+                                Click="BtnAddNew_Click"
+                                Style="{StaticResource SaveButtonStyle}"
+                                VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE710;" FontSize="12" Foreground="White" VerticalAlignment="Center" />
+                                    <TextBlock Text="Add Provision" FontSize="13" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
 
-                    <!-- Dynamic accordion list -->
-                    <StackPanel x:Name="ClinicTncList" Spacing="10" />
+                        <!-- Divider -->
+                        <Border Height="1" Background="#F0EAF8" Margin="0,0,0,16" />
 
-                </StackPanel>
-            </Border>
+                        <!-- ── CLINIC SKELETON ── -->
+                        <StackPanel x:Name="ClinicSkeletonList" Spacing="10" Visibility="Visible">
+                            <Border Style="{StaticResource ClinicTncCardStyle}" Padding="16,14">
+                                <StackPanel Spacing="10">
+                                    <Border Style="{StaticResource SkeletonBlockStyle}" Width="200" HorizontalAlignment="Left" />
+                                    <Border Style="{StaticResource SkeletonBlockStyle}" Width="380" HorizontalAlignment="Left" Height="10" />
+                                    <Border Style="{StaticResource SkeletonBlockStyle}" Width="340" HorizontalAlignment="Left" Height="10" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource ClinicTncCardStyle}" Padding="16,14">
+                                <StackPanel Spacing="10">
+                                    <Border Style="{StaticResource SkeletonBlockStyle}" Width="170" HorizontalAlignment="Left" />
+                                    <Border Style="{StaticResource SkeletonBlockStyle}" Width="400" HorizontalAlignment="Left" Height="10" />
+                                    <Border Style="{StaticResource SkeletonBlockStyle}" Width="360" HorizontalAlignment="Left" Height="10" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
 
-        </Grid>
-    </ScrollViewer>
+                        <!-- ── CLINIC REAL LIST ── -->
+                        <StackPanel x:Name="ClinicTncList" Spacing="10" Visibility="Collapsed" />
+
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Floating ToastBar -->
+        <InfoBar
+            x:Name="ToastBar"
+            IsOpen="False"
+            IsClosable="True"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Stretch"
+            Margin="28,8,28,0" />
+
+    </Grid>
 </Page>

@@ -1,114 +1,103 @@
-﻿using Microsoft.UI.Xaml;
+﻿using aesth_clic.Master.Controller;
+using aesth_clic.Master.Model;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.SuperAdmin;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
 using Windows.UI;
 
 namespace aesth_clic.Views.Roles.SuperAdmin.Pages
 {
-    // ─────────────────────────────────────────────────────────────
-    // Simple model – swap for your real EF / DB model later
-    // ─────────────────────────────────────────────────────────────
-    internal class TncEntry
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-    }
-
     public sealed partial class TNC : Page
     {
-        // ── In-memory list (replace with DB calls once ready) ──
-        private readonly List<TncEntry> _entries = new()
-        {
-            new TncEntry
-            {
-                Id = 1,
-                Title = "Acceptance of Terms",
-                Description =
-                    "By accessing or using the services provided by Aesthetic Clinic, you agree to be " +
-                    "bound by these Terms and Conditions. If you do not agree with any part of these " +
-                    "terms, you must not use our services. Continued use of our services following the " +
-                    "posting of any changes constitutes your acceptance of those changes."
-            },
-            new TncEntry
-            {
-                Id = 2,
-                Title = "Appointment & Cancellation Policy",
-                Description =
-                    "Appointments must be scheduled at least 24 hours in advance. Cancellations made " +
-                    "less than 12 hours before the scheduled time may incur a cancellation fee equivalent " +
-                    "to 20% of the service cost. No-shows without prior notice will be charged the full " +
-                    "service amount. The clinic reserves the right to reschedule appointments due to " +
-                    "unforeseen circumstances."
-            },
-            new TncEntry
-            {
-                Id = 3,
-                Title = "Payment Terms",
-                Description =
-                    "Full payment is due at the time of service unless a pre-approved payment plan is in " +
-                    "place. We accept cash, major credit/debit cards, and approved digital wallets. " +
-                    "Promotional rates and discounts cannot be combined unless explicitly stated. Refunds " +
-                    "are only applicable for pre-paid packages and are subject to management approval."
-            },
-            new TncEntry
-            {
-                Id = 4,
-                Title = "Privacy & Confidentiality",
-                Description =
-                    "All personal and medical information collected during your visit is treated as " +
-                    "strictly confidential and is used solely for the purpose of providing our services. " +
-                    "We do not share, sell, or disclose your information to third parties without your " +
-                    "explicit written consent, except as required by law. You may request access to or " +
-                    "deletion of your data at any time by contacting our Data Privacy Officer."
-            }
-        };
+        private readonly TncViewModel _vm = new();
+        private readonly TncMasterController _tncController;
 
-        private int _nextId = 5;
-
-        // ─────────────────────────────────────────────────────────────
-        // Constructor
-        // ─────────────────────────────────────────────────────────────
         public TNC()
         {
             InitializeComponent();
-            Loaded += OnPageLoaded;
+
+            _tncController = App.Services.GetRequiredService<TncMasterController>();
+
+            _ = LoadFromDbAsync();
         }
 
-        private void OnPageLoaded(object sender, RoutedEventArgs e)
+        // ──────────────────────────────────────────────────────────────────────
+        // LOADING STATE
+        // ──────────────────────────────────────────────────────────────────────
+        private void UpdateLoadingState(bool isLoading)
         {
-            foreach (var entry in _entries)
-                TncList.Children.Add(BuildEntryCard(entry));
-
-            RefreshEntryCount();
+            _vm.IsLoading = isLoading;
+            Toolbar.IsHitTestVisible = !isLoading;
+            Toolbar.Opacity = isLoading ? 0.4 : 1.0;
+            SkeletonList.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+            TncList.Visibility = isLoading ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // ADD NEW TNC  →  appends a blank card already in edit mode
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────────────
+        // DATA LOADING
+        // ──────────────────────────────────────────────────────────────────────
+        private async Task LoadFromDbAsync()
+        {
+            _vm.IsLoading = true;
+            UpdateLoadingState(true);
+
+            try
+            {
+                var rows = await _tncController.GetAllTncsAsync();
+                _vm.LoadFromDb(rows);
+
+                TncList.Children.Clear();
+                foreach (var entry in _vm.Entries)
+                    TncList.Children.Add(BuildEntryCard(entry));
+
+                UpdateEntryCount();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load terms", ex.Message);
+            }
+            finally
+            {
+                _vm.IsLoading = false;
+                UpdateLoadingState(false);
+            }
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // KPI / COUNT LABEL
+        // ──────────────────────────────────────────────────────────────────────
+        private void UpdateEntryCount()
+        {
+            TxtEntryCount.Text = _vm.EntryCountDisplay;
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // ADD NEW TNC
+        // ──────────────────────────────────────────────────────────────────────
         private void BtnAddNew_Click(object sender, RoutedEventArgs e)
         {
-            var newEntry = new TncEntry { Id = _nextId++, Title = "", Description = "" };
-            _entries.Add(newEntry);
+            var newEntry = new TncMaster { Id = 0, Title = "", Description = "" };
 
             var card = BuildEntryCard(newEntry, startInEditMode: true);
             TncList.Children.Add(card);
 
-            // Auto-expand the new card
+            // Temporarily track it in the VM so EntryCountDisplay is accurate
+            _vm.AddEntry(newEntry);
+            UpdateEntryCount();
+
             if (card is Border border && border.Child is Expander expander)
                 expander.IsExpanded = true;
-
-            RefreshEntryCount();
         }
 
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────────────
         // BUILD ENTRY CARD
-        // Each card is a Border > Expander.
-        // The Expander header   = title (view) or TextBox (edit)
-        // The Expander content  = description text + action buttons
-        // ─────────────────────────────────────────────────────────────
-        private Border BuildEntryCard(TncEntry entry, bool startInEditMode = false)
+        // ──────────────────────────────────────────────────────────────────────
+        private Border BuildEntryCard(TncMaster entry, bool startInEditMode = false)
         {
             // ── Root border ──────────────────────────────────────────
             var border = new Border
@@ -116,7 +105,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 Style = (Style)Resources["TncCardStyle"],
                 Padding = new Thickness(0),
                 CornerRadius = new CornerRadius(8),
-                Tag = entry.Id          // easy lookup later
+                Tag = entry.Id
             };
 
             // ── Expander ─────────────────────────────────────────────
@@ -128,7 +117,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 Padding = new Thickness(16, 12, 16, 12)
             };
 
-            // ── Header: TextBlock (view) + TextBox (edit) ─────────────
+            // ── Header (view-only TextBlock — never editable) ─────────
             var headerView = new TextBlock
             {
                 Text = entry.Title.Length > 0 ? entry.Title : "(New entry — add a title)",
@@ -136,22 +125,22 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 Opacity = entry.Title.Length > 0 ? 1.0 : 0.5
             };
 
+            expander.Header = headerView;
+
+            // ── Title edit box (lives in content, not header) ─────────
+            // This is the FIX: TextBox inside Expander.Header cannot receive
+            // focus because the Expander intercepts pointer events to toggle
+            // expand/collapse. Moving it into the content panel resolves this.
             var headerEdit = new TextBox
             {
                 Text = entry.Title,
                 PlaceholderText = "Enter title…",
                 Style = (Style)Resources["EditTitleBoxStyle"],
-                Visibility = Visibility.Collapsed
+                Visibility = startInEditMode ? Visibility.Visible : Visibility.Collapsed,
+                Margin = new Thickness(0, 0, 0, 8)
             };
 
-            var headerPanel = new Grid();
-            headerPanel.Children.Add(headerView);
-            headerPanel.Children.Add(headerEdit);
-            expander.Header = headerPanel;
-
-            // ── Content: description + buttons ───────────────────────
-
-            // View mode
+            // ── Description ───────────────────────────────────────────
             var descView = new TextBlock
             {
                 Text = entry.Description,
@@ -159,7 +148,6 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 Visibility = startInEditMode ? Visibility.Collapsed : Visibility.Visible
             };
 
-            // Edit mode
             var descEdit = new TextBox
             {
                 Text = entry.Description,
@@ -168,12 +156,20 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 Visibility = startInEditMode ? Visibility.Visible : Visibility.Collapsed
             };
 
-            // Action buttons (row beneath description)
+            // ── Buttons ───────────────────────────────────────────────
             var editBtn = new Button
             {
                 Content = "Edit",
                 Style = (Style)Resources["SubtleButtonStyle"],
                 Margin = new Thickness(0, 14, 8, 0),
+                Visibility = startInEditMode ? Visibility.Collapsed : Visibility.Visible
+            };
+
+            var deleteBtn = new Button
+            {
+                Content = "Delete",
+                Style = (Style)Resources["DangerButtonStyle"],
+                Margin = new Thickness(0, 14, 0, 0),
                 Visibility = startInEditMode ? Visibility.Collapsed : Visibility.Visible
             };
 
@@ -193,23 +189,23 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 Visibility = startInEditMode ? Visibility.Visible : Visibility.Collapsed
             };
 
-            var buttonRow = new StackPanel
-            {
-                Orientation = Orientation.Horizontal
-            };
+            var buttonRow = new StackPanel { Orientation = Orientation.Horizontal };
             buttonRow.Children.Add(editBtn);
             buttonRow.Children.Add(saveBtn);
             buttonRow.Children.Add(cancelBtn);
+            buttonRow.Children.Add(deleteBtn);
 
-            // Separator line above buttons
             var separator = new Microsoft.UI.Xaml.Shapes.Rectangle
             {
                 Height = 1,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
                 Margin = new Thickness(0, 14, 0, 0),
                 Fill = new SolidColorBrush(Color.FromArgb(30, 128, 128, 128))
             };
 
+            // headerEdit is first so the title field appears above description
             var contentPanel = new StackPanel { Margin = new Thickness(0, 4, 0, 4) };
+            contentPanel.Children.Add(headerEdit);   // ← title edit box here
             contentPanel.Children.Add(descView);
             contentPanel.Children.Add(descEdit);
             contentPanel.Children.Add(separator);
@@ -218,77 +214,121 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             expander.Content = contentPanel;
             border.Child = expander;
 
-            // ── Wire up button events ─────────────────────────────────
-
-            // EDIT → switch to edit mode
+            // ──────────────────────────────────────────────────────────
+            // EDIT
+            // ──────────────────────────────────────────────────────────
             editBtn.Click += (s, e) =>
             {
-                headerView.Visibility = Visibility.Collapsed;
-                headerEdit.Visibility = Visibility.Visible;
+                // Show title edit box in content area
                 headerEdit.Text = entry.Title;
+                headerEdit.Visibility = Visibility.Visible;
+
+                // Dim the expander header label while editing
+                headerView.Opacity = 0.4;
 
                 descView.Visibility = Visibility.Collapsed;
                 descEdit.Visibility = Visibility.Visible;
                 descEdit.Text = entry.Description;
 
                 editBtn.Visibility = Visibility.Collapsed;
+                deleteBtn.Visibility = Visibility.Collapsed;
                 saveBtn.Visibility = Visibility.Visible;
                 cancelBtn.Visibility = Visibility.Visible;
             };
 
-            // SAVE → persist changes, switch back to view mode
-            saveBtn.Click += (s, e) =>
+            // ──────────────────────────────────────────────────────────
+            // SAVE  (Create if Id == 0, otherwise Update)
+            // ──────────────────────────────────────────────────────────
+            saveBtn.Click += async (s, e) =>
             {
                 var newTitle = headerEdit.Text.Trim();
                 var newDesc = descEdit.Text.Trim();
 
-                // Basic validation — title must not be empty
                 if (newTitle.Length == 0)
                 {
                     ShowValidationError(expander, "Title cannot be empty.");
                     return;
                 }
 
-                // Commit to the in-memory model
-                entry.Title = newTitle;
-                entry.Description = newDesc;
+                SetCardBusy(saveBtn, cancelBtn, editBtn, deleteBtn, true);
 
-                // TODO: UPDATE entries SET title=@title, description=@desc WHERE id=@id
+                try
+                {
+                    if (entry.Id == 0)
+                    {
+                        // ── CREATE ──
+                        _vm.RemoveEntry(entry);
 
-                // Switch back to view mode
-                headerView.Text = entry.Title;
-                headerView.Opacity = 1.0;
-                headerView.Visibility = Visibility.Visible;
-                headerEdit.Visibility = Visibility.Collapsed;
+                        entry.Title = newTitle;
+                        entry.Description = newDesc;
 
-                descView.Text = entry.Description;
-                descView.Visibility = Visibility.Visible;
-                descEdit.Visibility = Visibility.Collapsed;
+                        var created = await _tncController.CreateTncAsync(entry);
 
-                saveBtn.Visibility = Visibility.Collapsed;
-                cancelBtn.Visibility = Visibility.Collapsed;
-                editBtn.Visibility = Visibility.Visible;
+                        entry.Id = created.Id;
+                        border.Tag = entry.Id;
+
+                        _vm.AddEntry(entry);
+
+                        ToastHelper.Success(ToastBar, "Term added",
+                            $"\"{entry.Title}\" has been created.");
+                    }
+                    else
+                    {
+                        // ── UPDATE ──
+                        entry.Title = newTitle;
+                        entry.Description = newDesc;
+
+                        await _tncController.UpdateTncAsync(entry);
+
+                        ToastHelper.Success(ToastBar, "Term updated",
+                            $"\"{entry.Title}\" has been saved.");
+                    }
+
+                    // Switch to view mode
+                    headerView.Text = entry.Title;
+                    headerView.Opacity = 1.0;
+
+                    headerEdit.Visibility = Visibility.Collapsed;
+
+                    descView.Text = entry.Description;
+                    descView.Visibility = Visibility.Visible;
+                    descEdit.Visibility = Visibility.Collapsed;
+
+                    saveBtn.Visibility = Visibility.Collapsed;
+                    cancelBtn.Visibility = Visibility.Collapsed;
+                    editBtn.Visibility = Visibility.Visible;
+                    deleteBtn.Visibility = Visibility.Visible;
+
+                    UpdateEntryCount();
+                }
+                catch (Exception ex)
+                {
+                    ToastHelper.Error(ToastBar, "Failed to save term", ex.Message);
+                }
+                finally
+                {
+                    SetCardBusy(saveBtn, cancelBtn, editBtn, deleteBtn, false);
+                }
             };
 
-            // CANCEL → discard changes (or remove if brand-new empty entry)
+            // ──────────────────────────────────────────────────────────
+            // CANCEL
+            // ──────────────────────────────────────────────────────────
             cancelBtn.Click += (s, e) =>
             {
-                bool isNewEmpty = entry.Title.Length == 0;
-
-                if (isNewEmpty)
+                // Never saved to DB — remove from VM and UI
+                if (entry.Id == 0)
                 {
-                    // Remove from both the list model and the UI
-                    _entries.Remove(entry);
+                    _vm.RemoveEntry(entry);
                     TncList.Children.Remove(border);
-                    RefreshEntryCount();
+                    UpdateEntryCount();
                     return;
                 }
 
-                // Restore original values and go back to view mode
-                headerEdit.Text = entry.Title;
-                headerView.Text = entry.Title;
-                headerView.Visibility = Visibility.Visible;
+                // Restore and return to view mode
                 headerEdit.Visibility = Visibility.Collapsed;
+                headerView.Text = entry.Title;
+                headerView.Opacity = 1.0;
 
                 descEdit.Text = entry.Description;
                 descView.Text = entry.Description;
@@ -298,19 +338,65 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 saveBtn.Visibility = Visibility.Collapsed;
                 cancelBtn.Visibility = Visibility.Collapsed;
                 editBtn.Visibility = Visibility.Visible;
+                deleteBtn.Visibility = Visibility.Visible;
+            };
+
+            // ──────────────────────────────────────────────────────────
+            // DELETE
+            // ──────────────────────────────────────────────────────────
+            deleteBtn.Click += async (s, e) =>
+            {
+                var dialog = new ContentDialog
+                {
+                    Title = "Delete Term",
+                    Content = $"Are you sure you want to delete \"{entry.Title}\"? This cannot be undone.",
+                    PrimaryButtonText = "Delete",
+                    CloseButtonText = "Cancel",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+                if (result != ContentDialogResult.Primary) return;
+
+                SetCardBusy(saveBtn, cancelBtn, editBtn, deleteBtn, true);
+
+                try
+                {
+                    await _tncController.DeleteTncAsync(entry.Id);
+
+                    _vm.RemoveEntry(entry);
+                    TncList.Children.Remove(border);
+                    UpdateEntryCount();
+
+                    ToastHelper.Success(ToastBar, "Term deleted",
+                        $"\"{entry.Title}\" has been removed.");
+                }
+                catch (Exception ex)
+                {
+                    ToastHelper.Error(ToastBar, "Failed to delete term", ex.Message);
+                }
+                finally
+                {
+                    SetCardBusy(saveBtn, cancelBtn, editBtn, deleteBtn, false);
+                }
             };
 
             return border;
         }
 
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────────────
         // HELPERS
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────────────
 
-        private void RefreshEntryCount()
+        /// <summary>Disables all action buttons while an async DB call is in flight.</summary>
+        private static void SetCardBusy(
+            Button save, Button cancel, Button edit, Button delete, bool busy)
         {
-            int n = _entries.Count;
-            TxtEntryCount.Text = $"{n} {(n == 1 ? "entry" : "entries")}";
+            save.IsEnabled = !busy;
+            cancel.IsEnabled = !busy;
+            edit.IsEnabled = !busy;
+            delete.IsEnabled = !busy;
         }
 
         /// <summary>Shows a transient red InfoBar inside the expander's content area.</summary>
@@ -330,8 +416,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
 
             panel.Children.Insert(0, bar);
 
-            // Auto-dismiss after 4 seconds
-            await System.Threading.Tasks.Task.Delay(4000);
+            await Task.Delay(4000);
             bar.IsOpen = false;
             panel.Children.Remove(bar);
         }

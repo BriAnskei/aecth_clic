@@ -10,6 +10,7 @@ namespace aesth_clic.Context
         public DbSet<User> Users { get; set; }
         public DbSet<AccountStatus> AccountsStatus { get; set; }
         public DbSet<ServiceMenu> ServiceMenu { get; set; }
+        public DbSet<TncTenant> TncTenants { get; set; }
 
 
 

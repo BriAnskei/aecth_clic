@@ -12,10 +12,10 @@
     <Page.Resources>
 
         <Style x:Key="TncCardStyle" TargetType="Border">
-            <Setter Property="Background"       Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush"      Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-            <Setter Property="BorderThickness"  Value="1" />
-            <Setter Property="CornerRadius"     Value="8" />
+            <Setter Property="Background"      Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush"     Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius"    Value="8" />
         </Style>
 
         <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
@@ -71,62 +71,137 @@
             <Setter Property="FontSize"        Value="13" />
         </Style>
 
+        <Style x:Key="DangerButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent" />
+            <Setter Property="BorderBrush"     Value="#D83B01" />
+            <Setter Property="Foreground"      Value="#D83B01" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="14,7" />
+            <Setter Property="FontSize"        Value="13" />
+        </Style>
+
+        <!-- Skeleton block placeholder -->
+        <Style x:Key="SkeletonBlockStyle" TargetType="Border">
+            <Setter Property="Background"        Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+            <Setter Property="CornerRadius"      Value="4" />
+            <Setter Property="Height"            Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Padding="24" RowSpacing="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+    <!-- Root grid so ToastBar can float over the page -->
+    <Grid>
 
-            <!-- Page Header -->
-            <StackPanel Grid.Row="0" Spacing="2">
-                <TextBlock
-                    Text="Terms &amp; Conditions"
-                    FontSize="24"
-                    FontWeight="Bold"
-                    Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                <TextBlock
-                    Text="Manage · Aesthetic Clinic ERP"
-                    FontSize="13"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid Padding="24" RowSpacing="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <!-- Toolbar -->
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE8A9;" FontSize="14"
-                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <TextBlock x:Name="TxtEntryCount"
-                               Text="4 entries"
-                               Style="{StaticResource SectionHeaderStyle}"
-                               VerticalAlignment="Center" />
+                <!-- ══════════════════════════════════
+                     ROW 0 · Page Header
+                ══════════════════════════════════ -->
+                <StackPanel Grid.Row="0" Spacing="2">
+                    <TextBlock
+                        Text="Terms &amp; Conditions"
+                        FontSize="24" FontWeight="Bold"
+                        Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock
+                        Text="Manage · Aesthetic Clinic ERP"
+                        FontSize="13"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
 
-                <Button Grid.Column="1"
-                        x:Name="BtnAddNew"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        Click="BtnAddNew_Click">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE710;" FontSize="13" Foreground="White" />
-                        <TextBlock Text="Add New TNC" Foreground="White"
-                                   FontSize="13" FontWeight="SemiBold" />
+                <!-- ══════════════════════════════════
+                     ROW 1 · Toast InfoBar
+                ══════════════════════════════════ -->
+                <InfoBar Grid.Row="1"
+                         x:Name="ToastBar"
+                         IsOpen="False"
+                         IsClosable="True"
+                         Margin="0,-8,0,-8" />
+
+                <!-- ══════════════════════════════════
+                     ROW 2 · Toolbar
+                ══════════════════════════════════ -->
+                <Grid Grid.Row="2" x:Name="Toolbar">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE8A9;" FontSize="14"
+                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock x:Name="TxtEntryCount"
+                                   Text="0 entries"
+                                   Style="{StaticResource SectionHeaderStyle}"
+                                   VerticalAlignment="Center" />
                     </StackPanel>
-                </Button>
+
+                    <Button Grid.Column="1"
+                            x:Name="BtnAddNew"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Click="BtnAddNew_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE710;" FontSize="13" Foreground="White" />
+                            <TextBlock Text="Add New TNC" Foreground="White"
+                                       FontSize="13" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- ══════════════════════════════════
+                     ROW 3 · Skeleton + Real List
+                ══════════════════════════════════ -->
+                <Grid Grid.Row="3">
+
+                    <!-- ── SKELETON ── -->
+                    <StackPanel x:Name="SkeletonList" Spacing="10" Visibility="Visible">
+
+                        <!-- Skeleton card 1 -->
+                        <Border Style="{StaticResource TncCardStyle}" Padding="16,14">
+                            <StackPanel Spacing="10">
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="200" HorizontalAlignment="Left" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="400" HorizontalAlignment="Left" Height="10" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="360" HorizontalAlignment="Left" Height="10" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Skeleton card 2 -->
+                        <Border Style="{StaticResource TncCardStyle}" Padding="16,14">
+                            <StackPanel Spacing="10">
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="170" HorizontalAlignment="Left" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="420" HorizontalAlignment="Left" Height="10" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="380" HorizontalAlignment="Left" Height="10" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Skeleton card 3 -->
+                        <Border Style="{StaticResource TncCardStyle}" Padding="16,14">
+                            <StackPanel Spacing="10">
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="220" HorizontalAlignment="Left" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="390" HorizontalAlignment="Left" Height="10" />
+                                <Border Style="{StaticResource SkeletonBlockStyle}" Width="340" HorizontalAlignment="Left" Height="10" />
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+
+                    <!-- ── REAL LIST ── -->
+                    <StackPanel x:Name="TncList"
+                                Spacing="10"
+                                Visibility="Collapsed" />
+
+                </Grid>
+
             </Grid>
+        </ScrollViewer>
 
-            <!-- Accordion List -->
-            <StackPanel Grid.Row="2"
-                        x:Name="TncList"
-                        Spacing="10" />
-
-        </Grid>
-    </ScrollViewer>
+    </Grid>
 </Page>

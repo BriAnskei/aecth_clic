@@ -1,73 +1,182 @@
-﻿using Microsoft.UI;
+﻿using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.Model;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.Admin;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Windows.UI;
 
 namespace aesth_clic.Views.Roles.Admin.Pages
 {
-    internal class ClinicTncEntry
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-    }
-
     public sealed partial class TermsAndConditions : Page
     {
-        // TODO: Replace with your repository/service calls
-        private readonly List<ClinicTncEntry> _entries = new()
-        {
-            new ClinicTncEntry
-            {
-                Id = 1,
-                Title = "Photography Policy",
-                Description = "Patients must obtain written consent from the clinic before capturing any photos or videos within clinic premises. Unauthorized recording of staff or other patients is strictly prohibited."
-            },
-            new ClinicTncEntry
-            {
-                Id = 2,
-                Title = "Post-Procedure Care",
-                Description = "Patients are required to follow all post-procedure care instructions provided by their attending clinician. The clinic assumes no liability for complications arising from failure to comply with aftercare guidelines."
-            }
-        };
-
-        private int _nextId = 3;
+        private readonly TncTenantViewModel _vm = new();
+        private readonly TncTenantController _tncController;
 
         public TermsAndConditions()
         {
             InitializeComponent();
-            Loaded += OnPageLoaded;
+
+            _tncController = App.Services.GetRequiredService<TncTenantController>();
+
+            _ = LoadFromDbAsync();
         }
 
-        private void OnPageLoaded(object sender, RoutedEventArgs e)
+        // ──────────────────────────────────────────────────────────────────────
+        // LOADING STATE
+        // ──────────────────────────────────────────────────────────────────────
+
+        private void UpdateLoadingState(bool isLoading)
         {
-            foreach (var entry in _entries)
-                ClinicTncList.Children.Add(BuildEntryCard(entry));
+            _vm.IsLoading = isLoading;
 
-            RefreshEntryCount();
+            // Clinic toolbar
+            ClinicCardToolbar.IsHitTestVisible = !isLoading;
+            ClinicCardToolbar.Opacity = isLoading ? 0.4 : 1.0;
+
+            // Master section skeletons
+            MasterSkeletonList.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+            MasterTncList.Visibility = isLoading ? Visibility.Collapsed : Visibility.Visible;
+
+            // Clinic section skeletons
+            ClinicSkeletonList.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+            ClinicTncList.Visibility = isLoading ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        // ── ADD ─────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────────────
+        // DATA LOADING
+        // ──────────────────────────────────────────────────────────────────────
+
+        private async Task LoadFromDbAsync()
+        {
+            UpdateLoadingState(true);
+
+            try
+            {
+                // Fetch both in parallel
+                var masterTask = _tncController.FetchMasterTncsAsync();
+                var tenantTask = _tncController.GetAllTncsAsync();
+
+                await Task.WhenAll(masterTask, tenantTask);
+
+                // ── Master (read-only) ──
+                _vm.LoadMasterFromDb(masterTask.Result);
+
+                MasterTncList.Children.Clear();
+                bool isFirst = true;
+                foreach (var entry in _vm.MasterEntries)
+                {
+                    if (!isFirst)
+                    {
+                        MasterTncList.Children.Add(new Border
+                        {
+                            Height = 1,
+                            Background = new SolidColorBrush(Color.FromArgb(255, 240, 234, 248)),
+                            Margin = new Thickness(16, 0, 16, 0)
+                        });
+                    }
+                    MasterTncList.Children.Add(BuildMasterEntryRow(entry));
+                    isFirst = false;
+                }
+
+                UpdateMasterEntryCount();
+
+                // ── Tenant (editable) ──
+                _vm.LoadTenantFromDb(tenantTask.Result);
+
+                ClinicTncList.Children.Clear();
+                foreach (var entry in _vm.TenantEntries)
+                    ClinicTncList.Children.Add(BuildEntryCard(entry));
+
+                UpdateTenantEntryCount();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load terms", ex.Message);
+            }
+            finally
+            {
+                UpdateLoadingState(false);
+            }
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // KPI / COUNT LABELS
+        // ──────────────────────────────────────────────────────────────────────
+
+        private void UpdateMasterEntryCount() =>
+            TxtMasterEntryCount.Text = _vm.MasterEntryCountDisplay;
+
+        private void UpdateTenantEntryCount() =>
+            TxtEntryCount.Text = _vm.TenantEntryCountDisplay;
+
+        // ──────────────────────────────────────────────────────────────────────
+        // ADD NEW PROVISION
+        // ──────────────────────────────────────────────────────────────────────
+
         private void BtnAddNew_Click(object sender, RoutedEventArgs e)
         {
-            var newEntry = new ClinicTncEntry { Id = _nextId++, Title = "", Description = "" };
-            _entries.Add(newEntry);
+            var newEntry = new TncTenant { Id = 0, Title = "", Description = "" };
 
             var card = BuildEntryCard(newEntry, startInEditMode: true);
             ClinicTncList.Children.Add(card);
 
+            // Track in VM so count is accurate while editing
+            _vm.AddTenantEntry(newEntry);
+            UpdateTenantEntryCount();
+
             if (card is Border border && border.Child is Expander expander)
                 expander.IsExpanded = true;
-
-            RefreshEntryCount();
         }
 
-        // ── BUILD CARD ──────────────────────────────────────────────
-        private Border BuildEntryCard(ClinicTncEntry entry, bool startInEditMode = false)
+        // ──────────────────────────────────────────────────────────────────────
+        // BUILD MASTER ENTRY ROW (read-only)
+        // ──────────────────────────────────────────────────────────────────────
+
+        private static Border BuildMasterEntryRow(TncTenant entry)
         {
+            var titleBlock = new TextBlock
+            {
+                Text = entry.Title,
+                FontSize = 14,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 45, 21, 84))
+            };
+
+            var descBlock = new TextBlock
+            {
+                Text = entry.Description,
+                FontSize = 13,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 122, 106, 154)),
+                TextWrapping = TextWrapping.Wrap,
+                LineHeight = 20,
+                Margin = new Thickness(0, 5, 0, 0)
+            };
+
+            var content = new StackPanel { Spacing = 0 };
+            content.Children.Add(titleBlock);
+            content.Children.Add(descBlock);
+
+            return new Border
+            {
+                Padding = new CornerRadius(8).Equals(default) ? new Thickness(16, 18, 16, 18) : new Thickness(16, 18, 16, 18),
+                CornerRadius = new CornerRadius(8),
+                Child = content
+            };
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
+        // BUILD CLINIC ENTRY CARD (editable)
+        // ──────────────────────────────────────────────────────────────────────
+
+        private Border BuildEntryCard(TncTenant entry, bool startInEditMode = false)
+        {
+            // ── Root border ───────────────────────────────────────────
             var border = new Border
             {
                 Background = new SolidColorBrush(Color.FromArgb(255, 253, 251, 255)),
@@ -77,6 +186,7 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 Tag = entry.Id
             };
 
+            // ── Expander ──────────────────────────────────────────────
             var expander = new Expander
             {
                 IsExpanded = startInEditMode,
@@ -85,7 +195,7 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 Padding = new Thickness(16, 12, 16, 12)
             };
 
-            // ── Header ───────────────────────────────────────────────
+            // ── Header: view label overlaid with edit TextBox (Admin pattern) ──
             var headerView = new TextBlock
             {
                 Text = entry.Title.Length > 0 ? entry.Title : "(New provision — add a title)",
@@ -93,7 +203,8 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 Foreground = new SolidColorBrush(Color.FromArgb(255, 45, 21, 84)),
                 VerticalAlignment = VerticalAlignment.Center,
-                Opacity = entry.Title.Length > 0 ? 1.0 : 0.5
+                Opacity = entry.Title.Length > 0 ? 1.0 : 0.5,
+                Visibility = startInEditMode ? Visibility.Collapsed : Visibility.Visible
             };
 
             var headerEdit = new TextBox
@@ -106,15 +217,16 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 CornerRadius = new CornerRadius(6),
                 Padding = new Thickness(10, 6, 10, 6),
                 MaxLength = 120,
-                Visibility = Visibility.Collapsed
+                Visibility = startInEditMode ? Visibility.Visible : Visibility.Collapsed
             };
 
             var headerPanel = new Grid();
             headerPanel.Children.Add(headerView);
             headerPanel.Children.Add(headerEdit);
+
             expander.Header = headerPanel;
 
-            // ── Content ──────────────────────────────────────────────
+            // ── Description ───────────────────────────────────────────
             var descView = new TextBlock
             {
                 Text = entry.Description,
@@ -139,7 +251,7 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 Visibility = startInEditMode ? Visibility.Visible : Visibility.Collapsed
             };
 
-            // Buttons
+            // ── Buttons ───────────────────────────────────────────────
             var editBtn = new Button
             {
                 Content = "Edit",
@@ -150,6 +262,19 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 Padding = new Thickness(14, 7, 14, 7),
                 FontSize = 13,
                 Margin = new Thickness(0, 14, 8, 0),
+                Visibility = startInEditMode ? Visibility.Collapsed : Visibility.Visible
+            };
+
+            var deleteBtn = new Button
+            {
+                Content = "Delete",
+                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 220, 38, 38)),
+                BorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(14, 7, 14, 7),
+                FontSize = 13,
+                Margin = new Thickness(0, 14, 0, 0),
                 Visibility = startInEditMode ? Visibility.Collapsed : Visibility.Visible
             };
 
@@ -181,19 +306,6 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 Visibility = startInEditMode ? Visibility.Visible : Visibility.Collapsed
             };
 
-            var deleteBtn = new Button
-            {
-                Content = "Delete",
-                Background = new SolidColorBrush(Color.FromArgb(255, 254, 242, 242)),
-                Foreground = new SolidColorBrush(Color.FromArgb(255, 220, 38, 38)),
-                BorderThickness = new Thickness(0),
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(14, 7, 14, 7),
-                FontSize = 13,
-                Margin = new Thickness(0, 14, 0, 0),
-                Visibility = startInEditMode ? Visibility.Collapsed : Visibility.Visible
-            };
-
             var buttonRow = new StackPanel { Orientation = Orientation.Horizontal };
             buttonRow.Children.Add(editBtn);
             buttonRow.Children.Add(saveBtn);
@@ -203,6 +315,7 @@ namespace aesth_clic.Views.Roles.Admin.Pages
             var separator = new Microsoft.UI.Xaml.Shapes.Rectangle
             {
                 Height = 1,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
                 Margin = new Thickness(0, 14, 0, 0),
                 Fill = new SolidColorBrush(Color.FromArgb(40, 180, 150, 220))
             };
@@ -216,8 +329,9 @@ namespace aesth_clic.Views.Roles.Admin.Pages
             expander.Content = contentPanel;
             border.Child = expander;
 
-            // ── Wire events ──────────────────────────────────────────
-
+            // ──────────────────────────────────────────────────────────
+            // EDIT
+            // ──────────────────────────────────────────────────────────
             editBtn.Click += (s, e) =>
             {
                 headerView.Visibility = Visibility.Collapsed;
@@ -234,7 +348,10 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 cancelBtn.Visibility = Visibility.Visible;
             };
 
-            saveBtn.Click += (s, e) =>
+            // ──────────────────────────────────────────────────────────
+            // SAVE  (Create if Id == 0, otherwise Update)
+            // ──────────────────────────────────────────────────────────
+            saveBtn.Click += async (s, e) =>
             {
                 var newTitle = headerEdit.Text.Trim();
                 var newDesc = descEdit.Text.Trim();
@@ -245,40 +362,84 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                     return;
                 }
 
-                entry.Title = newTitle;
-                entry.Description = newDesc;
+                SetCardBusy(saveBtn, cancelBtn, editBtn, deleteBtn, true);
 
-                // TODO: UPDATE clinic_tnc SET title=@title, description=@desc WHERE id=@id
+                try
+                {
+                    if (entry.Id == 0)
+                    {
+                        // ── CREATE ──
+                        _vm.RemoveTenantEntry(entry);
 
-                headerView.Text = entry.Title;
-                headerView.Opacity = 1.0;
-                headerView.Visibility = Visibility.Visible;
-                headerEdit.Visibility = Visibility.Collapsed;
+                        entry.Title = newTitle;
+                        entry.Description = newDesc;
 
-                descView.Text = entry.Description;
-                descView.Visibility = Visibility.Visible;
-                descEdit.Visibility = Visibility.Collapsed;
+                        var created = await _tncController.CreateTncAsync(entry);
 
-                saveBtn.Visibility = Visibility.Collapsed;
-                cancelBtn.Visibility = Visibility.Collapsed;
-                editBtn.Visibility = Visibility.Visible;
-                deleteBtn.Visibility = Visibility.Visible;
+                        entry.Id = created.Id;
+                        border.Tag = entry.Id;
+
+                        _vm.AddTenantEntry(entry);
+
+                        ToastHelper.Success(ToastBar, "Provision added",
+                            $"\"{entry.Title}\" has been created.");
+                    }
+                    else
+                    {
+                        // ── UPDATE ──
+                        entry.Title = newTitle;
+                        entry.Description = newDesc;
+
+                        await _tncController.UpdateTncAsync(entry);
+
+                        ToastHelper.Success(ToastBar, "Provision updated",
+                            $"\"{entry.Title}\" has been saved.");
+                    }
+
+                    // Switch to view mode
+                    headerView.Text = entry.Title;
+                    headerView.Opacity = 1.0;
+                    headerView.Visibility = Visibility.Visible;
+                    headerEdit.Visibility = Visibility.Collapsed;
+
+                    descView.Text = entry.Description;
+                    descView.Visibility = Visibility.Visible;
+                    descEdit.Visibility = Visibility.Collapsed;
+
+                    saveBtn.Visibility = Visibility.Collapsed;
+                    cancelBtn.Visibility = Visibility.Collapsed;
+                    editBtn.Visibility = Visibility.Visible;
+                    deleteBtn.Visibility = Visibility.Visible;
+
+                    UpdateTenantEntryCount();
+                }
+                catch (Exception ex)
+                {
+                    ToastHelper.Error(ToastBar, "Failed to save provision", ex.Message);
+                }
+                finally
+                {
+                    SetCardBusy(saveBtn, cancelBtn, editBtn, deleteBtn, false);
+                }
             };
 
+            // ──────────────────────────────────────────────────────────
+            // CANCEL
+            // ──────────────────────────────────────────────────────────
             cancelBtn.Click += (s, e) =>
             {
-                bool isNewEmpty = entry.Title.Length == 0;
-
-                if (isNewEmpty)
+                // Never saved to DB — remove from VM and UI
+                if (entry.Id == 0)
                 {
-                    _entries.Remove(entry);
+                    _vm.RemoveTenantEntry(entry);
                     ClinicTncList.Children.Remove(border);
-                    RefreshEntryCount();
+                    UpdateTenantEntryCount();
                     return;
                 }
 
-                headerEdit.Text = entry.Title;
+                // Restore and return to view mode
                 headerView.Text = entry.Title;
+                headerView.Opacity = 1.0;
                 headerView.Visibility = Visibility.Visible;
                 headerEdit.Visibility = Visibility.Collapsed;
 
@@ -293,6 +454,9 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 deleteBtn.Visibility = Visibility.Visible;
             };
 
+            // ──────────────────────────────────────────────────────────
+            // DELETE
+            // ──────────────────────────────────────────────────────────
             deleteBtn.Click += async (s, e) =>
             {
                 var dialog = new ContentDialog
@@ -307,26 +471,49 @@ namespace aesth_clic.Views.Roles.Admin.Pages
                 };
 
                 var result = await dialog.ShowAsync();
-                if (result == ContentDialogResult.Primary)
+                if (result != ContentDialogResult.Primary) return;
+
+                SetCardBusy(saveBtn, cancelBtn, editBtn, deleteBtn, true);
+
+                try
                 {
-                    // TODO: DELETE FROM clinic_tnc WHERE id=@id
-                    _entries.Remove(entry);
+                    await _tncController.DeleteTncAsync(entry.Id);
+
+                    _vm.RemoveTenantEntry(entry);
                     ClinicTncList.Children.Remove(border);
-                    RefreshEntryCount();
+                    UpdateTenantEntryCount();
+
+                    ToastHelper.Success(ToastBar, "Provision deleted",
+                        $"\"{entry.Title}\" has been removed.");
+                }
+                catch (Exception ex)
+                {
+                    ToastHelper.Error(ToastBar, "Failed to delete provision", ex.Message);
+                }
+                finally
+                {
+                    SetCardBusy(saveBtn, cancelBtn, editBtn, deleteBtn, false);
                 }
             };
 
             return border;
         }
 
-        // ── HELPERS ─────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────────────
+        // HELPERS
+        // ──────────────────────────────────────────────────────────────────────
 
-        private void RefreshEntryCount()
+        /// <summary>Disables all action buttons while an async DB call is in flight.</summary>
+        private static void SetCardBusy(
+            Button save, Button cancel, Button edit, Button delete, bool busy)
         {
-            int n = _entries.Count;
-            TxtEntryCount.Text = $"{n} {(n == 1 ? "entry" : "entries")}";
+            save.IsEnabled = !busy;
+            cancel.IsEnabled = !busy;
+            edit.IsEnabled = !busy;
+            delete.IsEnabled = !busy;
         }
 
+        /// <summary>Shows a transient red InfoBar inside the expander's content area.</summary>
         private static async void ShowValidationError(Expander expander, string message)
         {
             if (expander.Content is not StackPanel panel) return;
@@ -343,7 +530,7 @@ namespace aesth_clic.Views.Roles.Admin.Pages
 
             panel.Children.Insert(0, bar);
 
-            await System.Threading.Tasks.Task.Delay(4000);
+            await Task.Delay(4000);
             bar.IsOpen = false;
             panel.Children.Remove(bar);
         }
