@@ -38,7 +38,7 @@ namespace aesth_clic.Tenant.Dto.UserManagement
             if (string.IsNullOrWhiteSpace(Role))
                 throw new ValidationException("Role is required.");
 
-            var allowedRoles = new[] { "doctor", "reciptionist", "pharmacist" };
+            var allowedRoles = new[] { "doctor", "receptionist", "pharmacist" };
 
             if (!allowedRoles.Any(r =>
                 string.Equals(r, Role.ToLower(), StringComparison.OrdinalIgnoreCase)))

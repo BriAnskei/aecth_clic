@@ -3,6 +3,11 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
+using Windows.UI;
+
 
 namespace aesth_clic.Views.Roles.Doctor.Pages
 {
@@ -148,4 +153,5 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
             await dialog.ShowAsync();
         }
     }
+
 }

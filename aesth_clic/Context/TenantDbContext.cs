@@ -14,6 +14,8 @@ namespace aesth_clic.Context
 
         public DbSet<Patient> Patients { get; set; }
 
+        public DbSet<PatientProcedure> PatientProcedures { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -34,6 +36,26 @@ namespace aesth_clic.Context
             .WithMany()
             .HasForeignKey(s => s.AddedBy);
 
+
+            // patient procedure
+            modelBuilder.Entity<PatientProcedure>()
+           .HasOne(p => p.User)
+           .WithMany()
+           .HasForeignKey(p => p.AssignedDoctorId)
+           .IsRequired(false) // optional relationship
+           .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PatientProcedure>()
+                .HasOne(p => p.ServiceMenu)
+                .WithMany()
+                .HasForeignKey(p => p.ProcedureId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PatientProcedure>()
+                .HasOne(p => p.Patient)
+                .WithMany()
+                .HasForeignKey(p => p.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
 
 
         }

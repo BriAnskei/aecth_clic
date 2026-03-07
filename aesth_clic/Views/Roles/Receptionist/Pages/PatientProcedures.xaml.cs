@@ -1,12 +1,20 @@
-﻿using Microsoft.UI.Xaml;
+﻿using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.Model;
+using aesth_clic.Utils;
+using aesth_clic.Views.Roles.Receptionist.Modals;
+using aesth_clic.Views.Roles.Receptionist.Modals.PatientProcedure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.UI;
 
 namespace aesth_clic.Views.Roles.Receptionist.Pages
 {
-    // ── Data Model ─────────────────────────────────────────────────────────────
+    // ── UI display model ───────────────────────────────────────────────────────
     public class PatientProcedureItem
     {
         public string ProcedureRecordId { get; set; } = string.Empty;
@@ -17,19 +25,19 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
         public string ProcedureName { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending";
         public string StatusBadgeText { get; set; } = "#F59E0B";
-        public string DateScheduled { get; set; } = string.Empty;
+
+        public string AppointmentSchedule { get; set; } = string.Empty;
+        public string ProcedureSchedule { get; set; } = string.Empty;
         public string Cost { get; set; } = string.Empty;
 
-        // Visibility helpers for the "Date Scheduled" column
-        public Microsoft.UI.Xaml.Visibility HasDate
-            => string.IsNullOrEmpty(DateScheduled)
-               ? Microsoft.UI.Xaml.Visibility.Collapsed
-               : Microsoft.UI.Xaml.Visibility.Visible;
-
-        public Microsoft.UI.Xaml.Visibility NoDate
-            => string.IsNullOrEmpty(DateScheduled)
-               ? Microsoft.UI.Xaml.Visibility.Visible
-               : Microsoft.UI.Xaml.Visibility.Collapsed;
+        public Visibility HasAppointmentDate
+            => string.IsNullOrEmpty(AppointmentSchedule) ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility NoAppointmentDate
+            => string.IsNullOrEmpty(AppointmentSchedule) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility HasProcedureDate
+            => string.IsNullOrEmpty(ProcedureSchedule) ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility NoProcedureDate
+            => string.IsNullOrEmpty(ProcedureSchedule) ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ── Page ───────────────────────────────────────────────────────────────────
@@ -37,41 +45,48 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
     {
         private List<PatientProcedureItem> _allProcedures = new();
 
+        private readonly PatientProcedureController _procedureController;
+        private readonly PatientController _patientController;
+        private readonly MenuController _menuController;
+
         public PatientProcedures()
         {
             InitializeComponent();
-            LoadSampleData();
-            Loaded += (_, _) => ApplyFilters();
+
+            _procedureController = App.Services.GetRequiredService<PatientProcedureController>();
+            _patientController = App.Services.GetRequiredService<PatientController>();
+            _menuController = App.Services.GetRequiredService<MenuController>();
+
+            _ = LoadFromDbAsync();
         }
 
-        // ── Sample Data ────────────────────────────────────────────────────────
-        private void LoadSampleData()
+        // ── Data loading ───────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
-            _allProcedures = new List<PatientProcedureItem>
+            try
             {
-                Build("pr1",  "p1",  "Maria Santos",    "Female", "Botox Injection",      "Completed",  "Mar 05, 2025", "₱3,500"),
-                Build("pr2",  "p3",  "Ana Cruz",        "Female", "Body Contouring",      "Scheduled",  "Apr 20, 2025", "₱8,000"),
-                Build("pr3",  "p5",  "Liza Flores",     "Female", "Dermal Fillers",       "Scheduled",  "Mar 28, 2025", "₱5,000"),
-                Build("pr4",  "p9",  "Grace Tan",       "Female", "Lip Augmentation",     "Pending",    "",             "₱4,500"),
-                Build("pr5",  "p1",  "Maria Santos",    "Female", "Hydra Facial",         "Completed",  "Jan 10, 2025", "₱2,000"),
-                Build("pr6",  "p3",  "Ana Cruz",        "Female", "Chemical Peel",        "Completed",  "Feb 14, 2025", "₱2,500"),
-                Build("pr7",  "p6",  "Ramon Garcia",    "Male",   "Microdermabrasion",    "Cancelled",  "Dec 22, 2024", "₱1,800"),
-                Build("pr8",  "p10", "Kevin Lim",       "Male",   "Back Massage Therapy", "Completed",  "Jan 30, 2025", "₱1,200"),
-                Build("pr9",  "p2",  "Jose Reyes",      "Male",   "Laser Hair Removal",   "Scheduled",  "Jun 10, 2025", "₱6,000"),
-                Build("pr10", "p4",  "Carlo Mendoza",   "Male",   "Acne Scar Treatment",  "Pending",    "",             "₱4,000"),
-                Build("pr11", "p7",  "Sofia Aquino",    "Female", "Skin Brightening",     "Scheduled",  "Jun 20, 2025", "₱3,200"),
-                Build("pr12", "p8",  "Mark Villanueva", "Male",   "Laser Toning",         "Pending",    "",             "₱5,500"),
-            };
+                var records = await _procedureController.GetAllPatientProceduresAsync();
+
+                _allProcedures = records.Select(MapToItem).ToList();
+
+                ApplyFilters();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load procedures", ex.Message);
+            }
         }
 
-        private static PatientProcedureItem Build(
-            string recordId, string patientId, string patientName, string gender,
-            string procedureName, string status, string dateScheduled, string cost)
+        // ── Domain → UI model mapping ──────────────────────────────────────────
+        private static PatientProcedureItem MapToItem(PatientProcedure p)
         {
-            var parts = patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var fullName = p.Patient?.FullName ?? "Unknown";
+            var gender = p.Patient?.Gender ?? string.Empty;
+
+            var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var initials = parts.Length >= 2
                 ? $"{parts[0][0]}{parts[^1][0]}"
-                : patientName.Length > 0 ? patientName[0].ToString() : "?";
+                : fullName.Length > 0 ? fullName[0].ToString() : "?";
 
             var avatarColor = gender switch
             {
@@ -80,25 +95,48 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 _ => "#5B2D8E"
             };
 
-            var statusColor = status switch
+            // Normalize DB lowercase status → Title case for display
+            var displayStatus = p.Status?.ToLower() switch
+            {
+                "pending" => "Pending",
+                "scheduled" => "Scheduled",
+                "completed" => "Completed",
+                "cancelled" => "Cancelled",
+                _ => p.Status ?? string.Empty
+            };
+
+            var statusColor = displayStatus switch
             {
                 "Completed" => "#2E7D32",
                 "Scheduled" => "#0078D4",
-                "Cancelled" => "#C0392B",
+                "Cancelled" => "#C50F1F",
                 _ => "#F59E0B"   // Pending
             };
 
+            var appointmentSchedule = p.AppointmentDate.HasValue
+                ? p.AppointmentDate.Value.ToString("MMM dd, yyyy")
+                : string.Empty;
+
+            var procedureSchedule = p.ProcedureDate.HasValue
+                ? p.ProcedureDate.Value.ToString("MMM dd, yyyy")
+                : string.Empty;
+
+            var cost = p.ServiceMenu is not null
+                ? $"₱{p.ServiceMenu.Price:N0}"
+                : string.Empty;
+
             return new PatientProcedureItem
             {
-                ProcedureRecordId = recordId,
-                PatientId = patientId,
-                PatientName = patientName,
+                ProcedureRecordId = p.Id.ToString(),
+                PatientId = p.PatientId.ToString(),
+                PatientName = fullName,
                 Initials = initials.ToUpper(),
                 AvatarColor = avatarColor,
-                ProcedureName = procedureName,
-                Status = status,
+                ProcedureName = p.ServiceMenu?.Name ?? "Unknown",
+                Status = displayStatus,
                 StatusBadgeText = statusColor,
-                DateScheduled = dateScheduled,
+                AppointmentSchedule = appointmentSchedule,
+                ProcedureSchedule = procedureSchedule,
                 Cost = cost,
             };
         }
@@ -120,6 +158,7 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
 
             ProcedureListControl.ItemsSource = filtered;
 
+            // KPI cards always reflect full unfiltered list
             var total = _allProcedures.Count;
             var pending = _allProcedures.Count(p => p.Status == "Pending");
             var scheduled = _allProcedures.Count(p => p.Status == "Scheduled");
@@ -139,19 +178,128 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
         private void StatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
             => ApplyFilters();
 
-        private void KebabMenu_Click(object sender, RoutedEventArgs e) { }
+        // ── Kebab Menu ─────────────────────────────────────────────────────────
+        private void KebabMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn) return;
+
+            var recordId = btn.Tag?.ToString() ?? string.Empty;
+            var item = _allProcedures.FirstOrDefault(p => p.ProcedureRecordId == recordId);
+            if (item is null) return;
+
+            var menu = new MenuFlyout();
+
+            // ── Delete — only available for Pending ────────────────────────
+            var deleteItem = new MenuFlyoutItem
+            {
+                Text = "Delete",
+                Icon = new FontIcon { Glyph = "\uE74D" },
+                IsEnabled = item.Status == "Pending",
+            };
+            deleteItem.Click += async (_, _) =>
+            {
+                var dialog = new DeleteProcedureConfirmation(
+                    patientName: item.PatientName,
+                    initials: item.Initials,
+                    avatarColor: item.AvatarColor,
+                    procedureName: item.ProcedureName,
+                    status: item.Status,
+                    statusColor: item.StatusBadgeText,
+                    cost: item.Cost)
+                { XamlRoot = XamlRoot };
+
+                await dialog.ShowAsync();
+                if (!dialog.Confirmed) return;
+
+                try
+                {
+                    await _procedureController.DeletePatientProcedureAsync(
+                        int.Parse(item.ProcedureRecordId));
+
+                    await LoadFromDbAsync();
+
+                    ToastHelper.Success(
+                        ToastBar,
+                        "Procedure deleted",
+                        $"{item.ProcedureName} for {item.PatientName} has been removed.");
+                }
+                catch (Exception ex)
+                {
+                    ToastHelper.Error(ToastBar, "Failed to delete procedure", ex.Message);
+                }
+            };
+
+            // ── Cancel — hard delete, available for any status ─────────────
+            var cancelItem = new MenuFlyoutItem
+            {
+                Text = "Cancel Procedure",
+                Icon = new FontIcon { Glyph = "\uE711" },
+            };
+            cancelItem.Click += async (_, _) =>
+            {
+                var dialog = new CancelProcedureConfirmation(
+                    patientName: item.PatientName,
+                    initials: item.Initials,
+                    avatarColor: item.AvatarColor,
+                    procedureName: item.ProcedureName,
+                    status: item.Status,
+                    statusColor: item.StatusBadgeText,
+                    cost: item.Cost)
+                { XamlRoot = XamlRoot };
+
+                await dialog.ShowAsync();
+                if (!dialog.Confirmed) return;
+
+                try
+                {
+                    await _procedureController.DeletePatientProcedureAsync(
+                        int.Parse(item.ProcedureRecordId));
+
+                    await LoadFromDbAsync();
+
+                    ToastHelper.Warning(
+                        ToastBar,
+                        "Procedure cancelled",
+                        $"{item.ProcedureName} for {item.PatientName} has been cancelled.");
+                }
+                catch (Exception ex)
+                {
+                    ToastHelper.Error(ToastBar, "Failed to cancel procedure", ex.Message);
+                }
+            };
+
+            menu.Items.Add(deleteItem);
+            menu.Items.Add(new MenuFlyoutSeparator());
+            menu.Items.Add(cancelItem);
+            menu.ShowAt(btn);
+        }
 
         // ── Add Procedure ──────────────────────────────────────────────────────
         private async void AddProcedureButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new ContentDialog
-            {
-                Title = "Add Procedure",
-                Content = "Add procedure form will be implemented here.",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
+            var dialog = new AddPatientProcedure(
+                _patientController,
+                _menuController,
+                _procedureController)
+            { XamlRoot = XamlRoot };
+
             await dialog.ShowAsync();
+
+            // User cancelled the wizard — do nothing
+            if (dialog.Result is null && dialog.SaveError is null) return;
+
+            if (dialog.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to add procedure", dialog.SaveError.Message);
+                return;
+            }
+
+            await LoadFromDbAsync();
+
+            ToastHelper.Success(
+                ToastBar,
+                "Procedure added",
+                $"{dialog.Result!.Procedure.Name} assigned to {dialog.Result.Patient.FullName}.");
         }
     }
 }

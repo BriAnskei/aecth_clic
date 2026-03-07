@@ -172,4 +172,5 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
             await dialog.ShowAsync();
         }
     }
+
 }

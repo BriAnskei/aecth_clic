@@ -92,6 +92,17 @@ namespace aesth_clic
             services.AddTransient<PatientController>();
 
 
+            services.AddTransient<MenuService>();
+            services.AddTransient<MenuController>();
+
+
+            services.AddTransient<PatientProcedureService>();
+            services.AddTransient<PatientProcedureController>();
+
+
+
+
+
             // --
 
             // Infrastructure
