@@ -12,6 +12,8 @@ namespace aesth_clic.Context
         public DbSet<ServiceMenu> ServiceMenu { get; set; }
         public DbSet<TncTenant> TncTenants { get; set; }
 
+        public DbSet<Patient> Patients { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

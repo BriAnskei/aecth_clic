@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="aesth_clic.Views.Roles.Receptionist.Modals.AddEditPatient"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add New Patient"
+    PrimaryButtonText="Save Patient"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnSaveClicked"
+    PrimaryButtonStyle="{StaticResource PurplePrimaryButtonStyle}"
+    CloseButtonStyle="{StaticResource GrayCloseButtonStyle}">
+
+    <ContentDialog.Resources>
+        <SolidColorBrush x:Key="ContentDialogBackground"                           Color="White" />
+        <SolidColorBrush x:Key="ContentDialogBorderBrush"                          Color="#E4DAF5" />
+        <SolidColorBrush x:Key="ContentDialogTopOverlayBackground"                 Color="White" />
+        <SolidColorBrush x:Key="ContentDialogButtonAreaBackground"                 Color="White" />
+        <SolidColorBrush x:Key="ContentDialogForeground"                           Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForeground"                Color="#5B2D8E" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPointerOver"     Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPressed"         Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackground"                Color="White" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPointerOver"     Color="#EDE4F9" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPressed"         Color="#E4DAF5" />
+        <SolidColorBrush x:Key="TextControlForeground"                             Color="#2D1554" />
+        <SolidColorBrush x:Key="TextControlForegroundPointerOver"                  Color="#2D1554" />
+        <SolidColorBrush x:Key="TextControlForegroundFocused"                      Color="#2D1554" />
+        <SolidColorBrush x:Key="TextControlForegroundDisabled"                     Color="#9B80C4" />
+        <SolidColorBrush x:Key="TextControlBackground"                             Color="White" />
+        <SolidColorBrush x:Key="TextControlBackgroundPointerOver"                  Color="#FAFAFA" />
+        <SolidColorBrush x:Key="TextControlBackgroundFocused"                      Color="White" />
+        <SolidColorBrush x:Key="TextControlBorderBrushFocused"                     Color="#5B2D8E" />
+        <SolidColorBrush x:Key="ComboBoxForeground"                                Color="#2D1554" />
+        <SolidColorBrush x:Key="ComboBoxForegroundPointerOver"                     Color="#2D1554" />
+        <SolidColorBrush x:Key="ComboBoxForegroundPressed"                         Color="#2D1554" />
+        <SolidColorBrush x:Key="ComboBoxBackground"                                Color="White" />
+        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver"                     Color="#FAFAFA" />
+        <SolidColorBrush x:Key="ComboBoxBackgroundPressed"                         Color="White" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrush"                               Color="#E4DAF5" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver"                    Color="#9B80C4" />
+        <SolidColorBrush x:Key="ComboBoxBorderBrushFocused"                        Color="#5B2D8E" />
+
+        <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"         Value="11" />
+            <Setter Property="FontWeight"       Value="SemiBold" />
+            <Setter Property="Foreground"       Value="#9B80C4" />
+            <Setter Property="CharacterSpacing" Value="50" />
+            <Setter Property="Margin"           Value="0,0,0,4" />
+        </Style>
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#2D1554" />
+            <Setter Property="Margin"     Value="0,0,0,4" />
+        </Style>
+    </ContentDialog.Resources>
+
+    <Grid>
+        <StackPanel Spacing="16" Width="500">
+
+            <!-- SECTION 1 · Personal Information -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="PERSONAL INFORMATION" Style="{StaticResource SectionLabelStyle}" />
+
+                <!-- Full Name | Email -->
+                <Grid ColumnSpacing="12" Margin="0,6,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Full Name" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldFullName" PlaceholderText="e.g. Maria Santos"
+                                 BorderBrush="#E4DAF5" CornerRadius="6" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Email Address" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldEmail" PlaceholderText="e.g. maria@email.com"
+                                 BorderBrush="#E4DAF5" CornerRadius="6" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Phone | Age -->
+                <Grid ColumnSpacing="12" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Phone Number" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldPhone" PlaceholderText="e.g. 09XX-XXX-XXXX"
+                                 BorderBrush="#E4DAF5" CornerRadius="6" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Age" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldAge" PlaceholderText="e.g. 25"
+                                 BorderBrush="#E4DAF5" CornerRadius="6" InputScope="Number" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- Divider -->
+            <Border Height="1" Background="#E4DAF5" />
+
+            <!-- SECTION 2 · Additional Information -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="ADDITIONAL INFORMATION" Style="{StaticResource SectionLabelStyle}" />
+
+                <!-- Gender | Address -->
+                <Grid ColumnSpacing="12" Margin="0,6,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Gender" Style="{StaticResource FieldLabelStyle}" />
+                        <ComboBox x:Name="FieldGender" PlaceholderText="Select gender"
+                                  HorizontalAlignment="Stretch" BorderBrush="#E4DAF5" CornerRadius="6">
+                            <ComboBoxItem Content="Male"   Tag="Male" />
+                            <ComboBoxItem Content="Female" Tag="Female" />
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Address" Style="{StaticResource FieldLabelStyle}" />
+                        <TextBox x:Name="FieldAddress" PlaceholderText="e.g. 123 Main St, Manila"
+                                 BorderBrush="#E4DAF5" CornerRadius="6" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- Validation InfoBar -->
+            <InfoBar x:Name="ValidationBar" IsOpen="False" Severity="Error" IsClosable="False" />
+
+        </StackPanel>
+
+        <!-- Loading Overlay -->
+        <Border x:Name="SavingOverlay" Visibility="Collapsed" Background="White" Opacity="0.90" CornerRadius="8">
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressRing IsActive="True" Width="20" Height="20" Foreground="#5B2D8E" />
+                <TextBlock Text="Saving patient…" VerticalAlignment="Center" FontSize="13" Foreground="#9B80C4" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</ContentDialog>

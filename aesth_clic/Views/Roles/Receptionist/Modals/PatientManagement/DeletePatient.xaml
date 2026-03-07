@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="aesth_clic.Views.Roles.Receptionist.Modals.DeletePatient"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Delete Patient"
+    PrimaryButtonText="Delete"
+    CloseButtonText="Cancel"
+    DefaultButton="Close"
+    PrimaryButtonClick="OnDeleteClicked">
+
+    <!--
+        NOTE: PrimaryButtonStyle and CloseButtonStyle are intentionally NOT set here.
+        WinUI 3 resolves StaticResource on root-element attributes before
+        ContentDialog.Resources is parsed, causing XamlParseException.
+        The styles are applied in code-behind after InitializeComponent().
+    -->
+
+    <ContentDialog.Resources>
+
+        <!-- ── Dialog chrome colours ───────────────────────────────────────── -->
+        <SolidColorBrush x:Key="ContentDialogBackground"                       Color="White" />
+        <SolidColorBrush x:Key="ContentDialogBorderBrush"                      Color="#E4DAF5" />
+        <SolidColorBrush x:Key="ContentDialogTopOverlayBackground"             Color="White" />
+        <SolidColorBrush x:Key="ContentDialogButtonAreaBackground"             Color="White" />
+        <SolidColorBrush x:Key="ContentDialogForeground"                       Color="#2D1554" />
+
+        <!-- Close button token overrides -->
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForeground"            Color="#5B2D8E" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPointerOver" Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPressed"     Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackground"            Color="White" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPointerOver" Color="#EDE4F9" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPressed"     Color="#E4DAF5" />
+
+        <!-- ── Red destructive button style ───────────────────────────────── -->
+        <Style x:Key="RedDestructiveButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="#C50F1F" />
+            <Setter Property="Foreground"      Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="20,10" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+            <Setter Property="FontSize"        Value="13" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="Root.Background" Value="#A50E19" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="Root.Background" Value="#8C0C15" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <VisualState.Setters>
+                                            <Setter Target="Root.Background"             Value="#E0CCCC" />
+                                            <Setter Target="ContentPresenter.Foreground" Value="#9B80C4" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentPresenter x:Name="ContentPresenter"
+                                              Content="{TemplateBinding Content}"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Gray / outlined close button style ─────────────────────────── -->
+        <Style x:Key="GrayCloseButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="White" />
+            <Setter Property="Foreground"      Value="#5B2D8E" />
+            <Setter Property="BorderBrush"     Value="#C4B0E0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="20,10" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+            <Setter Property="FontSize"        Value="13" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Target="Root.Background"  Value="#EDE4F9" />
+                                            <Setter Target="Root.BorderBrush" Value="#5B2D8E" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Target="Root.Background"  Value="#E4DAF5" />
+                                            <Setter Target="Root.BorderBrush" Value="#2D1554" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <VisualState.Setters>
+                                            <Setter Target="Root.Background"             Value="#F7F4FD" />
+                                            <Setter Target="Root.BorderBrush"            Value="#E4DAF5" />
+                                            <Setter Target="ContentPresenter.Foreground" Value="#B0A0CC" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentPresenter x:Name="ContentPresenter"
+                                              Content="{TemplateBinding Content}"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </ContentDialog.Resources>
+
+    <!-- ── Dialog body ────────────────────────────────────────────────────── -->
+    <StackPanel Spacing="16" Width="420">
+
+        <!-- Warning icon + patient name -->
+        <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+            <Border Width="44" Height="44" CornerRadius="22" Background="#FDECEA">
+                <FontIcon Glyph="&#xE74D;" FontSize="20" Foreground="#C50F1F" />
+            </Border>
+            <StackPanel Spacing="4" VerticalAlignment="Center">
+                <TextBlock x:Name="TxtPatientName"
+                           FontSize="15" FontWeight="SemiBold" Foreground="#2D1554" />
+                <TextBlock Text="This action is permanent and cannot be undone."
+                           FontSize="12" Foreground="#9B80C4" TextWrapping="Wrap" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Detail warning card -->
+        <Border Background="#FFF5F5" BorderBrush="#FECACA" BorderThickness="1"
+                CornerRadius="8" Padding="14,10">
+            <TextBlock x:Name="TxtDetailMessage"
+                       FontSize="13" Foreground="#C50F1F" TextWrapping="Wrap" />
+        </Border>
+
+        <!-- Deleting overlay (shown while async delete runs) -->
+        <Border x:Name="SavingOverlay" Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <ProgressRing IsActive="True" Width="18" Height="18" Foreground="#C50F1F" />
+                <TextBlock Text="Deleting patient…"
+                           VerticalAlignment="Center" FontSize="13" Foreground="#9B80C4" />
+            </StackPanel>
+        </Border>
+
+    </StackPanel>
+</ContentDialog>

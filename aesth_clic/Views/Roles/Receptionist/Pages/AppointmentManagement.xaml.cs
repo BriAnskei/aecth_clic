@@ -1,11 +1,40 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using Windows.UI;
 
 namespace aesth_clic.Views.Roles.Receptionist.Pages
 {
+    // ── Shared Converter (used by ALL pages in this namespace) ─────────────────
+    public class StringToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value is string hex)
+            {
+                hex = hex.TrimStart('#');
+                if (hex.Length == 6) hex = "FF" + hex;
+                if (uint.TryParse(hex, NumberStyles.HexNumber, null, out uint argb))
+                {
+                    return new SolidColorBrush(Color.FromArgb(
+                        (byte)(argb >> 24),
+                        (byte)(argb >> 16),
+                        (byte)(argb >> 8),
+                        (byte)(argb)));
+                }
+            }
+            return new SolidColorBrush(Color.FromArgb(255, 91, 45, 142));
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+            => throw new NotImplementedException();
+    }
+
     // ── Data Model ─────────────────────────────────────────────────────────────
     public class AppointmentItem
     {
@@ -104,10 +133,9 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
             => ApplyFilters();
 
-        // ── Kebab button click (no-op — flyout opens automatically) ───────────
         private void KebabMenu_Click(object sender, RoutedEventArgs e) { }
 
-        // ── Add Appointment ────────────────────────────────────────────────────
+        // ── Add ────────────────────────────────────────────────────────────────
         private async void AddAppointment_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new ContentDialog

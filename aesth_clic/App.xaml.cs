@@ -88,7 +88,8 @@ namespace aesth_clic
             services.AddTransient<TncTenantService>();
             services.AddTransient<TncTenantController>();
 
-
+            services.AddTransient<PatientService>();
+            services.AddTransient<PatientController>();
 
 
             // --
