@@ -1,16 +1,14 @@
 ﻿using aesth_clic.Tenant.Controller;
 using aesth_clic.Tenant.Model;
 using aesth_clic.Utils;
+using aesth_clic.ViewModels.Receptionist;
 using aesth_clic.Views.Roles.Receptionist.Modals;
 using aesth_clic.Views.Roles.Receptionist.Modals.PatientProcedure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using Windows.UI;
 
 namespace aesth_clic.Views.Roles.Receptionist.Pages
 {
@@ -43,7 +41,7 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
     // ── Page ───────────────────────────────────────────────────────────────────
     public sealed partial class PatientProcedures : Page
     {
-        private List<PatientProcedureItem> _allProcedures = new();
+        private readonly PatientProceduresViewModel _vm = new();
 
         private readonly PatientProcedureController _procedureController;
         private readonly PatientController _patientController;
@@ -57,6 +55,20 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
             _patientController = App.Services.GetRequiredService<PatientController>();
             _menuController = App.Services.GetRequiredService<MenuController>();
 
+            ProcedureListControl.ItemsSource = _vm.DisplayedProcedures;
+
+            // Refresh KPI text whenever ViewModel notifies a change
+            _vm.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName
+                    is nameof(PatientProceduresViewModel.TotalProcedures)
+                    or nameof(PatientProceduresViewModel.PendingProcedures)
+                    or nameof(PatientProceduresViewModel.ScheduledProcedures)
+                    or nameof(PatientProceduresViewModel.CompletedProcedures)
+                    or nameof(PatientProceduresViewModel.DisplayedCount))
+                    UpdateKpiCards();
+            };
+
             _ = LoadFromDbAsync();
         }
 
@@ -66,10 +78,12 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
             try
             {
                 var records = await _procedureController.GetAllPatientProceduresAsync();
+                _vm.LoadFromDb(records.Select(MapToItem));
 
-                _allProcedures = records.Select(MapToItem).ToList();
+                ProcedureListControl.ItemsSource = null;
+                ProcedureListControl.ItemsSource = _vm.DisplayedProcedures;
 
-                ApplyFilters();
+                UpdateKpiCards();
             }
             catch (Exception ex)
             {
@@ -95,7 +109,6 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 _ => "#5B2D8E"
             };
 
-            // Normalize DB lowercase status → Title case for display
             var displayStatus = p.Status?.ToLower() switch
             {
                 "pending" => "Pending",
@@ -110,20 +123,8 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 "Completed" => "#2E7D32",
                 "Scheduled" => "#0078D4",
                 "Cancelled" => "#C50F1F",
-                _ => "#F59E0B"   // Pending
+                _ => "#F59E0B"
             };
-
-            var appointmentSchedule = p.AppointmentDate.HasValue
-                ? p.AppointmentDate.Value.ToString("MMM dd, yyyy")
-                : string.Empty;
-
-            var procedureSchedule = p.ProcedureDate.HasValue
-                ? p.ProcedureDate.Value.ToString("MMM dd, yyyy")
-                : string.Empty;
-
-            var cost = p.ServiceMenu is not null
-                ? $"₱{p.ServiceMenu.Price:N0}"
-                : string.Empty;
 
             return new PatientProcedureItem
             {
@@ -135,48 +136,39 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 ProcedureName = p.ServiceMenu?.Name ?? "Unknown",
                 Status = displayStatus,
                 StatusBadgeText = statusColor,
-                AppointmentSchedule = appointmentSchedule,
-                ProcedureSchedule = procedureSchedule,
-                Cost = cost,
+                AppointmentSchedule = p.AppointmentDate.HasValue
+                    ? p.AppointmentDate.Value.ToString("MMM dd, yyyy") : string.Empty,
+                ProcedureSchedule = p.ProcedureDate.HasValue
+                    ? p.ProcedureDate.Value.ToString("MMM dd, yyyy") : string.Empty,
+                Cost = p.ServiceMenu is not null
+                    ? $"₱{p.ServiceMenu.Price:N0}" : string.Empty,
             };
         }
 
-        // ── Filtering ──────────────────────────────────────────────────────────
-        private void ApplyFilters()
+        // ── KPI Cards ──────────────────────────────────────────────────────────
+        private void UpdateKpiCards()
         {
-            if (ProcedureListControl is null) return;
+            if (TxtTotalProcedures is null) return;
 
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
-            var statusTag = (StatusFilter?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
-
-            var filtered = _allProcedures.Where(p =>
-                (string.IsNullOrEmpty(search)
-                 || p.PatientName.ToLower().Contains(search)
-                 || p.ProcedureName.ToLower().Contains(search))
-                && (statusTag == "All" || p.Status == statusTag)
-            ).ToList();
-
-            ProcedureListControl.ItemsSource = filtered;
-
-            // KPI cards always reflect full unfiltered list
-            var total = _allProcedures.Count;
-            var pending = _allProcedures.Count(p => p.Status == "Pending");
-            var scheduled = _allProcedures.Count(p => p.Status == "Scheduled");
-            var completed = _allProcedures.Count(p => p.Status == "Completed");
-
-            if (TxtTotalProcedures is not null) TxtTotalProcedures.Text = total.ToString();
-            if (TxtPendingProcedures is not null) TxtPendingProcedures.Text = pending.ToString();
-            if (TxtScheduledProcedures is not null) TxtScheduledProcedures.Text = scheduled.ToString();
-            if (TxtCompletedProcedures is not null) TxtCompletedProcedures.Text = completed.ToString();
-            if (TxtRowCount is not null)
-                TxtRowCount.Text = $"Showing {filtered.Count} procedure{(filtered.Count == 1 ? "" : "s")}";
+            TxtTotalProcedures.Text = _vm.TotalProcedures.ToString();
+            TxtPendingProcedures.Text = _vm.PendingProcedures.ToString();
+            TxtScheduledProcedures.Text = _vm.ScheduledProcedures.ToString();
+            TxtCompletedProcedures.Text = _vm.CompletedProcedures.ToString();
+            TxtRowCount.Text =
+                $"Showing {_vm.DisplayedCount} procedure{(_vm.DisplayedCount == 1 ? "" : "s")}";
         }
 
+        // ── Search + Filter ────────────────────────────────────────────────────
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-            => ApplyFilters();
+        {
+            _vm.SearchText = sender.Text;
+        }
 
         private void StatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => ApplyFilters();
+        {
+            _vm.SelectedStatus =
+                (StatusFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+        }
 
         // ── Kebab Menu ─────────────────────────────────────────────────────────
         private void KebabMenu_Click(object sender, RoutedEventArgs e)
@@ -184,12 +176,12 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
             if (sender is not Button btn) return;
 
             var recordId = btn.Tag?.ToString() ?? string.Empty;
-            var item = _allProcedures.FirstOrDefault(p => p.ProcedureRecordId == recordId);
+            var item = _vm.FindProcedure(recordId);
             if (item is null) return;
 
             var menu = new MenuFlyout();
 
-            // ── Delete — only available for Pending ────────────────────────
+            // Delete — only for Pending
             var deleteItem = new MenuFlyoutItem
             {
                 Text = "Delete",
@@ -199,13 +191,8 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
             deleteItem.Click += async (_, _) =>
             {
                 var dialog = new DeleteProcedureConfirmation(
-                    patientName: item.PatientName,
-                    initials: item.Initials,
-                    avatarColor: item.AvatarColor,
-                    procedureName: item.ProcedureName,
-                    status: item.Status,
-                    statusColor: item.StatusBadgeText,
-                    cost: item.Cost)
+                    item.PatientName, item.Initials, item.AvatarColor,
+                    item.ProcedureName, item.Status, item.StatusBadgeText, item.Cost)
                 { XamlRoot = XamlRoot };
 
                 await dialog.ShowAsync();
@@ -215,12 +202,8 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 {
                     await _procedureController.DeletePatientProcedureAsync(
                         int.Parse(item.ProcedureRecordId));
-
                     await LoadFromDbAsync();
-
-                    ToastHelper.Success(
-                        ToastBar,
-                        "Procedure deleted",
+                    ToastHelper.Success(ToastBar, "Procedure deleted",
                         $"{item.ProcedureName} for {item.PatientName} has been removed.");
                 }
                 catch (Exception ex)
@@ -229,7 +212,7 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 }
             };
 
-            // ── Cancel — hard delete, available for any status ─────────────
+            // Cancel — available for any status
             var cancelItem = new MenuFlyoutItem
             {
                 Text = "Cancel Procedure",
@@ -238,13 +221,8 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
             cancelItem.Click += async (_, _) =>
             {
                 var dialog = new CancelProcedureConfirmation(
-                    patientName: item.PatientName,
-                    initials: item.Initials,
-                    avatarColor: item.AvatarColor,
-                    procedureName: item.ProcedureName,
-                    status: item.Status,
-                    statusColor: item.StatusBadgeText,
-                    cost: item.Cost)
+                    item.PatientName, item.Initials, item.AvatarColor,
+                    item.ProcedureName, item.Status, item.StatusBadgeText, item.Cost)
                 { XamlRoot = XamlRoot };
 
                 await dialog.ShowAsync();
@@ -254,12 +232,8 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 {
                     await _procedureController.DeletePatientProcedureAsync(
                         int.Parse(item.ProcedureRecordId));
-
                     await LoadFromDbAsync();
-
-                    ToastHelper.Warning(
-                        ToastBar,
-                        "Procedure cancelled",
+                    ToastHelper.Warning(ToastBar, "Procedure cancelled",
                         $"{item.ProcedureName} for {item.PatientName} has been cancelled.");
                 }
                 catch (Exception ex)
@@ -278,14 +252,11 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
         private async void AddProcedureButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new AddPatientProcedure(
-                _patientController,
-                _menuController,
-                _procedureController)
+                _patientController, _menuController, _procedureController)
             { XamlRoot = XamlRoot };
 
             await dialog.ShowAsync();
 
-            // User cancelled the wizard — do nothing
             if (dialog.Result is null && dialog.SaveError is null) return;
 
             if (dialog.SaveError is not null)
@@ -295,10 +266,7 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
             }
 
             await LoadFromDbAsync();
-
-            ToastHelper.Success(
-                ToastBar,
-                "Procedure added",
+            ToastHelper.Success(ToastBar, "Procedure added",
                 $"{dialog.Result!.Procedure.Name} assigned to {dialog.Result.Patient.FullName}.");
         }
     }

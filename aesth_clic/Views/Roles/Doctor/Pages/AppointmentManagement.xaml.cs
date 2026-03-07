@@ -1,157 +1,198 @@
+﻿using aesth_clic.Session;
+using aesth_clic.Tenant.Controller;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.Doctor;
+using aesth_clic.Views.Roles.Doctor.Modals;
+using aesth_clic.Views.Roles.Receptionist.Modals.PatientProcedure;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI;
+using System;
+using System.Linq;
 using Windows.UI;
-
 
 namespace aesth_clic.Views.Roles.Doctor.Pages
 {
+    // ── UI display model ───────────────────────────────────────────────────────────
     public class AppointmentItem
     {
         public string AppointmentId { get; set; } = string.Empty;
         public string PatientId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
         public string Initials { get; set; } = string.Empty;
-        public string AvatarColor { get; set; } = "#5B2D8E";
+        public SolidColorBrush AvatarColor { get; set; } = new(Color.FromArgb(255, 91, 45, 142));
         public string ProcedureName { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public string AppointmentDate { get; set; } = string.Empty;
-        public string AppointmentTime { get; set; } = string.Empty;
+        public string ProcedureDate { get; set; } = string.Empty;
     }
 
-    public sealed partial class AppointmentManagement : Page
+    // ── Page ───────────────────────────────────────────────────────────────────────
+    public sealed partial class AppointmentManagement : Microsoft.UI.Xaml.Controls.Page
     {
-        private List<AppointmentItem> _allAppointments = new();
+        private readonly AppointmentManagementViewModel _vm = new();
+        private readonly PatientProcedureController _procedureController;
 
         public AppointmentManagement()
         {
             InitializeComponent();
-            LoadSampleData();
-            Loaded += (_, _) => ApplyFilters();
-        }
 
-        private void LoadSampleData()
-        {
-            _allAppointments = new List<AppointmentItem>
+            _procedureController = App.Services.GetRequiredService<PatientProcedureController>();
+
+            AppointmentListControl.ItemsSource = _vm.DisplayedAppointments;
+
+            _vm.PropertyChanged += (_, e) =>
             {
-                BuildItem("a1",  "p1",  "Maria Santos",    "Female", "Botox Injection",      "Mar 05, 2025", "10:00 AM"),
-                BuildItem("a2",  "p3",  "Ana Cruz",        "Female", "Body Contouring",      "Apr 20, 2025", "02:30 PM"),
-                BuildItem("a3",  "p5",  "Liza Flores",     "Female", "Dermal Fillers",       "Mar 28, 2025", "11:00 AM"),
-                BuildItem("a4",  "p9",  "Grace Tan",       "Female", "Lip Augmentation",     "May 02, 2025", "03:00 PM"),
-                BuildItem("a5",  "p1",  "Maria Santos",    "Female", "Hydra Facial",         "Jan 10, 2025", "09:00 AM"),
-                BuildItem("a6",  "p3",  "Ana Cruz",        "Female", "Chemical Peel",        "Feb 14, 2025", "01:00 PM"),
-                BuildItem("a7",  "p6",  "Ramon Garcia",    "Male",   "Microdermabrasion",    "Dec 22, 2024", "10:30 AM"),
-                BuildItem("a8",  "p10", "Kevin Lim",       "Male",   "Back Massage Therapy", "Jan 30, 2025", "04:00 PM"),
-                BuildItem("a9",  "p2",  "Jose Reyes",      "Male",   "Laser Hair Removal",   "Jun 10, 2025", "09:30 AM"),
-                BuildItem("a10", "p4",  "Carlo Mendoza",   "Male",   "Acne Scar Treatment",  "Jun 15, 2025", "11:30 AM"),
-                BuildItem("a11", "p7",  "Sofia Aquino",    "Female", "Skin Brightening",     "Jun 20, 2025", "02:00 PM"),
-                BuildItem("a12", "p8",  "Mark Villanueva", "Male",   "Laser Toning",         "Jul 01, 2025", "03:30 PM"),
-            };
-        }
-
-        private static AppointmentItem BuildItem(
-            string appointmentId, string patientId, string patientName, string gender,
-            string procedureName, string date, string time)
-        {
-            var parts = patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var initials = parts.Length >= 2
-                ? $"{parts[0][0]}{parts[^1][0]}"
-                : patientName.Length > 0 ? patientName[0].ToString() : "?";
-
-            var avatarColor = gender switch
-            {
-                "Female" => "#C2185B",
-                "Male" => "#0078D4",
-                _ => "#5B2D8E"
+                if (e.PropertyName is nameof(AppointmentManagementViewModel.TotalAppointments))
+                    UpdateRowCount();
             };
 
-            return new AppointmentItem
-            {
-                AppointmentId = appointmentId,
-                PatientId = patientId,
-                PatientName = patientName,
-                Initials = initials.ToUpper(),
-                AvatarColor = avatarColor,
-                ProcedureName = procedureName,
-                AppointmentDate = date,
-                AppointmentTime = time,
-            };
+            _ = LoadFromDbAsync();
         }
 
-        private void ApplyFilters()
+        // ── Data loading ───────────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
-            if (AppointmentListControl is null) return;
+            try
+            {
+                var doctorId = AppSession.Instance.CurrentUser?.Id
+                    ?? throw new InvalidOperationException("No logged-in user found.");
 
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
+                var appointments = await _procedureController.GetDoctorAppointmentsAsync(doctorId);
 
-            var filtered = _allAppointments.Where(a =>
-                string.IsNullOrEmpty(search)
-                || a.PatientName.ToLower().Contains(search)
-                || a.ProcedureName.ToLower().Contains(search)
-            ).ToList();
+                _vm.LoadFromDb(appointments.Select(a => (
+                    AppointmentId: a.Id.ToString(),
+                    PatientId: a.PatientId.ToString(),
+                    PatientName: a.Patient?.FullName ?? "Unknown Patient",
+                    Gender: a.Patient?.Gender ?? string.Empty,
+                    ProcedureName: a.ServiceMenu?.Name ?? "Unknown Procedure",
+                    Status: a.Status,
+                    AppointmentDate: a.AppointmentDate,
+                    ProcedureDate: a.ProcedureDate
+                )));
 
-            AppointmentListControl.ItemsSource = filtered;
+                AppointmentListControl.ItemsSource = null;
+                AppointmentListControl.ItemsSource = _vm.DisplayedAppointments;
 
-            if (TxtRowCount is not null)
-                TxtRowCount.Text = $"Showing {filtered.Count} appointment{(filtered.Count == 1 ? "" : "s")}";
+                UpdateRowCount();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load appointments", ex.Message);
+            }
         }
 
-        private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-            => ApplyFilters();
+        // ── Row Count ──────────────────────────────────────────────────────────────
+        private void UpdateRowCount()
+        {
+            if (TxtRowCount is null) return;
+            var count = _vm.TotalAppointments;
+            TxtRowCount.Text = $"Showing {count} appointment{(count != 1 ? "s" : "")}";
+        }
 
+        // ── Search ─────────────────────────────────────────────────────────────────
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _vm.SearchText = (sender as Microsoft.UI.Xaml.Controls.TextBox)?.Text ?? string.Empty;
+        }
+
+        // ── Set Date ───────────────────────────────────────────────────────────────
         private async void SetDate_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as Button)?.Tag?.ToString();
-            var record = _allAppointments.FirstOrDefault(a => a.AppointmentId == id);
+            if (sender is not MenuFlyoutItem item) return;
+            var record = _vm.FindAppointment(item.Tag?.ToString() ?? string.Empty);
             if (record is null) return;
 
-            var dialog = new ContentDialog
+            var dlg = new SetProcedureDate(_procedureController) { XamlRoot = this.XamlRoot };
+            dlg.Load(
+                patientProcedureId: int.Parse(record.AppointmentId),
+                patientName: record.PatientName,
+                initials: record.Initials,
+                avatarColor: record.AvatarColor,
+                procedureName: record.ProcedureName);
+
+            await dlg.ShowAsync();
+
+            if (!dlg.Saved && dlg.SaveError is null) return;
+
+            if (dlg.SaveError is not null)
             {
-                Title = $"Set Date � {record.ProcedureName}",
-                Content = $"Set appointment date for {record.PatientName}'s {record.ProcedureName}.\nFunctionality will be implemented later.",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
-            await dialog.ShowAsync();
+                ToastHelper.Error(ToastBar, "Failed to set procedure date", dlg.SaveError.Message);
+                return;
+            }
+
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "Procedure date set",
+                $"{record.PatientName}'s procedure date has been saved.");
         }
 
+        // ── View ───────────────────────────────────────────────────────────────────
         private async void ViewAppointment_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as Button)?.Tag?.ToString();
-            var record = _allAppointments.FirstOrDefault(a => a.AppointmentId == id);
+            if (sender is not MenuFlyoutItem item) return;
+            var record = _vm.FindAppointment(item.Tag?.ToString() ?? string.Empty);
             if (record is null) return;
 
-            var dialog = new ContentDialog
-            {
-                Title = record.ProcedureName,
-                Content = $"Patient: {record.PatientName}\nProcedure: {record.ProcedureName}\nDate: {record.AppointmentDate}\nTime: {record.AppointmentTime}",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
-            await dialog.ShowAsync();
+            var dlg = new ViewAppointmentDetails { XamlRoot = this.XamlRoot };
+            dlg.Load(
+                patientName: record.PatientName,
+                initials: record.Initials,
+                avatarColor: record.AvatarColor,
+                procedureName: record.ProcedureName,
+                status: record.Status,
+                appointmentDate: record.AppointmentDate,
+                procedureDate: record.ProcedureDate);
+
+            await dlg.ShowAsync();
         }
 
+        // ── Cancel ─────────────────────────────────────────────────────────────────
         private async void CancelAppointment_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as Button)?.Tag?.ToString();
-            var record = _allAppointments.FirstOrDefault(a => a.AppointmentId == id);
+            if (sender is not MenuFlyoutItem item) return;
+            var record = _vm.FindAppointment(item.Tag?.ToString() ?? string.Empty);
             if (record is null) return;
 
-            var dialog = new ContentDialog
+            var avatarHex = record.AvatarColor.Color is { } c
+                ? $"#{c.R:X2}{c.G:X2}{c.B:X2}"
+                : "#5B2D8E";
+
+            var (statusLabel, statusColor) = record.Status.ToLower() switch
             {
-                Title = "Cancel Appointment",
-                Content = $"Cancel {record.PatientName}'s {record.ProcedureName} appointment?\nFunctionality will be implemented later.",
-                CloseButtonText = "Back",
-                PrimaryButtonText = "Confirm Cancel",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = XamlRoot
+                "completed" => ("Completed", "#2E7D32"),
+                "scheduled" => ("Scheduled", "#0078D4"),
+                _ => ("Pending", "#F59E0B"),
             };
-            await dialog.ShowAsync();
+
+            var dlg = new CancelProcedureConfirmation(
+                patientName: record.PatientName,
+                initials: record.Initials,
+                avatarColor: avatarHex,
+                procedureName: record.ProcedureName,
+                status: statusLabel,
+                statusColor: statusColor,
+                cost: string.Empty
+            )
+            { XamlRoot = this.XamlRoot };
+
+            await dlg.ShowAsync();
+
+            if (!dlg.Confirmed) return;
+
+            try
+            {
+                await _procedureController.DeletePatientProcedureAsync(
+                    int.Parse(record.AppointmentId));
+
+                await LoadFromDbAsync();
+                ToastHelper.Success(ToastBar, "Appointment cancelled",
+                    $"{record.PatientName}'s {record.ProcedureName} has been cancelled.");
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to cancel appointment", ex.Message);
+            }
         }
     }
-
 }

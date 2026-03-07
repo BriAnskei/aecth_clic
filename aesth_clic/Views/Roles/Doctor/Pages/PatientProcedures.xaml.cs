@@ -1,176 +1,201 @@
-﻿using Microsoft.UI.Xaml;
+﻿using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.Model;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.Doctor;
+using aesth_clic.Views.Roles.Doctor.Modals;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using Windows.UI;
 
 namespace aesth_clic.Views.Roles.Doctor.Pages
 {
+    // ── UI display model ───────────────────────────────────────────────────────
     public class PatientProcedureItem
     {
         public string ProcedureRecordId { get; set; } = string.Empty;
         public string PatientId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
         public string Initials { get; set; } = string.Empty;
-        public string AvatarColor { get; set; } = "#5B2D8E";
+        public SolidColorBrush AvatarColor { get; set; } = new(Color.FromArgb(255, 91, 45, 142));
         public string ProcedureName { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
-        public string StatusBadgeColor { get; set; } = string.Empty;
-        public string StatusBadgeText { get; set; } = string.Empty;
-        public string DateScheduled { get; set; } = string.Empty;
+        public SolidColorBrush StatusBadgeColor { get; set; } = new(Color.FromArgb(255, 237, 228, 249));
+        public SolidColorBrush StatusBadgeForeground { get; set; } = new(Color.FromArgb(255, 91, 45, 142));
+
+        public string AppointmentSchedule { get; set; } = string.Empty;
+        public string ProcedureSchedule { get; set; } = string.Empty;
         public string Cost { get; set; } = string.Empty;
 
-        public Visibility HasDate => string.IsNullOrWhiteSpace(DateScheduled) ? Visibility.Collapsed : Visibility.Visible;
-        public Visibility NoDate => string.IsNullOrWhiteSpace(DateScheduled) ? Visibility.Visible : Visibility.Collapsed;
+        // ── Visibility helpers ─────────────────────────────────────────────────
+        public Visibility HasAppointmentDate
+            => string.IsNullOrEmpty(AppointmentSchedule) ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility NoAppointmentDate
+            => string.IsNullOrEmpty(AppointmentSchedule) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility HasProcedureDate
+            => string.IsNullOrEmpty(ProcedureSchedule) ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility NoProcedureDate
+            => string.IsNullOrEmpty(ProcedureSchedule) ? Visibility.Visible : Visibility.Collapsed;
+
+        // ── Schedule button enabled only when no appointment date is set yet ───
+        public bool IsSchedulable => string.IsNullOrEmpty(AppointmentSchedule);
     }
 
+    // ── Page ───────────────────────────────────────────────────────────────────
     public sealed partial class PatientProcedures : Page
     {
-        private List<PatientProcedureItem> _allProcedures = new();
+        private readonly PatientProceduresViewModel _vm = new();
+        private readonly PatientProcedureController _procedureController;
 
         public PatientProcedures()
         {
             InitializeComponent();
-            LoadSampleData();
-            Loaded += (_, _) => ApplyFilters();
-        }
 
-        private void LoadSampleData()
-        {
-            _allProcedures = new List<PatientProcedureItem>
+            _procedureController = App.Services.GetRequiredService<PatientProcedureController>();
+
+            ProcedureListControl.ItemsSource = _vm.DisplayedProcedures;
+
+            _vm.PropertyChanged += (_, e) =>
             {
-                BuildItem("pr1",  "p1",  "Maria Santos",    "Female", "Hydra Facial",        "Completed", "Jan 10, 2025", "₱3,500"),
-                BuildItem("pr2",  "p1",  "Maria Santos",    "Female", "Botox Injection",      "Scheduled", "Mar 05, 2025", "₱8,000"),
-                BuildItem("pr3",  "p2",  "Jose Reyes",      "Male",   "Laser Hair Removal",   "Pending",   "",             "₱5,200"),
-                BuildItem("pr4",  "p3",  "Ana Cruz",        "Female", "Chemical Peel",        "Completed", "Feb 14, 2025", "₱2,800"),
-                BuildItem("pr5",  "p3",  "Ana Cruz",        "Female", "Body Contouring",      "Scheduled", "Apr 20, 2025", "₱12,000"),
-                BuildItem("pr6",  "p4",  "Carlo Mendoza",   "Male",   "Acne Scar Treatment",  "Pending",   "",             "₱6,500"),
-                BuildItem("pr7",  "p5",  "Liza Flores",     "Female", "Dermal Fillers",       "Scheduled", "Mar 28, 2025", "₱9,500"),
-                BuildItem("pr8",  "p6",  "Ramon Garcia",    "Male",   "Microdermabrasion",    "Completed", "Dec 22, 2024", "₱2,200"),
-                BuildItem("pr9",  "p7",  "Sofia Aquino",    "Female", "Skin Brightening",     "Pending",   "",             "₱3,900"),
-                BuildItem("pr10", "p8",  "Mark Villanueva", "Male",   "Laser Toning",         "Cancelled", "",             "₱4,800"),
-                BuildItem("pr11", "p9",  "Grace Tan",       "Female", "Lip Augmentation",     "Scheduled", "May 02, 2025", "₱7,200"),
-                BuildItem("pr12", "p10", "Kevin Lim",       "Male",   "Back Massage Therapy", "Completed", "Jan 30, 2025", "₱1,800"),
+                if (e.PropertyName
+                    is nameof(PatientProceduresViewModel.TotalProcedures)
+                    or nameof(PatientProceduresViewModel.PendingProcedures)
+                    or nameof(PatientProceduresViewModel.ScheduledProcedures)
+                    or nameof(PatientProceduresViewModel.CompletedProcedures)
+                    or nameof(PatientProceduresViewModel.DisplayedCount))
+                    UpdateKpiCards();
             };
+
+            _ = LoadFromDbAsync();
         }
 
-        private static PatientProcedureItem BuildItem(
-            string recordId, string patientId, string patientName, string gender,
-            string procedureName, string status, string dateScheduled, string cost)
+        // ── Data loading ───────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
-            var parts = patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            try
+            {
+                var records = await _procedureController.GetAllPatientProceduresAsync();
+                _vm.LoadFromDb(records.Select(MapToItem));
+
+                ProcedureListControl.ItemsSource = null;
+                ProcedureListControl.ItemsSource = _vm.DisplayedProcedures;
+
+                UpdateKpiCards();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load procedures", ex.Message);
+            }
+        }
+
+        // ── Domain → UI model mapping ──────────────────────────────────────────
+        private static PatientProcedureItem MapToItem(PatientProcedure p)
+        {
+            var fullName = p.Patient?.FullName ?? "Unknown";
+            var gender = p.Patient?.Gender ?? string.Empty;
+
+            var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var initials = parts.Length >= 2
                 ? $"{parts[0][0]}{parts[^1][0]}"
-                : patientName.Length > 0 ? patientName[0].ToString() : "?";
+                : fullName.Length > 0 ? fullName[0].ToString() : "?";
 
             var avatarColor = gender switch
             {
-                "Female" => "#C2185B",
-                "Male" => "#0078D4",
-                _ => "#5B2D8E"
+                "Female" => Color.FromArgb(255, 194, 24, 91),
+                "Male" => Color.FromArgb(255, 0, 120, 212),
+                _ => Color.FromArgb(255, 91, 45, 142),
             };
 
-            var (stBg, stFg) = status switch
+            var displayStatus = p.Status?.ToLower() switch
             {
-                "Completed" => ("#E8F5E9", "#2E7D32"),
-                "Scheduled" => ("#E3F2FD", "#0078D4"),
-                "Pending" => ("#FFF8E1", "#F59E0B"),
-                "Cancelled" => ("#FDECEA", "#C0392B"),
-                _ => ("#F3F3F3", "#666666")
+                "pending" => "Pending",
+                "scheduled" => "Scheduled",
+                "completed" => "Completed",
+                "cancelled" => "Cancelled",
+                _ => p.Status ?? string.Empty
+            };
+
+            var (stBg, stFg) = displayStatus switch
+            {
+                "Completed" => (Color.FromArgb(255, 232, 245, 233), Color.FromArgb(255, 46, 125, 50)),
+                "Scheduled" => (Color.FromArgb(255, 227, 242, 253), Color.FromArgb(255, 0, 120, 212)),
+                "Cancelled" => (Color.FromArgb(255, 253, 236, 234), Color.FromArgb(255, 197, 15, 31)),
+                _ => (Color.FromArgb(255, 255, 248, 225), Color.FromArgb(255, 245, 158, 11)),
             };
 
             return new PatientProcedureItem
             {
-                ProcedureRecordId = recordId,
-                PatientId = patientId,
-                PatientName = patientName,
+                ProcedureRecordId = p.Id.ToString(),
+                PatientId = p.PatientId.ToString(),
+                PatientName = fullName,
                 Initials = initials.ToUpper(),
-                AvatarColor = avatarColor,
-                ProcedureName = procedureName,
-                Status = status,
-                StatusBadgeColor = stBg,
-                StatusBadgeText = stFg,
-                DateScheduled = dateScheduled,
-                Cost = cost,
+                AvatarColor = new SolidColorBrush(avatarColor),
+                ProcedureName = p.ServiceMenu?.Name ?? "Unknown",
+                Status = displayStatus,
+                StatusBadgeColor = new SolidColorBrush(stBg),
+                StatusBadgeForeground = new SolidColorBrush(stFg),
+                AppointmentSchedule = p.AppointmentDate.HasValue
+                    ? p.AppointmentDate.Value.ToString("MMM dd, yyyy") : string.Empty,
+                ProcedureSchedule = p.ProcedureDate.HasValue
+                    ? p.ProcedureDate.Value.ToString("MMM dd, yyyy") : string.Empty,
+                Cost = p.ServiceMenu is not null
+                    ? $"₱{p.ServiceMenu.Price:N0}" : string.Empty,
             };
         }
 
-        private void ApplyFilters()
+        // ── KPI Cards ──────────────────────────────────────────────────────────
+        private void UpdateKpiCards()
         {
-            if (ProcedureListControl is null) return;
+            if (TxtTotalProcedures is null) return;
 
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
-            var statusTag = (StatusFilter?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
-
-            var filtered = _allProcedures.Where(p =>
-            {
-                bool matchSearch = string.IsNullOrEmpty(search)
-                    || p.PatientName.ToLower().Contains(search)
-                    || p.ProcedureName.ToLower().Contains(search);
-                bool matchStatus = statusTag == "All" || p.Status == statusTag;
-                return matchSearch && matchStatus;
-            }).ToList();
-
-            ProcedureListControl.ItemsSource = filtered;
-
-            if (TxtTotalProcedures is not null) TxtTotalProcedures.Text = _allProcedures.Count.ToString();
-            if (TxtPendingProcedures is not null) TxtPendingProcedures.Text = _allProcedures.Count(p => p.Status == "Pending").ToString();
-            if (TxtScheduledProcedures is not null) TxtScheduledProcedures.Text = _allProcedures.Count(p => p.Status == "Scheduled").ToString();
-            if (TxtCompletedProcedures is not null) TxtCompletedProcedures.Text = _allProcedures.Count(p => p.Status == "Completed").ToString();
-            if (TxtRowCount is not null) TxtRowCount.Text = $"Showing {filtered.Count} procedure{(filtered.Count == 1 ? "" : "s")}";
+            TxtTotalProcedures.Text = _vm.TotalProcedures.ToString();
+            TxtPendingProcedures.Text = _vm.PendingProcedures.ToString();
+            TxtScheduledProcedures.Text = _vm.ScheduledProcedures.ToString();
+            TxtCompletedProcedures.Text = _vm.CompletedProcedures.ToString();
+            TxtRowCount.Text =
+                $"Showing {_vm.DisplayedCount} procedure{(_vm.DisplayedCount == 1 ? "" : "s")}";
         }
 
+        // ── Search + Filter ────────────────────────────────────────────────────
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-            => ApplyFilters();
+            => _vm.SearchText = sender.Text;
 
         private void StatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => ApplyFilters();
+            => _vm.SelectedStatus =
+                (StatusFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
 
-        private async void AddProcedureButton_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new ContentDialog
-            {
-                Title = "Add Procedure",
-                Content = "Add Procedure dialog goes here.",
-                CloseButtonText = "Cancel",
-                PrimaryButtonText = "Save",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = XamlRoot
-            };
-            await dialog.ShowAsync();
-        }
-
+        // ── Schedule Appointment ───────────────────────────────────────────────
         private async void ScheduleAppointment_Click(object sender, RoutedEventArgs e)
         {
-            var recordId = (sender as Button)?.Tag?.ToString();
-            var record = _allProcedures.FirstOrDefault(p => p.ProcedureRecordId == recordId);
-            if (record is null) return;
+            if (sender is not Button btn) return;
+            var item = _vm.FindProcedure(btn.Tag?.ToString() ?? string.Empty);
+            if (item is null) return;
 
-            var dialog = new ContentDialog
-            {
-                Title = $"Schedule — {record.ProcedureName}",
-                Content = $"Schedule appointment for {record.PatientName}'s {record.ProcedureName}.\nFunctionality will be implemented later.",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
+            var dialog = new ScheduleProcedure(
+                _procedureController,
+                int.Parse(item.ProcedureRecordId),
+                item.PatientName,
+                item.Initials,
+                item.AvatarColor,
+                item.ProcedureName)
+            { XamlRoot = XamlRoot };
+
             await dialog.ShowAsync();
-        }
 
-        private async void ViewProcedure_Click(object sender, RoutedEventArgs e)
-        {
-            var recordId = (sender as Button)?.Tag?.ToString();
-            var record = _allProcedures.FirstOrDefault(p => p.ProcedureRecordId == recordId);
-            if (record is null) return;
+            if (!dialog.Confirmed && dialog.SaveError is null) return;
 
-            var dialog = new ContentDialog
+            if (dialog.SaveError is not null)
             {
-                Title = record.ProcedureName,
-                Content = $"Patient: {record.PatientName}\nStatus: {record.Status}\nCost: {record.Cost}\nScheduled: {(string.IsNullOrWhiteSpace(record.DateScheduled) ? "Not yet scheduled" : record.DateScheduled)}",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
-            await dialog.ShowAsync();
+                ToastHelper.Error(ToastBar, "Failed to schedule appointment", dialog.SaveError.Message);
+                return;
+            }
+
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "Appointment scheduled",
+                $"{item.ProcedureName} for {item.PatientName} has been scheduled.");
         }
     }
-
 }

@@ -36,7 +36,10 @@
     <None Remove="Views\Roles\Admin\Pages\TermsAndConditions.xaml" />
     <None Remove="Views\Roles\Admin\Pages\UsersManagement.xaml" />
     <None Remove="Views\Roles\DoctorShell.xaml" />
+    <None Remove="Views\Roles\Doctor\Modal\AppointmentManagement\SetProcedureDate.xaml" />
+    <None Remove="Views\Roles\Doctor\Modal\AppointmentManagement\ViewAppointmentDetials.xaml" />
     <None Remove="Views\Roles\Doctor\Modal\ServiceMenu\DeleteService.xaml" />
+    <None Remove="Views\Roles\Doctor\Modal\ServiceMenu\SchduleProcedure.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\AppointmentManagement.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\PatientManament.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\ProcedureManagement.xaml" />
@@ -111,6 +114,7 @@
     <Folder Include="Master\Util\" />
     <Folder Include="Services\Master\" />
     <Folder Include="Tenant\Repository\" />
+    <Folder Include="Views\Roles\Doctor\Modal\PatientProcedure\" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\SuperAdmin\Modals\UsersManagement\DeleteClient.xaml">
@@ -302,6 +306,21 @@
   </ItemGroup>
   <ItemGroup>
     <PRIResource Remove="Services\AdminServices\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Modal\AppointmentManagement\ViewAppointmentDetials.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Modal\AppointmentManagement\SetProcedureDate.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Modal\ServiceMenu\SchduleProcedure.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Receptionist\Modals\PatientProcedure\CancelProcedureConfirmation.xaml">

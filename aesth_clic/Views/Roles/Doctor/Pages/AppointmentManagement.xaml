@@ -11,8 +11,6 @@
 
     <Page.Resources>
 
-        <local:StringToBrushConverter x:Key="StringToBrush" />
-
         <Style x:Key="ColHeaderStyle" TargetType="TextBlock">
             <Setter Property="FontSize"          Value="10" />
             <Setter Property="FontWeight"        Value="SemiBold" />
@@ -56,7 +54,10 @@
                     FontSize="13" Foreground="#9B80C4" />
             </StackPanel>
 
-            <!-- ROW 1 · Search Toolbar -->
+            <!-- ROW 1 · Toast InfoBar -->
+            <InfoBar Grid.Row="1" x:Name="ToastBar" IsOpen="False" IsClosable="True" Margin="0,-8,0,-8" />
+
+            <!-- ROW 2 · Search Toolbar -->
             <Border
                 Grid.Row="1"
                 Background="White"
@@ -64,18 +65,29 @@
                 BorderThickness="1"
                 CornerRadius="12"
                 Padding="16,12">
-                <AutoSuggestBox
+                <TextBox
                     x:Name="SearchBox"
                     PlaceholderText="Search patient name or procedure…"
-                    QueryIcon="Find"
                     VerticalAlignment="Center"
-                    BorderBrush="#E4DAF5"
+                    BorderBrush="#C4B0E0"
                     BorderThickness="1"
                     CornerRadius="8"
-                    TextChanged="SearchBox_TextChanged" />
+                    TextChanged="SearchBox_TextChanged">
+                    <TextBox.Resources>
+                        <SolidColorBrush x:Key="TextControlPlaceholderForeground"            Color="#9B80C4" />
+                        <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused"     Color="#9B80C4" />
+                        <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#9B80C4" />
+                        <SolidColorBrush x:Key="TextControlBorderBrush"                      Color="#C4B0E0" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver"           Color="#5B2D8E" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushFocused"               Color="#5B2D8E" />
+                        <SolidColorBrush x:Key="TextControlBackground"                       Color="White" />
+                        <SolidColorBrush x:Key="TextControlBackgroundPointerOver"            Color="White" />
+                        <SolidColorBrush x:Key="TextControlBackgroundFocused"                Color="White" />
+                    </TextBox.Resources>
+                </TextBox>
             </Border>
 
-            <!-- ROW 2 · Appointments Table -->
+            <!-- ROW 3 · Appointments Table -->
             <Border
                 Grid.Row="2"
                 Background="White"
@@ -100,9 +112,13 @@
                             <TextBlock Text="Appointment Records" FontSize="15" FontWeight="SemiBold" Foreground="#2D1554" />
                             <TextBlock Text="All scheduled appointments" FontSize="12" Foreground="#9B80C4" />
                         </StackPanel>
-                        <Border Grid.Column="1" Background="#EDE4F9" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtRowCount" Text="Showing 0 appointments" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
-                        </Border>
+                        <!-- Row count — no background, spacing and bold preserved -->
+                        <TextBlock
+                            Grid.Column="1"
+                            x:Name="TxtRowCount"
+                            Text="Showing 0 appointments"
+                            FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold"
+                            VerticalAlignment="Center" />
                     </Grid>
 
                     <!-- Column Headers -->
@@ -113,12 +129,12 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="220" />
                                     <ColumnDefinition Width="200" />
-                                    <ColumnDefinition Width="220" />
+                                    <ColumnDefinition Width="60" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="PATIENT"         Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="1" Text="PROCEDURE"       Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="2" Text="SCHEDULED DATE"  Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="3" Text="ACTIONS"         Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
+                                <TextBlock Grid.Column="0" Text="PATIENT"        Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="1" Text="PROCEDURE"      Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="2" Text="SCHEDULED DATE" Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="3" Text="ACTIONS"        Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
                             </Grid>
                         </Border>
                         <Border Height="1" Background="#E4DAF5" VerticalAlignment="Bottom" />
@@ -136,14 +152,12 @@
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="220" />
                                                     <ColumnDefinition Width="200" />
-                                                    <ColumnDefinition Width="220" />
+                                                    <ColumnDefinition Width="60" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <!-- Patient Name + Avatar -->
                                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                                    <Border
-                                                        Width="36" Height="36" CornerRadius="18"
-                                                        Background="{Binding AvatarColor, Converter={StaticResource StringToBrush}}">
+                                                    <Border Width="36" Height="36" CornerRadius="18" Background="{x:Bind AvatarColor}">
                                                         <TextBlock
                                                             Text="{x:Bind Initials}"
                                                             FontSize="13" FontWeight="SemiBold" Foreground="White"
@@ -161,63 +175,43 @@
                                                 <!-- Scheduled Date -->
                                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                     <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="#5B2D8E" VerticalAlignment="Center" />
-                                                    <StackPanel Spacing="1">
-                                                        <TextBlock
-                                                            Text="{x:Bind AppointmentDate}"
-                                                            Style="{StaticResource CellTextStyle}"
-                                                            FontWeight="SemiBold" />
-                                                        <TextBlock
-                                                            Text="{x:Bind AppointmentTime}"
-                                                            Style="{StaticResource CellSecondaryStyle}" />
-                                                    </StackPanel>
+                                                    <TextBlock
+                                                        Text="{x:Bind AppointmentDate}"
+                                                        Style="{StaticResource CellTextStyle}"
+                                                        FontWeight="SemiBold" />
                                                 </StackPanel>
 
-                                                <!-- Actions -->
-                                                <StackPanel
-                                                    Grid.Column="3"
-                                                    Orientation="Horizontal" Spacing="6"
-                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
-
-                                                    <!-- Set Date -->
-                                                    <Button
-                                                        Tag="{x:Bind AppointmentId}"
-                                                        Click="SetDate_Click"
-                                                        Padding="8,5" Background="#EDE4F9"
-                                                        CornerRadius="6" BorderThickness="0"
-                                                        ToolTipService.ToolTip="Set appointment date">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="#5B2D8E" />
-                                                            <TextBlock Text="Set Date" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
-                                                        </StackPanel>
+                                                <!-- Actions · Kebab Menu -->
+                                                <Border Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Button Padding="6,4" Background="Transparent" CornerRadius="6"
+                                                            BorderThickness="0" ToolTipService.ToolTip="More actions">
+                                                        <Button.Flyout>
+                                                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                                <MenuFlyoutItem Text="Set Date" Tag="{x:Bind AppointmentId}" Click="SetDate_Click">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xE787;" FontSize="13" />
+                                                                    </MenuFlyoutItem.Icon>
+                                                                </MenuFlyoutItem>
+                                                                <MenuFlyoutItem Text="View" Tag="{x:Bind AppointmentId}" Click="ViewAppointment_Click">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xE8A5;" FontSize="13" />
+                                                                    </MenuFlyoutItem.Icon>
+                                                                </MenuFlyoutItem>
+                                                                <MenuFlyoutSeparator />
+                                                                <MenuFlyoutItem Text="Cancel" Tag="{x:Bind AppointmentId}" Click="CancelAppointment_Click">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xE711;" FontSize="13" Foreground="#C50F1F" />
+                                                                    </MenuFlyoutItem.Icon>
+                                                                    <MenuFlyoutItem.Foreground>
+                                                                        <SolidColorBrush Color="#C50F1F" />
+                                                                    </MenuFlyoutItem.Foreground>
+                                                                </MenuFlyoutItem>
+                                                            </MenuFlyout>
+                                                        </Button.Flyout>
+                                                        <FontIcon Glyph="&#xE712;" FontSize="16" Foreground="#5B2D8E" />
                                                     </Button>
+                                                </Border>
 
-                                                    <!-- View -->
-                                                    <Button
-                                                        Tag="{x:Bind AppointmentId}"
-                                                        Click="ViewAppointment_Click"
-                                                        Padding="8,5" Background="#F0FAF0"
-                                                        CornerRadius="6" BorderThickness="0"
-                                                        ToolTipService.ToolTip="View appointment details">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <FontIcon Glyph="&#xE7B3;" FontSize="11" Foreground="#2E7D32" />
-                                                            <TextBlock Text="View" FontSize="12" Foreground="#2E7D32" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                    <!-- Cancel -->
-                                                    <Button
-                                                        Tag="{x:Bind AppointmentId}"
-                                                        Click="CancelAppointment_Click"
-                                                        Padding="8,5" Background="#FDECEA"
-                                                        CornerRadius="6" BorderThickness="0"
-                                                        ToolTipService.ToolTip="Cancel appointment">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <FontIcon Glyph="&#xE711;" FontSize="11" Foreground="#C0392B" />
-                                                            <TextBlock Text="Cancel" FontSize="12" Foreground="#C0392B" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                </StackPanel>
                                             </Grid>
                                         </Border>
                                         <Border Height="1" Background="#F0EAF8" Margin="20,0" />

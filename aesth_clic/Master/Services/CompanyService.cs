@@ -65,6 +65,7 @@ namespace aesth_clic.Master.Services
                 {
                     ClientId = client.Id,
                     MonthlyAmount = tierAmount,
+                    Tier = client.Tier,
                     StartDate = DateTime.UtcNow,
                     EndDate = DateTime.UtcNow.AddDays(30),
 

@@ -11,20 +11,12 @@
 
     <Page.Resources>
 
-        <local:StringToBrushConverter x:Key="StringToBrush" />
-
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background"      Value="White" />
             <Setter Property="BorderBrush"     Value="#E4DAF5" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius"    Value="12" />
             <Setter Property="Padding"         Value="20" />
-        </Style>
-
-        <Style x:Key="KpiValueStyle" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="30" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="#2D1554" />
         </Style>
 
         <Style x:Key="KpiLabelStyle" TargetType="TextBlock">
@@ -68,42 +60,25 @@
         <Grid Padding="28,24,28,32" RowSpacing="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <!-- ROW 0 · Header -->
                 <RowDefinition Height="Auto" />
+                <!-- ROW 1 · KPI Cards -->
                 <RowDefinition Height="Auto" />
+                <!-- ROW 2 · Search + Filter -->
                 <RowDefinition Height="Auto" />
+                <!-- ROW 3 · Table -->
+                <RowDefinition Height="Auto" />
+                <!-- ROW 4 · Toast -->
             </Grid.RowDefinitions>
 
             <!-- ROW 0 · Page Header -->
             <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock
-                        Text="Patient Procedures"
-                        FontSize="26" FontWeight="Bold"
-                        Foreground="#2D1554" />
-                    <TextBlock
-                        Text="View and manage patient procedures and schedule appointments"
-                        FontSize="13" Foreground="#9B80C4" />
+                <StackPanel Spacing="2">
+                    <TextBlock Text="Patient Procedures"
+                               FontSize="26" FontWeight="Bold" Foreground="#2D1554" />
+                    <TextBlock Text="View and schedule appointments for patient procedures"
+                               FontSize="13" Foreground="#9B80C4" />
                 </StackPanel>
-
-                <Button
-                    Grid.Column="1"
-                    x:Name="AddProcedureButton"
-                    VerticalAlignment="Center"
-                    Click="AddProcedureButton_Click"
-                    Padding="16,10"
-                    Background="#5B2D8E"
-                    CornerRadius="8"
-                    BorderThickness="0">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE710;" FontSize="13" Foreground="White" />
-                        <TextBlock Text="Add Procedure" Foreground="White" FontWeight="SemiBold" FontSize="13" />
-                    </StackPanel>
-                </Button>
             </Grid>
 
             <!-- ROW 1 · KPI Cards -->
@@ -117,73 +92,98 @@
 
                 <!-- Total -->
                 <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
-                            <Border Width="36" Height="36" CornerRadius="8" Background="#EDE4F9">
-                                <FontIcon Glyph="&#xE9D9;" FontSize="16" Foreground="#5B2D8E" />
-                            </Border>
-                            <TextBlock Text="TOTAL PROCEDURES" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
-                        </StackPanel>
-                        <TextBlock x:Name="TxtTotalProcedures" Text="0" Style="{StaticResource KpiValueStyle}" />
+                    <StackPanel Spacing="4">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#EDE4F9">
+                                    <FontIcon Glyph="&#xE9D9;" FontSize="16" Foreground="#5B2D8E" />
+                                </Border>
+                                <TextBlock Text="TOTAL" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" x:Name="TxtTotalProcedures" Text="0"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="#2D1554" VerticalAlignment="Center" />
+                        </Grid>
                         <TextBlock Text="All patient procedures" Style="{StaticResource KpiSubStyle}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Pending -->
                 <Border Grid.Column="1" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
-                            <Border Width="36" Height="36" CornerRadius="8" Background="#FFF8E1">
-                                <FontIcon Glyph="&#xE823;" FontSize="16" Foreground="#F59E0B" />
-                            </Border>
-                            <TextBlock Text="PENDING" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
-                        </StackPanel>
-                        <TextBlock x:Name="TxtPendingProcedures" Text="0" Style="{StaticResource KpiValueStyle}" />
+                    <StackPanel Spacing="4">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#FFF8E1">
+                                    <FontIcon Glyph="&#xE823;" FontSize="16" Foreground="#F59E0B" />
+                                </Border>
+                                <TextBlock Text="PENDING" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" x:Name="TxtPendingProcedures" Text="0"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="#2D1554" VerticalAlignment="Center" />
+                        </Grid>
                         <TextBlock Text="Awaiting appointment" Style="{StaticResource KpiSubStyle}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Scheduled -->
                 <Border Grid.Column="2" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
-                            <Border Width="36" Height="36" CornerRadius="8" Background="#E3F2FD">
-                                <FontIcon Glyph="&#xE787;" FontSize="16" Foreground="#0078D4" />
-                            </Border>
-                            <TextBlock Text="SCHEDULED" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
-                        </StackPanel>
-                        <TextBlock x:Name="TxtScheduledProcedures" Text="0" Style="{StaticResource KpiValueStyle}" />
+                    <StackPanel Spacing="4">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#E3F2FD">
+                                    <FontIcon Glyph="&#xE787;" FontSize="16" Foreground="#0078D4" />
+                                </Border>
+                                <TextBlock Text="SCHEDULED" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" x:Name="TxtScheduledProcedures" Text="0"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="#2D1554" VerticalAlignment="Center" />
+                        </Grid>
                         <TextBlock Text="Appointment set" Style="{StaticResource KpiSubStyle}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Completed -->
                 <Border Grid.Column="3" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="0">
-                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
-                            <Border Width="36" Height="36" CornerRadius="8" Background="#E8F5E9">
-                                <FontIcon Glyph="&#xE930;" FontSize="16" Foreground="#2E7D32" />
-                            </Border>
-                            <TextBlock Text="COMPLETED" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
-                        </StackPanel>
-                        <TextBlock x:Name="TxtCompletedProcedures" Text="0" Style="{StaticResource KpiValueStyle}" />
+                    <StackPanel Spacing="4">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#E8F5E9">
+                                    <FontIcon Glyph="&#xE930;" FontSize="16" Foreground="#2E7D32" />
+                                </Border>
+                                <TextBlock Text="COMPLETED" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" x:Name="TxtCompletedProcedures" Text="0"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="#2D1554" VerticalAlignment="Center" />
+                        </Grid>
                         <TextBlock Text="Procedures done" Style="{StaticResource KpiSubStyle}" />
                     </StackPanel>
                 </Border>
+
             </Grid>
 
             <!-- ROW 2 · Search + Filter Toolbar -->
-            <Border
-                Grid.Row="2"
-                Background="White"
-                BorderBrush="#E4DAF5"
-                BorderThickness="1"
-                CornerRadius="12"
-                Padding="16,12">
+            <Border Grid.Row="2"
+                    Background="White" BorderBrush="#E4DAF5"
+                    BorderThickness="1" CornerRadius="12" Padding="16,12">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="180" />
+                        <ColumnDefinition Width="200" />
                     </Grid.ColumnDefinitions>
 
                     <AutoSuggestBox
@@ -192,20 +192,24 @@
                         PlaceholderText="Search patient name or procedure…"
                         QueryIcon="Find"
                         VerticalAlignment="Center"
-                        BorderBrush="#E4DAF5"
-                        BorderThickness="1"
-                        CornerRadius="8"
+                        BorderBrush="#C4B0E0" BorderThickness="1" CornerRadius="8"
                         TextChanged="SearchBox_TextChanged" />
 
                     <ComboBox
                         Grid.Column="1"
                         x:Name="StatusFilter"
                         PlaceholderText="All Statuses"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center"
-                        BorderBrush="#E4DAF5"
-                        CornerRadius="8"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                        BorderBrush="#C4B0E0" CornerRadius="8"
                         SelectionChanged="StatusFilter_SelectionChanged">
+                        <ComboBox.Resources>
+                            <SolidColorBrush x:Key="ComboBoxPlaceholderForeground"  Color="#9B80C4" />
+                            <SolidColorBrush x:Key="ComboBoxBorderBrush"            Color="#C4B0E0" />
+                            <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#5B2D8E" />
+                            <SolidColorBrush x:Key="ComboBoxBorderBrushFocused"     Color="#5B2D8E" />
+                            <SolidColorBrush x:Key="ComboBoxBackground"             Color="White" />
+                            <SolidColorBrush x:Key="ComboBoxForeground"             Color="#2D1554" />
+                        </ComboBox.Resources>
                         <ComboBoxItem Content="All Statuses" Tag="All"       IsSelected="True" />
                         <ComboBoxItem Content="Pending"      Tag="Pending" />
                         <ComboBoxItem Content="Scheduled"    Tag="Scheduled" />
@@ -216,33 +220,23 @@
             </Border>
 
             <!-- ROW 3 · Procedures Table -->
-            <Border
-                Grid.Row="3"
-                Background="White"
-                BorderBrush="#E4DAF5"
-                BorderThickness="1"
-                CornerRadius="12"
-                Padding="0">
+            <Border Grid.Row="3"
+                    Background="White" BorderBrush="#E4DAF5"
+                    BorderThickness="1" CornerRadius="12" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <!-- Card Header -->
                     <Grid Grid.Row="0" Padding="20,16,20,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Spacing="2">
+                        <StackPanel Spacing="2">
                             <TextBlock Text="Procedure Records" FontSize="15" FontWeight="SemiBold" Foreground="#2D1554" />
-                            <TextBlock Text="All patient procedures across the clinic" FontSize="12" Foreground="#9B80C4" />
+                            <TextBlock Text="All patient procedures assigned to you" FontSize="12" Foreground="#9B80C4" />
                         </StackPanel>
-                        <Border Grid.Column="1" Background="#EDE4F9" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtRowCount" Text="Showing 0 procedures" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
-                        </Border>
                     </Grid>
 
                     <!-- Column Headers -->
@@ -251,18 +245,20 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="200" />
-                                    <ColumnDefinition Width="120" />
                                     <ColumnDefinition Width="160" />
-                                    <ColumnDefinition Width="100" />
-                                    <ColumnDefinition Width="180" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="155" />
+                                    <ColumnDefinition Width="155" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="110" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="PATIENT"        Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="1" Text="PROCEDURE"      Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="2" Text="STATUS"         Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="3" Text="DATE SCHEDULED" Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="4" Text="COST"           Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="5" Text="ACTIONS"        Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
+                                <TextBlock Grid.Column="0" Text="PATIENT"              Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="1" Text="PROCEDURE"            Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="2" Text="STATUS"               Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="3" Text="APPOINTMENT SCHEDULE" Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="4" Text="PROCEDURE SCHEDULE"   Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="5" Text="COST"                 Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="6" Text="ACTIONS"              Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
                             </Grid>
                         </Border>
                         <Border Height="1" Background="#E4DAF5" VerticalAlignment="Bottom" />
@@ -278,95 +274,87 @@
                                             <Grid MinHeight="60">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="200" />
-                                                    <ColumnDefinition Width="120" />
                                                     <ColumnDefinition Width="160" />
-                                                    <ColumnDefinition Width="100" />
-                                                    <ColumnDefinition Width="180" />
+                                                    <ColumnDefinition Width="130" />
+                                                    <ColumnDefinition Width="155" />
+                                                    <ColumnDefinition Width="155" />
+                                                    <ColumnDefinition Width="90" />
+                                                    <ColumnDefinition Width="110" />
                                                 </Grid.ColumnDefinitions>
 
                                                 <!-- Patient Name + Avatar -->
                                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                                    <Border
-                                                        Width="36" Height="36" CornerRadius="18"
-                                                        Background="{Binding AvatarColor, Converter={StaticResource StringToBrush}}">
-                                                        <TextBlock
-                                                            Text="{x:Bind Initials}"
-                                                            FontSize="13" FontWeight="SemiBold" Foreground="White"
-                                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    <Border Width="36" Height="36" CornerRadius="18"
+                                                            Background="{x:Bind AvatarColor}">
+                                                        <TextBlock Text="{x:Bind Initials}"
+                                                                   FontSize="13" FontWeight="SemiBold" Foreground="White"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                     </Border>
-                                                    <TextBlock
-                                                        Text="{x:Bind PatientName}"
-                                                        Style="{StaticResource CellTextStyle}"
-                                                        FontWeight="SemiBold" />
+                                                    <TextBlock Text="{x:Bind PatientName}"
+                                                               Style="{StaticResource CellTextStyle}" FontWeight="SemiBold" />
                                                 </StackPanel>
 
                                                 <!-- Procedure Name -->
-                                                <TextBlock Grid.Column="1" Text="{x:Bind ProcedureName}" Style="{StaticResource CellTextStyle}" />
+                                                <TextBlock Grid.Column="1" Text="{x:Bind ProcedureName}"
+                                                           Style="{StaticResource CellTextStyle}" />
 
                                                 <!-- Status Badge -->
-                                                <Border
-                                                    Grid.Column="2"
-                                                    Background="{Binding StatusBadgeColor, Converter={StaticResource StringToBrush}}"
-                                                    CornerRadius="6" Padding="8,4"
-                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                    <TextBlock
-                                                        Text="{x:Bind Status}"
-                                                        FontSize="11" FontWeight="SemiBold"
-                                                        Foreground="{Binding StatusBadgeText, Converter={StaticResource StringToBrush}}" />
+                                                <Border Grid.Column="2"
+                                                        Background="{x:Bind StatusBadgeColor}"
+                                                        CornerRadius="6" Padding="8,4"
+                                                        HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                    <TextBlock Text="{x:Bind Status}"
+                                                               FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="{x:Bind StatusBadgeForeground}" />
                                                 </Border>
 
-                                                <!-- Date Scheduled -->
+                                                <!-- Appointment Schedule -->
                                                 <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="2">
-                                                    <TextBlock
-                                                        Text="{x:Bind DateScheduled}"
-                                                        Style="{StaticResource CellSecondaryStyle}"
-                                                        Visibility="{x:Bind HasDate}" />
-                                                    <Border
-                                                        Background="#F7F4FD" CornerRadius="4" Padding="6,3"
-                                                        HorizontalAlignment="Left"
-                                                        Visibility="{x:Bind NoDate}">
-                                                        <TextBlock
-                                                            Text="Not scheduled"
-                                                            FontSize="11" Foreground="#B0A0CC"
-                                                            FontStyle="Italic" />
+                                                    <TextBlock Text="{x:Bind AppointmentSchedule}"
+                                                               Style="{StaticResource CellSecondaryStyle}"
+                                                               Visibility="{x:Bind HasAppointmentDate}" />
+                                                    <Border Background="#F7F4FD" CornerRadius="4" Padding="6,3"
+                                                            HorizontalAlignment="Left"
+                                                            Visibility="{x:Bind NoAppointmentDate}">
+                                                        <TextBlock Text="Not scheduled"
+                                                                   FontSize="11" Foreground="#B0A0CC" FontStyle="Italic" />
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <!-- Procedure Schedule -->
+                                                <StackPanel Grid.Column="4" VerticalAlignment="Center" Spacing="2">
+                                                    <TextBlock Text="{x:Bind ProcedureSchedule}"
+                                                               Style="{StaticResource CellSecondaryStyle}"
+                                                               Visibility="{x:Bind HasProcedureDate}" />
+                                                    <Border Background="#F7F4FD" CornerRadius="4" Padding="6,3"
+                                                            HorizontalAlignment="Left"
+                                                            Visibility="{x:Bind NoProcedureDate}">
+                                                        <TextBlock Text="Not scheduled"
+                                                                   FontSize="11" Foreground="#B0A0CC" FontStyle="Italic" />
                                                     </Border>
                                                 </StackPanel>
 
                                                 <!-- Cost -->
-                                                <TextBlock Grid.Column="4" Text="{x:Bind Cost}" Style="{StaticResource CellTextStyle}" FontWeight="SemiBold" />
+                                                <TextBlock Grid.Column="5" Text="{x:Bind Cost}"
+                                                           Style="{StaticResource CellTextStyle}" FontWeight="SemiBold" />
 
-                                                <!-- Actions -->
-                                                <StackPanel
-                                                    Grid.Column="5"
-                                                    Orientation="Horizontal" Spacing="6"
-                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
-
+                                                <!-- Schedule Action Button -->
+                                                <Border Grid.Column="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <Button
                                                         Tag="{x:Bind ProcedureRecordId}"
                                                         Click="ScheduleAppointment_Click"
+                                                        IsEnabled="{x:Bind IsSchedulable}"
                                                         Padding="8,5" Background="#EDE4F9"
                                                         CornerRadius="6" BorderThickness="0"
                                                         ToolTipService.ToolTip="Schedule appointment">
                                                         <StackPanel Orientation="Horizontal" Spacing="5">
                                                             <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="#5B2D8E" />
-                                                            <TextBlock Text="Schedule" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
+                                                            <TextBlock Text="Schedule" FontSize="12"
+                                                                       Foreground="#5B2D8E" FontWeight="SemiBold" />
                                                         </StackPanel>
                                                     </Button>
+                                                </Border>
 
-                                                    <Button
-                                                        Tag="{x:Bind ProcedureRecordId}"
-                                                        Click="ViewProcedure_Click"
-                                                        Padding="8,5" Background="#F0FAF0"
-                                                        CornerRadius="6" BorderThickness="0"
-                                                        ToolTipService.ToolTip="View procedure details">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <FontIcon Glyph="&#xE7B3;" FontSize="11" Foreground="#2E7D32" />
-                                                            <TextBlock Text="View" FontSize="12" Foreground="#2E7D32" FontWeight="SemiBold" />
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                </StackPanel>
                                             </Grid>
                                         </Border>
                                         <Border Height="1" Background="#F0EAF8" Margin="20,0" />
@@ -376,8 +364,18 @@
                         </ItemsControl>
                     </ScrollViewer>
 
+                    <!-- Footer -->
+                    <Border Grid.Row="3" Background="#F7F4FD" CornerRadius="0,0,12,12" Padding="20,10">
+                        <TextBlock x:Name="TxtRowCount" Text="Showing 0 procedures"
+                                   FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
+                    </Border>
+
                 </Grid>
             </Border>
+
+            <!-- ROW 4 · Toast -->
+            <InfoBar Grid.Row="4" x:Name="ToastBar"
+                     IsOpen="False" IsClosable="True" Margin="0,4,0,0" />
 
         </Grid>
     </ScrollViewer>

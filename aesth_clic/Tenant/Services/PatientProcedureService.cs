@@ -180,6 +180,36 @@ namespace aesth_clic.Tenant.Services
 
         /*
         ============================================================
+        GET PROCEDURES APPOINTED TO CURRENT DOCTOR
+        (ProcedureDate must be null → still an appointment)
+        ============================================================
+        */
+
+        public async Task<List<PatientProcedure>> GetDoctorAppointmentsAsync(int doctorId)
+        {
+            using var tenantDb = CreateTenantDb();
+
+            if (doctorId <= 0)
+                throw new Exception("DoctorId is required.");
+
+            var appointments = await tenantDb.PatientProcedures
+                .Include(p => p.Patient)
+                .Include(p => p.User)
+                .Include(p => p.ServiceMenu)
+                .Where(p =>
+                    p.AssignedDoctorId == doctorId &&
+                    p.AppointmentDate != null &&
+                    p.ProcedureDate == null &&
+                    p.Status.Equals("scheduled"))
+                .OrderBy(p => p.AppointmentDate)
+                .ToListAsync();
+
+            return appointments;
+        }
+
+
+        /*
+        ============================================================
         DELETE PROCEDURE
         ============================================================
         */

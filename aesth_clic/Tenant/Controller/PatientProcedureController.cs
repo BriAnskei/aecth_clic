@@ -116,6 +116,12 @@ namespace aesth_clic.Tenant.Controller
             return await _procedureService.GetPatientProcedureByIdAsync(id);
         }
 
+        public async Task<List<PatientProcedure>> GetDoctorAppointmentsAsync(int doctorId)
+        {
+            return await _procedureService.GetDoctorAppointmentsAsync(doctorId);
+        }
+
+
         /*
         ============================================================
         DELETE
