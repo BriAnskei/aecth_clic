@@ -170,11 +170,14 @@ namespace aesth_clic.Tenant.Services
         {
             using var tenantDb = CreateTenantDb();
 
-            return await tenantDb.PatientProcedures
+            var res =  await tenantDb.PatientProcedures
                 .Include(p => p.Patient)
                 .Include(p => p.User)
                 .Include(p => p.ServiceMenu)
                 .FirstOrDefaultAsync(p => p.Id == id);
+
+
+            return res;
         }
 
 
@@ -205,6 +208,34 @@ namespace aesth_clic.Tenant.Services
                 .ToListAsync();
 
             return appointments;
+        }
+
+
+        /*
+        ============================================================
+        GET COMPLETED PROCEDURES BY DOCTOR
+        (ProcedureDate is NOT null → already performed)
+        ============================================================
+        */
+
+        public async Task<List<PatientProcedure>> getProceduresByDoctorsId(int doctorId)
+        {
+            using var tenantDb = CreateTenantDb();
+
+            if (doctorId <= 0)
+                throw new Exception("DoctorId is required.");
+
+            var procedures = await tenantDb.PatientProcedures
+                .Include(p => p.Patient)
+                .Include(p => p.User)
+                .Include(p => p.ServiceMenu)
+                .Where(p =>
+                    p.AssignedDoctorId == doctorId &&
+                    p.ProcedureDate != null)
+                .OrderByDescending(p => p.ProcedureDate)
+                .ToListAsync();
+
+            return procedures;
         }
 
 

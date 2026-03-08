@@ -1,8 +1,15 @@
+﻿using aesth_clic.Session;
+using aesth_clic.Tenant.Controller;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.Doctor;
+using aesth_clic.Views.Roles.Doctor.Modals;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+
+
 
 namespace aesth_clic.Views.Roles.Doctor.Pages
 {
@@ -20,124 +27,107 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
 
     public sealed partial class ProcedureManagement : Page
     {
-        // Master list � only appointments that have a date set are included here.
-        // When connected to a real DB, filter by: appointment date IS NOT NULL.
-        private List<ProcedureItem> _allProcedures = new();
+        private readonly ProcedureManagementViewModel _vm = new();
+        private readonly PatientProcedureController _procedureController;
 
         public ProcedureManagement()
         {
             InitializeComponent();
-            LoadData();
-            Loaded += (_, _) => ApplyFilters();
-        }
 
-        // ---------------------------------------------------------------------------
-        // Data
-        // ---------------------------------------------------------------------------
+            _procedureController = App.Services.GetRequiredService<PatientProcedureController>();
 
-        private void LoadData()
-        {
-            // Mirrors the AppointmentManagement sample data.
-            // Only rows that have a scheduled date are included (all 12 qualify here).
-            // When you wire up a real DB, replace this with a query such as:
-            //   SELECT * FROM Appointments WHERE AppointmentDate IS NOT NULL
-            _allProcedures = new List<ProcedureItem>
+            ProcedureListControl.ItemsSource = _vm.DisplayedProcedures;
+
+            _vm.PropertyChanged += (_, e) =>
             {
-                Build("a1",  "p1",  "Maria Santos",    "Female", "Botox Injection",      "Mar 05, 2025", "10:00 AM"),
-                Build("a2",  "p3",  "Ana Cruz",        "Female", "Body Contouring",      "Apr 20, 2025", "02:30 PM"),
-                Build("a3",  "p5",  "Liza Flores",     "Female", "Dermal Fillers",       "Mar 28, 2025", "11:00 AM"),
-                Build("a4",  "p9",  "Grace Tan",       "Female", "Lip Augmentation",     "May 02, 2025", "03:00 PM"),
-                Build("a5",  "p1",  "Maria Santos",    "Female", "Hydra Facial",         "Jan 10, 2025", "09:00 AM"),
-                Build("a6",  "p3",  "Ana Cruz",        "Female", "Chemical Peel",        "Feb 14, 2025", "01:00 PM"),
-                Build("a7",  "p6",  "Ramon Garcia",    "Male",   "Microdermabrasion",    "Dec 22, 2024", "10:30 AM"),
-                Build("a8",  "p10", "Kevin Lim",       "Male",   "Back Massage Therapy", "Jan 30, 2025", "04:00 PM"),
-                Build("a9",  "p2",  "Jose Reyes",      "Male",   "Laser Hair Removal",   "Jun 10, 2025", "09:30 AM"),
-                Build("a10", "p4",  "Carlo Mendoza",   "Male",   "Acne Scar Treatment",  "Jun 15, 2025", "11:30 AM"),
-                Build("a11", "p7",  "Sofia Aquino",    "Female", "Skin Brightening",     "Jun 20, 2025", "02:00 PM"),
-                Build("a12", "p8",  "Mark Villanueva", "Male",   "Laser Toning",         "Jul 01, 2025", "03:30 PM"),
-            };
-        }
-
-        private static ProcedureItem Build(
-            string id, string patientId, string patientName, string gender,
-            string procedureName, string date, string time)
-        {
-            var parts = patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var initials = parts.Length >= 2
-                ? $"{parts[0][0]}{parts[^1][0]}"
-                : patientName.Length > 0 ? patientName[0].ToString() : "?";
-
-            var avatarColor = gender switch
-            {
-                "Female" => "#C2185B",
-                "Male" => "#0078D4",
-                _ => "#5B2D8E"
+                if (e.PropertyName is nameof(ProcedureManagementViewModel.TotalProcedures))
+                    UpdateRowCount();
             };
 
-            return new ProcedureItem
-            {
-                ProcedureItemId = id,
-                PatientId = patientId,
-                PatientName = patientName,
-                Initials = initials.ToUpper(),
-                AvatarColor = avatarColor,
-                ProcedureName = procedureName,
-                AppointmentDate = date,
-                AppointmentTime = time,
-            };
+            _ = LoadFromDbAsync();
         }
 
-        // ---------------------------------------------------------------------------
-        // Filtering
-        // ---------------------------------------------------------------------------
-
-        private void ApplyFilters()
+        // ── Data loading ───────────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
-            if (ProcedureListControl is null) return;
+            try
+            {
+                var doctorId = AppSession.Instance.CurrentUser?.Id
+                    ?? throw new InvalidOperationException("No logged-in user found.");
 
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
+                var procedures = await _procedureController.getProceduresByDoctorsId(doctorId);
 
-            var filtered = _allProcedures.Where(p =>
-                string.IsNullOrEmpty(search)
-                || p.PatientName.ToLower().Contains(search)
-                || p.ProcedureName.ToLower().Contains(search)
-            ).ToList();
+                // Only show rows where ProcedureDate has been set by the doctor
+                _vm.LoadFromDb(procedures
+                    .Where(p => p.ProcedureDate.HasValue)
+                    .Select(p => (
+                        ProcedureItemId: p.Id.ToString(),
+                        PatientId: p.PatientId.ToString(),
+                        PatientName: p.Patient?.FullName ?? "Unknown Patient",
+                        Gender: p.Patient?.Gender ?? string.Empty,
+                        ProcedureName: p.ServiceMenu?.Name ?? "Unknown Procedure",
+                        ProcedureDate: p.ProcedureDate!.Value
+                    )));
 
-            ProcedureListControl.ItemsSource = filtered;
+                ProcedureListControl.ItemsSource = null;
+                ProcedureListControl.ItemsSource = _vm.DisplayedProcedures;
 
-            if (TxtRowCount is not null)
-                TxtRowCount.Text = $"Showing {filtered.Count} procedure{(filtered.Count == 1 ? "" : "s")}";
+                UpdateRowCount();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load procedures", ex.Message);
+            }
         }
 
+        // ── Row Count ──────────────────────────────────────────────────────────────
+        private void UpdateRowCount()
+        {
+            if (TxtRowCount is null) return;
+            var count = _vm.TotalProcedures;
+            TxtRowCount.Text = $"Showing {count} procedure{(count != 1 ? "s" : "")}";
+        }
+
+        // ── Search ─────────────────────────────────────────────────────────────────
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-            => ApplyFilters();
+        {
+            _vm.SearchText = sender.Text ?? string.Empty;
+        }
 
-        // ---------------------------------------------------------------------------
-        // Actions
-        // ---------------------------------------------------------------------------
-
+        // ── Mark Done ──────────────────────────────────────────────────────────────
         private async void MarkDone_Click(object sender, RoutedEventArgs e)
         {
             var id = (sender as Button)?.Tag?.ToString();
-            var record = _allProcedures.FirstOrDefault(p => p.ProcedureItemId == id);
+            var record = _vm.FindProcedure(id ?? string.Empty);
             if (record is null) return;
 
-            var dialog = new ContentDialog
+            var modal = new MarkDoneModal(
+                procedureItemId: record.ProcedureItemId,
+                patientName: record.PatientName,
+                patientGender: string.Empty,          // populate from your model if available
+                procedureName: record.ProcedureName,
+                appointmentDate: record.AppointmentDate)
             {
-                Title = "Mark as Done",
-                Content = $"Mark \"{record.ProcedureName}\" for {record.PatientName} as completed?\nThis will remove it from your procedure list.",
-                PrimaryButtonText = "Mark Done",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = XamlRoot
             };
 
-            var result = await dialog.ShowAsync();
+            await modal.ShowAsync();
 
-            if (result == ContentDialogResult.Primary)
+            if (modal.SaveError is not null)
             {
-                _allProcedures.Remove(record);
-                ApplyFilters();
+                ToastHelper.Error(ToastBar, "Failed to complete procedure", modal.SaveError.Message);
+                return;
+            }
+
+            if (modal.Result is not null)
+            {
+                _vm.Remove(record.ProcedureItemId);
+                UpdateRowCount();
+
+                var medicineNames = string.Join(", ", modal.Result.Medicines.Select(m => m.Name));
+                ToastHelper.Success(ToastBar,
+                    $"{record.ProcedureName} marked as complete",
+                    $"Reseta: {medicineNames}");
             }
         }
     }

@@ -34,6 +34,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- ROW 0 · Page Header -->
@@ -47,9 +48,12 @@
                     FontSize="13" Foreground="#9B80C4" />
             </StackPanel>
 
-            <!-- ROW 1 · Search + Filter Toolbar -->
+            <!-- ROW 1 · Toast InfoBar -->
+            <InfoBar Grid.Row="1" x:Name="ToastBar" IsOpen="False" IsClosable="True" Margin="0,-8,0,-8" />
+
+            <!-- ROW 2 · Search + Filter Toolbar -->
             <Border
-                Grid.Row="1"
+                Grid.Row="2"
                 Background="White"
                 BorderBrush="#E4DAF5"
                 BorderThickness="1"
@@ -92,9 +96,9 @@
                 </Grid>
             </Border>
 
-            <!-- ROW 2 · Doctors Table -->
+            <!-- ROW 3 · Doctors Table -->
             <Border
-                Grid.Row="2"
+                Grid.Row="3"
                 Background="White"
                 BorderBrush="#E4DAF5"
                 BorderThickness="1"
@@ -117,9 +121,9 @@
                             <TextBlock Text="Doctor Records" FontSize="15" FontWeight="SemiBold" Foreground="#2D1554" />
                             <TextBlock Text="Read-only view of doctor availability" FontSize="12" Foreground="#9B80C4" />
                         </StackPanel>
-                        <Border Grid.Column="1" Background="#EDE4F9" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock x:Name="TxtRowCount" Text="Showing 0 doctors" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
-                        </Border>
+                        </StackPanel>
                     </Grid>
 
                     <!-- Column Headers -->

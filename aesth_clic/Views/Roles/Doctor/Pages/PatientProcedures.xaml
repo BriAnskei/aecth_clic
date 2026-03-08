@@ -298,27 +298,21 @@
                                                 <TextBlock Grid.Column="1" Text="{x:Bind ProcedureName}"
                                                            Style="{StaticResource CellTextStyle}" />
 
-                                                <!-- Status Badge -->
-                                                <Border Grid.Column="2"
-                                                        Background="{x:Bind StatusBadgeColor}"
-                                                        CornerRadius="6" Padding="8,4"
-                                                        HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                    <TextBlock Text="{x:Bind Status}"
-                                                               FontSize="11" FontWeight="SemiBold"
-                                                               Foreground="{x:Bind StatusBadgeForeground}" />
-                                                </Border>
+                                                <!-- Status (text only, no badge) -->
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{x:Bind Status}"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="{x:Bind StatusBadgeForeground}"
+                                                           VerticalAlignment="Center" />
 
                                                 <!-- Appointment Schedule -->
                                                 <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="2">
                                                     <TextBlock Text="{x:Bind AppointmentSchedule}"
                                                                Style="{StaticResource CellSecondaryStyle}"
                                                                Visibility="{x:Bind HasAppointmentDate}" />
-                                                    <Border Background="#F7F4FD" CornerRadius="4" Padding="6,3"
-                                                            HorizontalAlignment="Left"
-                                                            Visibility="{x:Bind NoAppointmentDate}">
-                                                        <TextBlock Text="Not scheduled"
-                                                                   FontSize="11" Foreground="#B0A0CC" FontStyle="Italic" />
-                                                    </Border>
+                                                    <TextBlock Text="Not scheduled"
+                                                               FontSize="11" Foreground="#B0A0CC" FontStyle="Italic"
+                                                               Visibility="{x:Bind NoAppointmentDate}" />
                                                 </StackPanel>
 
                                                 <!-- Procedure Schedule -->
@@ -326,12 +320,9 @@
                                                     <TextBlock Text="{x:Bind ProcedureSchedule}"
                                                                Style="{StaticResource CellSecondaryStyle}"
                                                                Visibility="{x:Bind HasProcedureDate}" />
-                                                    <Border Background="#F7F4FD" CornerRadius="4" Padding="6,3"
-                                                            HorizontalAlignment="Left"
-                                                            Visibility="{x:Bind NoProcedureDate}">
-                                                        <TextBlock Text="Not scheduled"
-                                                                   FontSize="11" Foreground="#B0A0CC" FontStyle="Italic" />
-                                                    </Border>
+                                                    <TextBlock Text="Not scheduled"
+                                                               FontSize="11" Foreground="#B0A0CC" FontStyle="Italic"
+                                                               Visibility="{x:Bind NoProcedureDate}" />
                                                 </StackPanel>
 
                                                 <!-- Cost -->

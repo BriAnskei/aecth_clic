@@ -1,4 +1,5 @@
 ﻿using aesth_clic.Session;
+using aesth_clic.Tenant.DTO;
 using aesth_clic.Tenant.Model;
 using aesth_clic.Util;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,35 @@ namespace aesth_clic.Tenant.Services
                                  .Include(u => u.AccountStatus)
                                  .Where(u => u.AccountStatus != null)   // only users with account status(excluded admin)
                                  .ToListAsync();
+        }
+
+
+        public async Task<List<DoctorAvailabilityDto>> GetDoctorAvailabilityAsync()
+        {
+            using var tenantDb = CreateTenantDb();
+
+            var assignedDoctorIds = await tenantDb.PatientProcedures
+                .Where(p => p.AssignedDoctorId != null)
+                .Select(p => p.AssignedDoctorId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            var doctors = await tenantDb.Users
+                .Include(u => u.AccountStatus)
+                .Where(u => u.Role.ToLower() == "doctor")
+                .Where(u => u.AccountStatus != null && u.AccountStatus.Status == "Active")
+                .ToListAsync();
+
+            var result = doctors.Select(d => new DoctorAvailabilityDto
+            {
+                Id = d.Id,
+                FullName = d.FullName,
+                Email = d.Email,
+                Role = d.Role,
+                AvailabilityStatus = assignedDoctorIds.Contains(d.Id) ? "busy" : "available"
+            }).ToList();
+
+            return result;
         }
 
         public async Task<User?> GetUserByIdAsync(int id)

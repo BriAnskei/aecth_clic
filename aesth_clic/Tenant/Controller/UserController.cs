@@ -1,4 +1,5 @@
 ﻿using aesth_clic.Tenant.Dto.UserManagement;
+using aesth_clic.Tenant.DTO;
 using aesth_clic.Tenant.Model;
 using aesth_clic.Tenant.Services;
 using System;
@@ -37,6 +38,11 @@ namespace aesth_clic.Tenant.Controller
         public async Task<List<User>> GetAllUsersAsync()
         {
             return await _userService.GetAllUsersAsync();
+        }
+
+        public async Task<List<DoctorAvailabilityDto>> GetDoctorAvailabilityAsync()
+        {
+            return await _userService.GetDoctorAvailabilityAsync();
         }
 
 
