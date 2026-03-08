@@ -46,6 +46,14 @@ namespace aesth_clic.Tenant.Controller
         }
 
 
+        public async Task<List<User>> GetAvailableDoctorsAsync()
+        {
+            return await _userService.GetAvailableDoctorsAsync();
+        }
+
+
+
+
         public async Task<User?> GetUserByIdAsync(int id)
         {
             if (id <= 0)

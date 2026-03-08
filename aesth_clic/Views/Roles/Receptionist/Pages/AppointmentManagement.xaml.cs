@@ -1,16 +1,22 @@
-﻿using Microsoft.UI.Xaml;
+﻿using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.Model;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.Receptionist;
+using aesth_clic.Views.Roles.Receptionist.Modals;
+using aesth_clic.Views.Roles.Receptionist.Modals.PatientProcedure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Windows.UI;
 
 namespace aesth_clic.Views.Roles.Receptionist.Pages
 {
-    // ── Shared Converter (used by ALL pages in this namespace) ─────────────────
+    // ── Converter ──────────────────────────────────────────────────────────────
     public class StringToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
@@ -47,48 +53,67 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
         public string ProcedureName { get; set; } = string.Empty;
         public string AppointmentDate { get; set; } = string.Empty;
         public string AppointmentTime { get; set; } = string.Empty;
+
+        // Raw values needed for edit mode pre-fill
+        public int RawProcedureRecordId { get; set; }
+        public int RawDoctorId { get; set; }
+        public DateTime RawAppointmentDate { get; set; }
     }
 
     // ── Page ───────────────────────────────────────────────────────────────────
     public sealed partial class AppointmentManagement : Page
     {
-        private List<AppointmentItem> _allAppointments = new();
+        private readonly AppointmentManagementViewModel _vm = new();
+        private readonly PatientProcedureController _procedureController;
+        private readonly UserController _userController;
 
         public AppointmentManagement()
         {
             InitializeComponent();
-            LoadSampleData();
-            Loaded += (_, _) => ApplyFilters();
-        }
 
-        // ── Sample Data ────────────────────────────────────────────────────────
-        private void LoadSampleData()
-        {
-            _allAppointments = new List<AppointmentItem>
+            _procedureController = App.Services.GetRequiredService<PatientProcedureController>();
+            _userController = App.Services.GetRequiredService<UserController>();
+
+            AppointmentListControl.ItemsSource = _vm.DisplayedAppointments;
+
+            _vm.PropertyChanged += (_, e) =>
             {
-                BuildItem("a1",  "p1",  "Maria Santos",    "Female", "Dr. Isabel Reyes",     "Botox Injection",      "Mar 05, 2025", "10:00 AM"),
-                BuildItem("a2",  "p3",  "Ana Cruz",        "Female", "Dr. Carlos Mendoza",   "Body Contouring",      "Apr 20, 2025", "02:30 PM"),
-                BuildItem("a3",  "p5",  "Liza Flores",     "Female", "Dr. Isabel Reyes",     "Dermal Fillers",       "Mar 28, 2025", "11:00 AM"),
-                BuildItem("a4",  "p9",  "Grace Tan",       "Female", "Dr. Sofia Villanueva", "Lip Augmentation",     "May 02, 2025", "03:00 PM"),
-                BuildItem("a5",  "p1",  "Maria Santos",    "Female", "Dr. Ramon Aquino",     "Hydra Facial",         "Jan 10, 2025", "09:00 AM"),
-                BuildItem("a6",  "p3",  "Ana Cruz",        "Female", "Dr. Sofia Villanueva", "Chemical Peel",        "Feb 14, 2025", "01:00 PM"),
-                BuildItem("a7",  "p6",  "Ramon Garcia",    "Male",   "Dr. Carlos Mendoza",   "Microdermabrasion",    "Dec 22, 2024", "10:30 AM"),
-                BuildItem("a8",  "p10", "Kevin Lim",       "Male",   "Dr. Ramon Aquino",     "Back Massage Therapy", "Jan 30, 2025", "04:00 PM"),
-                BuildItem("a9",  "p2",  "Jose Reyes",      "Male",   "Dr. Mark Delgado",     "Laser Hair Removal",   "Jun 10, 2025", "09:30 AM"),
-                BuildItem("a10", "p4",  "Carlo Mendoza",   "Male",   "Dr. Isabel Reyes",     "Acne Scar Treatment",  "Jun 15, 2025", "11:30 AM"),
-                BuildItem("a11", "p7",  "Sofia Aquino",    "Female", "Dr. Mark Delgado",     "Skin Brightening",     "Jun 20, 2025", "02:00 PM"),
-                BuildItem("a12", "p8",  "Mark Villanueva", "Male",   "Dr. Carlos Mendoza",   "Laser Toning",         "Jul 01, 2025", "03:30 PM"),
+                if (e.PropertyName is nameof(AppointmentManagementViewModel.DisplayedCount))
+                    UpdateRowCount();
             };
+
+            _ = LoadFromDbAsync();
         }
 
-        private static AppointmentItem BuildItem(
-            string appointmentId, string patientId, string patientName, string gender,
-            string doctorName, string procedureName, string date, string time)
+        // ── Data loading ───────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
-            var parts = patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            try
+            {
+                var records = await _procedureController.GetCurrentAppointmentsAsync();
+                _vm.LoadFromDb(records.Select(MapToItem));
+
+                AppointmentListControl.ItemsSource = null;
+                AppointmentListControl.ItemsSource = _vm.DisplayedAppointments;
+
+                UpdateRowCount();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load appointments", ex.Message);
+            }
+        }
+
+        // ── Domain → UI model mapping ──────────────────────────────────────────
+        private static AppointmentItem MapToItem(PatientProcedure p)
+        {
+            var fullName = p.Patient?.FullName ?? "Unknown";
+            var gender = p.Patient?.Gender ?? string.Empty;
+
+            var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var initials = parts.Length >= 2
                 ? $"{parts[0][0]}{parts[^1][0]}"
-                : patientName.Length > 0 ? patientName[0].ToString() : "?";
+                : fullName.Length > 0 ? fullName[0].ToString() : "?";
 
             var avatarColor = gender switch
             {
@@ -97,108 +122,108 @@ namespace aesth_clic.Views.Roles.Receptionist.Pages
                 _ => "#5B2D8E"
             };
 
+            var doctorName = p.User?.FullName is { Length: > 0 } name ? name : "—";
+
+            var appointmentDate = p.AppointmentDate.HasValue
+                ? p.AppointmentDate.Value.ToString("MMM dd, yyyy")
+                : "—";
+
+            var appointmentTime = p.AppointmentDate.HasValue
+                ? p.AppointmentDate.Value.ToString("hh:mm tt")
+                : string.Empty;
+
             return new AppointmentItem
             {
-                AppointmentId = appointmentId,
-                PatientId = patientId,
-                PatientName = patientName,
+                AppointmentId = p.Id.ToString(),
+                PatientId = p.PatientId.ToString(),
+                PatientName = fullName,
                 Initials = initials.ToUpper(),
                 AvatarColor = avatarColor,
                 DoctorName = doctorName,
-                ProcedureName = procedureName,
-                AppointmentDate = date,
-                AppointmentTime = time,
+                ProcedureName = p.ServiceMenu?.Name ?? "Unknown",
+                AppointmentDate = appointmentDate,
+                AppointmentTime = appointmentTime,
+                RawProcedureRecordId = p.Id,
+                RawDoctorId = p.AssignedDoctorId ?? 0,
+                RawAppointmentDate = p.AppointmentDate ?? DateTime.Today,
             };
         }
 
-        // ── Filtering ──────────────────────────────────────────────────────────
-        private void ApplyFilters()
+        // ── Row count ──────────────────────────────────────────────────────────
+        private void UpdateRowCount()
         {
-            if (AppointmentListControl is null) return;
-
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
-
-            var filtered = _allAppointments.Where(a =>
-                string.IsNullOrEmpty(search)
-                || a.PatientName.ToLower().Contains(search)
-                || a.ProcedureName.ToLower().Contains(search)
-            ).ToList();
-
-            AppointmentListControl.ItemsSource = filtered;
-
-            if (TxtRowCount is not null)
-                TxtRowCount.Text = $"Showing {filtered.Count} appointment{(filtered.Count == 1 ? "" : "s")}";
+            if (TxtRowCount is null) return;
+            var count = _vm.DisplayedCount;
+            TxtRowCount.Text = $"Showing {count} appointment{(count == 1 ? "" : "s")}";
         }
 
+        // ── Search ─────────────────────────────────────────────────────────────
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-            => ApplyFilters();
+        {
+            _vm.SearchText = sender.Text;
+        }
 
+        // ── Kebab (no-op — flyout is declared in XAML) ─────────────────────────
         private void KebabMenu_Click(object sender, RoutedEventArgs e) { }
 
-        // ── Add ────────────────────────────────────────────────────────────────
-        private async void AddAppointment_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new ContentDialog
-            {
-                Title = "Add Appointment",
-                Content = "Add appointment form will be implemented here.",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
-            await dialog.ShowAsync();
-        }
-
-        // ── View ───────────────────────────────────────────────────────────────
-        private async void ViewAppointment_Click(object sender, RoutedEventArgs e)
-        {
-            var id = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            var record = _allAppointments.FirstOrDefault(a => a.AppointmentId == id);
-            if (record is null) return;
-
-            var dialog = new ContentDialog
-            {
-                Title = record.ProcedureName,
-                Content = $"Patient: {record.PatientName}\nDoctor: {record.DoctorName}\nProcedure: {record.ProcedureName}\nDate: {record.AppointmentDate}\nTime: {record.AppointmentTime}",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
-            await dialog.ShowAsync();
-        }
-
-        // ── Edit / Reschedule ──────────────────────────────────────────────────
-        private async void EditAppointment_Click(object sender, RoutedEventArgs e)
-        {
-            var id = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            var record = _allAppointments.FirstOrDefault(a => a.AppointmentId == id);
-            if (record is null) return;
-
-            var dialog = new ContentDialog
-            {
-                Title = $"Edit / Reschedule — {record.ProcedureName}",
-                Content = $"Edit or reschedule {record.PatientName}'s {record.ProcedureName} appointment.\nFunctionality will be implemented later.",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
-            await dialog.ShowAsync();
-        }
-
-        // ── Cancel ─────────────────────────────────────────────────────────────
+        // ── Cancel Appointment ─────────────────────────────────────────────────
         private async void CancelAppointment_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            var record = _allAppointments.FirstOrDefault(a => a.AppointmentId == id);
-            if (record is null) return;
+            if (sender is not MenuFlyoutItem item) return;
 
-            var dialog = new ContentDialog
-            {
-                Title = "Cancel Appointment",
-                Content = $"Cancel {record.PatientName}'s {record.ProcedureName} appointment?\nFunctionality will be implemented later.",
-                CloseButtonText = "Back",
-                PrimaryButtonText = "Confirm Cancel",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = XamlRoot
-            };
+            var appointmentId = item.Tag?.ToString() ?? string.Empty;
+            var appt = _vm.FindAppointment(appointmentId);
+            if (appt is null) return;
+
+            var dialog = new CancelProcedureConfirmation(
+                appt.PatientName,
+                appt.Initials,
+                appt.AvatarColor,
+                appt.ProcedureName,
+                "Scheduled",
+                "#0078D4",
+                string.Empty)
+            { XamlRoot = XamlRoot };
+
             await dialog.ShowAsync();
+            if (!dialog.Confirmed) return;
+
+            try
+            {
+                await _procedureController.DeletePatientProcedureAsync(
+                    int.Parse(appt.AppointmentId));
+
+                await LoadFromDbAsync();
+                ToastHelper.Warning(ToastBar, "Appointment cancelled",
+                    $"{appt.ProcedureName} for {appt.PatientName} has been cancelled.");
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to cancel appointment", ex.Message);
+            }
+        }
+
+        // ── Add Appointment ────────────────────────────────────────────────────
+        private async void AddAppointment_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new AddAppointmentModal(
+                _procedureController,
+                _userController)
+            { XamlRoot = XamlRoot };
+
+            await dialog.ShowAsync();
+
+            if (dialog.Result is null && dialog.SaveError is null) return;
+
+            if (dialog.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to add appointment", dialog.SaveError.Message);
+                return;
+            }
+
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "Appointment scheduled",
+                $"{dialog.Result!.ProcedureName} for {dialog.Result.PatientName} assigned to Dr. {dialog.Result.DoctorName} on {dialog.Result.AppointmentDate:MMM dd, yyyy}.");
         }
     }
 }

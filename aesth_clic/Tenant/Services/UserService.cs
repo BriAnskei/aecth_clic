@@ -93,6 +93,23 @@ namespace aesth_clic.Tenant.Services
             return result;
         }
 
+
+        public async Task<List<User>> GetAvailableDoctorsAsync()
+        {
+            using var tenantDb = CreateTenantDb();
+
+            var availableDoctors = await tenantDb.Users
+                .AsNoTracking()
+                .Include(u => u.AccountStatus)
+                .Where(u => u.Role.ToLower() == "doctor")
+                .Where(u => u.AccountStatus != null && u.AccountStatus.Status == "Active")
+                .Where(u => !tenantDb.PatientProcedures
+                    .Any(p => p.AssignedDoctorId == u.Id))
+                .ToListAsync();
+
+            return availableDoctors;
+        }
+
         public async Task<User?> GetUserByIdAsync(int id)
         {
             using var tenantDb = CreateTenantDb();

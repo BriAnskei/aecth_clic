@@ -211,6 +211,34 @@ namespace aesth_clic.Tenant.Services
         }
 
 
+
+        /*
+        ============================================================
+        GET ALL CURRENT APPOINTMENTS
+        (AssignedDoctorId + AppointmentDate exist, ProcedureDate null)
+        ============================================================
+        */
+
+        public async Task<List<PatientProcedure>> GetCurrentAppointmentsAsync()
+        {
+            using var tenantDb = CreateTenantDb();
+
+            var appointments = await tenantDb.PatientProcedures
+                .Include(p => p.Patient)
+                .Include(p => p.User)
+                .Include(p => p.ServiceMenu)
+                .Where(p =>
+                    p.AssignedDoctorId != null &&
+                    p.AppointmentDate != null &&
+                    p.ProcedureDate == null &&
+                    p.Status.Equals("scheduled"))
+                .OrderBy(p => p.AppointmentDate)
+                .ToListAsync();
+
+            return appointments;
+        }
+
+
         /*
         ============================================================
         GET COMPLETED PROCEDURES BY DOCTOR

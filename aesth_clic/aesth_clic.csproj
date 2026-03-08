@@ -51,6 +51,7 @@
     <None Remove="Views\Roles\ReceptionistShell.xaml" />
     <None Remove="Views\Roles\Receptionist\Modals\AddEditPatient.xaml" />
     <None Remove="Views\Roles\Receptionist\Modals\AddPatientProcedure.xaml" />
+    <None Remove="Views\Roles\Receptionist\Modals\AppointmentManagement\AddAppointmentModal.xaml" />
     <None Remove="Views\Roles\Receptionist\Modals\PatientManagement\DeletePatient.xaml" />
     <None Remove="Views\Roles\Receptionist\Modals\PatientProcedure\CancelProcedureConfirmation.xaml" />
     <None Remove="Views\Roles\Receptionist\Pages\AppointmentManagement.xaml" />
@@ -306,6 +307,11 @@
   </ItemGroup>
   <ItemGroup>
     <PRIResource Remove="Services\AdminServices\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Receptionist\Modals\AppointmentManagement\AddAppointmentModal.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Doctor\Modal\PatientProcedure\MarkDoneModal.xaml">
