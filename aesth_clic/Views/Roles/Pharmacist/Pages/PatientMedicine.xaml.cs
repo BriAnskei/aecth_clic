@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.UI;
+using aesth_clic.Views.Roles.Pharmacist.Modals;
 
 namespace aesth_clic.Views.Roles.Pharmacist.Pages
 {
@@ -35,9 +36,12 @@ namespace aesth_clic.Views.Roles.Pharmacist.Pages
     {
         public string PatientId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
+        public string PatientGender { get; set; } = string.Empty;
         public string Initials { get; set; } = string.Empty;
         public string AvatarColor { get; set; } = "#5B2D8E";
         public string AssignedDoctor { get; set; } = string.Empty;
+        public string ProcedureName { get; set; } = string.Empty;
+        public string AppointmentDate { get; set; } = string.Empty;
         public int TotalMedicine { get; set; }
         public string TotalMedicineDisplay => $"{TotalMedicine} medicine{(TotalMedicine == 1 ? "" : "s")}";
     }
@@ -58,22 +62,23 @@ namespace aesth_clic.Views.Roles.Pharmacist.Pages
         {
             _allItems = new List<PatientMedicineItem>
             {
-                BuildItem("p1",  "Maria Santos",    "Female", "Dr. Reyes",    4),
-                BuildItem("p2",  "Jose Reyes",      "Male",   "Dr. Santos",   2),
-                BuildItem("p3",  "Ana Cruz",        "Female", "Dr. Lim",      5),
-                BuildItem("p4",  "Carlo Mendoza",   "Male",   "Dr. Reyes",    3),
-                BuildItem("p5",  "Liza Flores",     "Female", "Dr. Garcia",   6),
-                BuildItem("p6",  "Ramon Garcia",    "Male",   "Dr. Santos",   1),
-                BuildItem("p7",  "Sofia Aquino",    "Female", "Dr. Lim",      3),
-                BuildItem("p8",  "Mark Villanueva", "Male",   "Dr. Garcia",   2),
-                BuildItem("p9",  "Grace Tan",       "Female", "Dr. Reyes",    4),
-                BuildItem("p10", "Kevin Lim",       "Male",   "Dr. Santos",   3),
+                BuildItem("p1",  "Maria Santos",    "Female", "Dr. Reyes",  "Facial Rejuvenation", "Mar 01, 2025", 4),
+                BuildItem("p2",  "Jose Reyes",      "Male",   "Dr. Santos", "Botox Treatment",     "Mar 02, 2025", 2),
+                BuildItem("p3",  "Ana Cruz",        "Female", "Dr. Lim",    "Chemical Peel",       "Mar 03, 2025", 5),
+                BuildItem("p4",  "Carlo Mendoza",   "Male",   "Dr. Reyes",  "Laser Therapy",       "Mar 04, 2025", 3),
+                BuildItem("p5",  "Liza Flores",     "Female", "Dr. Garcia", "Microdermabrasion",   "Mar 05, 2025", 6),
+                BuildItem("p6",  "Ramon Garcia",    "Male",   "Dr. Santos", "HydraFacial",         "Mar 06, 2025", 1),
+                BuildItem("p7",  "Sofia Aquino",    "Female", "Dr. Lim",    "PRP Therapy",         "Mar 07, 2025", 3),
+                BuildItem("p8",  "Mark Villanueva", "Male",   "Dr. Garcia", "Acne Treatment",      "Mar 08, 2025", 2),
+                BuildItem("p9",  "Grace Tan",       "Female", "Dr. Reyes",  "Skin Brightening",    "Mar 09, 2025", 4),
+                BuildItem("p10", "Kevin Lim",       "Male",   "Dr. Santos", "Anti-Aging Facial",   "Mar 10, 2025", 3),
             };
         }
 
         private static PatientMedicineItem BuildItem(
             string patientId, string patientName, string gender,
-            string assignedDoctor, int totalMedicine)
+            string assignedDoctor, string procedureName,
+            string appointmentDate, int totalMedicine)
         {
             var parts = patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var initials = parts.Length >= 2
@@ -91,9 +96,12 @@ namespace aesth_clic.Views.Roles.Pharmacist.Pages
             {
                 PatientId = patientId,
                 PatientName = patientName,
+                PatientGender = gender,
                 Initials = initials.ToUpper(),
                 AvatarColor = avatarColor,
                 AssignedDoctor = assignedDoctor,
+                ProcedureName = procedureName,
+                AppointmentDate = appointmentDate,
                 TotalMedicine = totalMedicine,
             };
         }
@@ -119,22 +127,27 @@ namespace aesth_clic.Views.Roles.Pharmacist.Pages
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
             => ApplyFilters();
 
-        private void KebabMenu_Click(object sender, RoutedEventArgs e) { /* flyout handles itself */ }
-
         private async void ViewDetails_Click(object sender, RoutedEventArgs e)
         {
             var id = (sender as MenuFlyoutItem)?.Tag?.ToString();
             var record = _allItems.FirstOrDefault(p => p.PatientId == id);
             if (record is null) return;
 
-            var dialog = new ContentDialog
+            var modal = new PatientPrescriptionModal(
+                patientId: record.PatientId,
+                patientName: record.PatientName,
+                patientGender: record.PatientGender,
+                assignedDoctor: record.AssignedDoctor,
+                procedureName: record.ProcedureName,
+                appointmentDate: record.AppointmentDate)
             {
-                Title = $"{record.PatientName} — Medicine Details",
-                Content = "Detailed medicine information will be implemented later.",
-                CloseButtonText = "Close",
                 XamlRoot = XamlRoot
             };
-            await dialog.ShowAsync();
+
+            await modal.ShowAsync();
+
+            // TODO: handle modal.Result when backend is wired
+            // e.g. if (modal.Result is not null) RefreshPatientList();
         }
     }
 }

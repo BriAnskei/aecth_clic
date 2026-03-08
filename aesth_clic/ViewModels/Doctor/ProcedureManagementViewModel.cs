@@ -13,9 +13,7 @@ namespace aesth_clic.ViewModels.Doctor
         private readonly List<ProcedureItem> _allProcedures = new();
         public ObservableCollection<ProcedureItem> DisplayedProcedures { get; } = new();
 
-        // ──────────────────────────────────────────────────────
-        // FILTER STATE
-        // ──────────────────────────────────────────────────────
+        // ── Filter state ───────────────────────────────────────────────────────
         private string _searchText = string.Empty;
         public string SearchText
         {
@@ -23,15 +21,10 @@ namespace aesth_clic.ViewModels.Doctor
             set { _searchText = value; OnPropertyChanged(); ApplyFilters(); }
         }
 
-        // ──────────────────────────────────────────────────────
-        // ROW COUNT  (reflects DisplayedProcedures — i.e. filtered)
-        // ──────────────────────────────────────────────────────
+        // ── Row count (reflects filtered list) ────────────────────────────────
         public int TotalProcedures => DisplayedProcedures.Count;
 
-        // ──────────────────────────────────────────────────────
-        // LOAD FROM DB  (maps PatientProcedure list → ProcedureItem list)
-        // Only rows where ProcedureDate is not null are passed in.
-        // ──────────────────────────────────────────────────────
+        // ── Load ───────────────────────────────────────────────────────────────
         public void LoadFromDb(IEnumerable<(
             string ProcedureItemId,
             string PatientId,
@@ -54,9 +47,7 @@ namespace aesth_clic.ViewModels.Doctor
             ApplyFilters();
         }
 
-        // ──────────────────────────────────────────────────────
-        // FACTORY HELPER
-        // ──────────────────────────────────────────────────────
+        // ── Factory helper ─────────────────────────────────────────────────────
         public static ProcedureItem BuildItem(
             string procedureItemId,
             string patientId,
@@ -82,6 +73,7 @@ namespace aesth_clic.ViewModels.Doctor
                 ProcedureItemId = procedureItemId,
                 PatientId = patientId,
                 PatientName = patientName,
+                PatientGender = gender,                                  // ← ADDED
                 Initials = initials.ToUpper(),
                 AvatarColor = avatarColor,
                 ProcedureName = procedureName,
@@ -90,16 +82,13 @@ namespace aesth_clic.ViewModels.Doctor
             };
         }
 
-        // ──────────────────────────────────────────────────────
-        // FILTERS
-        // ──────────────────────────────────────────────────────
+        // ── Filters ────────────────────────────────────────────────────────────
         public void ApplyFilters()
         {
             var filtered = _allProcedures.Where(p =>
                 string.IsNullOrEmpty(SearchText)
                 || p.PatientName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-                || p.ProcedureName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-            );
+                || p.ProcedureName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
 
             DisplayedProcedures.Clear();
             foreach (var p in filtered)
@@ -108,15 +97,11 @@ namespace aesth_clic.ViewModels.Doctor
             OnPropertyChanged(nameof(TotalProcedures));
         }
 
-        // ──────────────────────────────────────────────────────
-        // LOOKUP HELPER  (used by MarkDone_Click)
-        // ──────────────────────────────────────────────────────
+        // ── Lookup ─────────────────────────────────────────────────────────────
         public ProcedureItem? FindProcedure(string procedureItemId) =>
             _allProcedures.FirstOrDefault(p => p.ProcedureItemId == procedureItemId);
 
-        // ──────────────────────────────────────────────────────
-        // REMOVE HELPER  (called after local mark-done until DB wired up)
-        // ──────────────────────────────────────────────────────
+        // ── Remove (called after successful mark-done) ─────────────────────────
         public void Remove(string procedureItemId)
         {
             var item = _allProcedures.FirstOrDefault(p => p.ProcedureItemId == procedureItemId);
@@ -125,9 +110,7 @@ namespace aesth_clic.ViewModels.Doctor
             ApplyFilters();
         }
 
-        // ──────────────────────────────────────────────────────
-        // INPC
-        // ──────────────────────────────────────────────────────
+        // ── INPC ───────────────────────────────────────────────────────────────
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

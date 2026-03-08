@@ -1,4 +1,5 @@
 ﻿using aesth_clic.Session;
+using aesth_clic.Tenant.DTO;
 using aesth_clic.Tenant.Model;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,9 +9,11 @@ using System.Threading.Tasks;
 
 namespace aesth_clic.Tenant.Services
 {
-    public sealed class PatientProcedureService(TenantDbContextFactory tenantFactory) : TenantServiceBase
+    public sealed class PatientProcedureService(TenantDbContextFactory tenantFactory, PrescriptionService prescriptionService) : TenantServiceBase
     {
         private readonly TenantDbContextFactory _tenantFactory = tenantFactory;
+
+        private readonly PrescriptionService _prescriptionService = prescriptionService;
 
         /*
         ============================================================
@@ -116,11 +119,11 @@ namespace aesth_clic.Tenant.Services
         ============================================================
         */
 
-        public async Task CompletePatientProcedureAsync(int patientProcedureId)
+        public async Task CompletePatientProcedureAsync(int patientProcedureId, List<PrescriptionMedicineDto> medicines)
         {
-            using var tenantDb = CreateTenantDb();
+            using var db = CreateTenantDb();
 
-            var procedure = await tenantDb.PatientProcedures
+            var procedure = await db.PatientProcedures
                 .FirstOrDefaultAsync(p => p.Id == patientProcedureId);
 
             if (procedure == null)
@@ -132,11 +135,25 @@ namespace aesth_clic.Tenant.Services
             if (procedure.ProcedureDate == null)
                 throw new Exception("ProcedureDate must be set before completing.");
 
-            procedure.Status = "completed";
+            using var transaction = await db.Database.BeginTransactionAsync();
 
-            await tenantDb.SaveChangesAsync();
+            try
+            {
+                procedure.Status = "completed";
+
+                await db.SaveChangesAsync();
+
+                // PASS SAME CONTEXT
+                await _prescriptionService.CreateAsync(db, patientProcedureId, medicines);
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
-
 
         /*
         ============================================================

@@ -1,4 +1,5 @@
 ﻿using aesth_clic.Tenant.Dto.PatientProcedure;
+using aesth_clic.Tenant.DTO;
 using aesth_clic.Tenant.Model;
 using aesth_clic.Tenant.Services;
 using System;
@@ -83,12 +84,26 @@ namespace aesth_clic.Tenant.Controller
         ============================================================
         */
 
-        public async Task CompleteProcedureAsync(int procedureId)
+        public async Task CompleteProcedureAsync(int procedureId, List<PrescriptionMedicineDto> medicines)
         {
-            if (procedureId <= 0)
-                throw new ArgumentException("Invalid procedure id.");
+            try
+            {
+                if (procedureId <= 0 || medicines == null)
+                    throw new ArgumentException("Invalid procedure id.");
 
-            await _procedureService.CompletePatientProcedureAsync(procedureId);
+                await _procedureService.CompletePatientProcedureAsync(procedureId, medicines);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Argument error: {ex.Message}");
+                throw; // rethrow so the caller still knows something failed
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error in CompleteProcedureAsync: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                throw;
+            }
         }
 
         /*

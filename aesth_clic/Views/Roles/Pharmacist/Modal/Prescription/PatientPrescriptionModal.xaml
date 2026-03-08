@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="aesth_clic.Views.Roles.Pharmacist.Modals.PatientPrescriptionModal"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:aesth_clic.Views.Roles.Pharmacist.Modals"
+    Title="Prescription Details"
+    PrimaryButtonText="Mark Complete"
+    CloseButtonText="Close"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnMarkCompleteClicked"
+    PrimaryButtonStyle="{StaticResource PurplePrimaryButtonStyle}"
+    CloseButtonStyle="{StaticResource GrayCloseButtonStyle}">
+
+    <ContentDialog.Resources>
+        <SolidColorBrush x:Key="ContentDialogBackground"                       Color="White" />
+        <SolidColorBrush x:Key="ContentDialogBorderBrush"                      Color="#E4DAF5" />
+        <SolidColorBrush x:Key="ContentDialogTopOverlayBackground"             Color="White" />
+        <SolidColorBrush x:Key="ContentDialogButtonAreaBackground"             Color="White" />
+        <SolidColorBrush x:Key="ContentDialogForeground"                       Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForeground"            Color="#5B2D8E" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPointerOver" Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForegroundPressed"     Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackground"            Color="White" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPointerOver" Color="#EDE4F9" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPressed"     Color="#E4DAF5" />
+
+        <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"         Value="11" />
+            <Setter Property="FontWeight"       Value="SemiBold" />
+            <Setter Property="Foreground"       Value="#9B80C4" />
+            <Setter Property="CharacterSpacing" Value="50" />
+        </Style>
+
+        <Style x:Key="ColHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"          Value="10" />
+            <Setter Property="FontWeight"        Value="SemiBold" />
+            <Setter Property="Foreground"        Value="#9B80C4" />
+            <Setter Property="CharacterSpacing"  Value="50" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="CellTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"          Value="13" />
+            <Setter Property="Foreground"        Value="#2D1554" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming"      Value="CharacterEllipsis" />
+        </Style>
+
+        <Style x:Key="CellSecondaryStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"          Value="12" />
+            <Setter Property="Foreground"        Value="#9B80C4" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming"      Value="CharacterEllipsis" />
+        </Style>
+
+        <!-- Dispense per-row button -->
+        <Style x:Key="DispenseRowButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="#5B2D8E" />
+            <Setter Property="Foreground"      Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="10,4" />
+            <Setter Property="FontSize"        Value="11" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+        </Style>
+
+        <!-- Dispensed (fulfilled) row button -->
+        <Style x:Key="DispensedRowButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="#E4DAF5" />
+            <Setter Property="Foreground"      Value="#9B80C4" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius"    Value="6" />
+            <Setter Property="Padding"         Value="10,4" />
+            <Setter Property="FontSize"        Value="11" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+            <Setter Property="IsEnabled"       Value="False" />
+        </Style>
+    </ContentDialog.Resources>
+
+    <StackPanel Spacing="16" Width="520">
+
+        <!-- ── Patient + Procedure Recap ── -->
+        <Border Background="#F7F4FD" BorderBrush="#E4DAF5" BorderThickness="1"
+                CornerRadius="10" Padding="16,14">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Avatar -->
+                <Border Grid.Column="0"
+                        x:Name="RecapAvatar"
+                        Width="44" Height="44" CornerRadius="22"
+                        Background="#5B2D8E">
+                    <TextBlock x:Name="RecapInitials"
+                               FontSize="14" FontWeight="Bold" Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+
+                <!-- Patient + Procedure info -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                    <TextBlock Text="PRESCRIPTION FOR"
+                               Style="{StaticResource SectionLabelStyle}" />
+                    <TextBlock x:Name="RecapPatientName"
+                               FontSize="15" FontWeight="SemiBold" Foreground="#2D1554" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <!-- Procedure -->
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE9D5;" FontSize="10" Foreground="#5B2D8E" VerticalAlignment="Center" />
+                            <TextBlock x:Name="RecapProcedureName"
+                                       FontSize="11" Foreground="#5B2D8E" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <TextBlock Text="·" FontSize="11" Foreground="#9B80C4" VerticalAlignment="Center" />
+                        <!-- Date -->
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE787;" FontSize="10" Foreground="#9B80C4" VerticalAlignment="Center" />
+                            <TextBlock x:Name="RecapDate"
+                                       FontSize="11" Foreground="#9B80C4" />
+                        </StackPanel>
+                        <TextBlock Text="·" FontSize="11" Foreground="#9B80C4" VerticalAlignment="Center" />
+                        <!-- Doctor -->
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <FontIcon Glyph="&#xE77B;" FontSize="10" Foreground="#9B80C4" VerticalAlignment="Center" />
+                            <TextBlock x:Name="RecapDoctor"
+                                       FontSize="11" Foreground="#9B80C4" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── Prescription Table ── -->
+        <Border BorderBrush="#E4DAF5" BorderThickness="1" CornerRadius="10" Background="White">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*"    />
+                </Grid.RowDefinitions>
+
+                <!-- Table Header -->
+                <Grid Grid.Row="0" Padding="16,14,16,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="Prescribed Medicines"
+                                   FontSize="14" FontWeight="SemiBold" Foreground="#2D1554" />
+                        <TextBlock Text="Dispense medicines from inventory to fulfill this prescription"
+                                   FontSize="11" Foreground="#9B80C4" />
+                    </StackPanel>
+                    <!-- Dispensed count badge + Dispense All button -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                Spacing="10" VerticalAlignment="Center">
+                        <Border CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtDispensedCount"
+                                       Text="0 / 0 dispensed"
+                                       FontSize="11" FontWeight="SemiBold" Foreground="#5B2D8E" />
+                        </Border>
+                        <Button
+                            x:Name="BtnDispenseAll"
+                            Content="Dispense All"
+                            Click="OnDispenseAllClicked"
+                            Background="Transparent"
+                            Foreground="#5B2D8E"
+                            BorderBrush="#C4A8E8"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10,5"
+                            FontSize="11"
+                            FontWeight="SemiBold" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Col Headers -->
+                <Border Grid.Row="1" Background="#F7F4FD" Padding="16,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"   />
+                            <ColumnDefinition Width="90"  />
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="90"  />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="MEDICINE"       Style="{StaticResource ColHeaderStyle}" />
+                        <TextBlock Grid.Column="1" Text="PRESCRIBED QTY" Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="STOCK AVAILABLE" Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Text="ACTION"          Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Medicine Rows -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" MaxHeight="300">
+                    <ItemsControl x:Name="PrescriptionListControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="local:PrescriptionMedicineRow">
+                                <StackPanel>
+                                    <Border Background="{x:Bind RowBackground}" Padding="16,0">
+                                        <Grid MinHeight="58">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"   />
+                                                <ColumnDefinition Width="90"  />
+                                                <ColumnDefinition Width="120" />
+                                                <ColumnDefinition Width="90"  />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Medicine Name -->
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal"
+                                                        Spacing="8" VerticalAlignment="Center">
+                                                <!-- Dispensed checkmark / dot -->
+                                                <Border Width="8" Height="8" CornerRadius="4"
+                                                        Background="{x:Bind DotColor}"
+                                                        VerticalAlignment="Center" />
+                                                <StackPanel Spacing="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{x:Bind Name}"
+                                                               Style="{StaticResource CellTextStyle}"
+                                                               FontWeight="SemiBold"
+                                                               Opacity="{x:Bind RowOpacity}" />
+                                                    <TextBlock Text="{x:Bind DispensingNote}"
+                                                               FontSize="10" Foreground="#9B80C4"
+                                                               Visibility="{x:Bind DispensingNoteVisibility}" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <!-- Prescribed Qty -->
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{x:Bind PrescribedQtyDisplay}"
+                                                       FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="#2D1554"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Opacity="{x:Bind RowOpacity}" />
+
+                                            <!-- Stock Available -->
+                                            <StackPanel Grid.Column="2"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Spacing="2">
+                                                <TextBlock Text="{x:Bind StockDisplay}"
+                                                           FontSize="12" FontWeight="SemiBold"
+                                                           Foreground="{x:Bind StockForeground}"
+                                                           HorizontalAlignment="Center" />
+                                                <TextBlock Text="{x:Bind StockStatusLabel}"
+                                                           FontSize="10"
+                                                           Foreground="{x:Bind StockForeground}"
+                                                           HorizontalAlignment="Center" />
+                                            </StackPanel>
+
+                                            <!-- Dispense / Dispensed Button -->
+                                            <StackPanel Grid.Column="3"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center">
+                                                <!-- Active dispense button -->
+                                                <Button
+                                                    Tag="{x:Bind MedicineId}"
+                                                    Style="{StaticResource DispenseRowButtonStyle}"
+                                                    Content="Dispense"
+                                                    IsEnabled="{x:Bind CanDispense}"
+                                                    Visibility="{x:Bind UndispensedVisibility}"
+                                                    Click="DispenseRow_Click" />
+
+                                                <!-- Dispensed state -->
+                                                <StackPanel
+                                                    Orientation="Horizontal" Spacing="4"
+                                                    Visibility="{x:Bind DispensedVisibility}"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Center">
+                                                    <FontIcon Glyph="&#xE73E;" FontSize="11"
+                                                              Foreground="#2E7D32" VerticalAlignment="Center" />
+                                                    <TextBlock Text="Done"
+                                                               FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="#2E7D32"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                        </Grid>
+                                    </Border>
+                                    <Border Height="1" Background="#F0EAF8" Margin="16,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+            </Grid>
+        </Border>
+
+        <!-- Validation / Info Bar -->
+        <InfoBar x:Name="ValidationBar" IsOpen="False" Severity="Warning" IsClosable="False" />
+
+    </StackPanel>
+</ContentDialog>

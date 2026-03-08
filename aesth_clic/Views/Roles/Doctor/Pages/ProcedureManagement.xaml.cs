@@ -9,8 +9,6 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Linq;
 
-
-
 namespace aesth_clic.Views.Roles.Doctor.Pages
 {
     public class ProcedureItem
@@ -18,6 +16,7 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
         public string ProcedureItemId { get; set; } = string.Empty;
         public string PatientId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
+        public string PatientGender { get; set; } = string.Empty;     // ← ADDED
         public string Initials { get; set; } = string.Empty;
         public string AvatarColor { get; set; } = "#5B2D8E";
         public string ProcedureName { get; set; } = string.Empty;
@@ -47,7 +46,7 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
             _ = LoadFromDbAsync();
         }
 
-        // ── Data loading ───────────────────────────────────────────────────────────
+        // ── Data loading ───────────────────────────────────────────────────────
         private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
             try
@@ -57,7 +56,6 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
 
                 var procedures = await _procedureController.getProceduresByDoctorsId(doctorId);
 
-                // Only show rows where ProcedureDate has been set by the doctor
                 _vm.LoadFromDb(procedures
                     .Where(p => p.ProcedureDate.HasValue)
                     .Select(p => (
@@ -80,7 +78,7 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
             }
         }
 
-        // ── Row Count ──────────────────────────────────────────────────────────────
+        // ── Row Count ──────────────────────────────────────────────────────────
         private void UpdateRowCount()
         {
             if (TxtRowCount is null) return;
@@ -88,30 +86,28 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
             TxtRowCount.Text = $"Showing {count} procedure{(count != 1 ? "s" : "")}";
         }
 
-        // ── Search ─────────────────────────────────────────────────────────────────
+        // ── Search ─────────────────────────────────────────────────────────────
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-        {
-            _vm.SearchText = sender.Text ?? string.Empty;
-        }
+            => _vm.SearchText = sender.Text ?? string.Empty;
 
-        // ── Mark Done ──────────────────────────────────────────────────────────────
+        // ── Mark Done ──────────────────────────────────────────────────────────
         private async void MarkDone_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as Button)?.Tag?.ToString();
-            var record = _vm.FindProcedure(id ?? string.Empty);
+            if (sender is not Button btn) return;
+            var record = _vm.FindProcedure(btn.Tag?.ToString() ?? string.Empty);
             if (record is null) return;
 
             var modal = new MarkDoneModal(
                 procedureItemId: record.ProcedureItemId,
                 patientName: record.PatientName,
-                patientGender: string.Empty,          // populate from your model if available
+                patientGender: record.PatientGender,                    // ← FIXED
                 procedureName: record.ProcedureName,
                 appointmentDate: record.AppointmentDate)
-            {
-                XamlRoot = XamlRoot
-            };
+            { XamlRoot = XamlRoot };
 
             await modal.ShowAsync();
+
+            if (modal.Result is null && modal.SaveError is null) return;
 
             if (modal.SaveError is not null)
             {
@@ -119,16 +115,13 @@ namespace aesth_clic.Views.Roles.Doctor.Pages
                 return;
             }
 
-            if (modal.Result is not null)
-            {
-                _vm.Remove(record.ProcedureItemId);
-                UpdateRowCount();
+            _vm.Remove(record.ProcedureItemId);
+            UpdateRowCount();
 
-                var medicineNames = string.Join(", ", modal.Result.Medicines.Select(m => m.Name));
-                ToastHelper.Success(ToastBar,
-                    $"{record.ProcedureName} marked as complete",
-                    $"Reseta: {medicineNames}");
-            }
+            var medicineNames = string.Join(", ", modal.Result!.Medicines.Select(m => m.Name));
+            ToastHelper.Success(ToastBar,
+                $"{record.ProcedureName} marked as complete",
+                $"Prescribed: {medicineNames}");
         }
     }
 }

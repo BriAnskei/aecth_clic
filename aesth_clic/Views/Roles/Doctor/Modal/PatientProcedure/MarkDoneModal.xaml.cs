@@ -1,3 +1,6 @@
+using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.DTO;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -80,18 +83,23 @@ namespace aesth_clic.Views.Roles.Doctor.Modals
         public MarkDoneResult? Result { get; private set; }
         public Exception? SaveError { get; private set; }
 
-        // ── Procedure context (passed in by caller) ────────────────────────────
+        // ── Procedure context ──────────────────────────────────────────────────
         private readonly string _procedureItemId;
         private readonly string _patientName;
         private readonly string _patientGender;
         private readonly string _procedureName;
         private readonly string _appointmentDate;
 
+        // ── Controllers ────────────────────────────────────────────────────────
+        private readonly MedicineController _medicineController;
+        private readonly PatientProcedureController _procedureController;
+
         // ── Wizard state ───────────────────────────────────────────────────────
         private int _currentStep = 1;
+        private bool _isSaving = false;
 
         // ── Medicine data ──────────────────────────────────────────────────────
-        private readonly List<MedicineRowItem> _allMedicines;
+        private readonly List<MedicineRowItem> _allMedicines = new();
         private List<MedicineRowItem> _displayedMedicines = new();
 
         // ── Constructor ────────────────────────────────────────────────────────
@@ -110,42 +118,45 @@ namespace aesth_clic.Views.Roles.Doctor.Modals
             _procedureName = procedureName;
             _appointmentDate = appointmentDate;
 
-            _allMedicines = BuildMockMedicines();
-            RefreshMedicineList(string.Empty);
+            _medicineController = App.Services.GetRequiredService<MedicineController>();
+            _procedureController = App.Services.GetRequiredService<PatientProcedureController>();
+
+            _ = LoadMedicinesAsync();
         }
 
-        // ── Mock medicine data (replace with DB call when ready) ───────────────
-        private static List<MedicineRowItem> BuildMockMedicines()
+        // ── Load medicines ─────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadMedicinesAsync()
         {
-            var names = new[]
+            try
             {
-                "Amoxicillin 500mg",
-                "Ibuprofen 400mg",
-                "Paracetamol 500mg",
-                "Mefenamic Acid 500mg",
-                "Cetirizine 10mg",
-                "Metronidazole 500mg",
-                "Clindamycin 300mg",
-                "Omeprazole 20mg",
-                "Betamethasone Cream",
-                "Tranexamic Acid 500mg",
-            };
+                var medicines = await _medicineController.GetAllMedicinesAsync();
 
-            return names.Select((n, i) => new MedicineRowItem
+                _allMedicines.Clear();
+                foreach (var m in medicines)
+                {
+                    _allMedicines.Add(new MedicineRowItem
+                    {
+                        MedicineId = m.Id,
+                        MedicineIdTag = m.Id.ToString(),
+                        Name = m.Name,
+                    });
+                }
+
+                RefreshMedicineList(string.Empty);
+            }
+            catch (Exception ex)
             {
-                MedicineId = i + 1,
-                MedicineIdTag = (i + 1).ToString(),
-                Name = n,
-            }).ToList();
+                ShowError($"Failed to load medicines: {ex.Message}");
+            }
         }
 
-        // ── Refresh list with optional search filter ───────────────────────────
+        // ── Refresh list ───────────────────────────────────────────────────────
         private void RefreshMedicineList(string search)
         {
             _displayedMedicines = string.IsNullOrWhiteSpace(search)
                 ? _allMedicines
                 : _allMedicines
-                    .Where(m => m.Name.ToLower().Contains(search.ToLower()))
+                    .Where(m => m.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
             MedicineListControl.ItemsSource = null;
@@ -157,16 +168,14 @@ namespace aesth_clic.Views.Roles.Doctor.Modals
         private void UpdateSelectedCount()
         {
             var count = _allMedicines.Count(m => m.Selected);
-            TxtSelectedCount.Text = count == 0
-                ? "0 selected"
-                : $"{count} selected";
+            TxtSelectedCount.Text = count == 0 ? "0 selected" : $"{count} selected";
         }
 
         // ── Search ─────────────────────────────────────────────────────────────
         private void MedicineSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
             => RefreshMedicineList(sender.Text);
 
-        // ── Toggle medicine selection ──────────────────────────────────────────
+        // ── Toggle selection ───────────────────────────────────────────────────
         private void MedicineRow_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn) return;
@@ -201,23 +210,27 @@ namespace aesth_clic.Views.Roles.Doctor.Modals
             var medicine = _allMedicines.FirstOrDefault(m => m.MedicineId == id);
             if (medicine is null) return;
 
-            medicine.Quantity--;                    // setter enforces min = 1
+            medicine.Quantity--;
             RefreshMedicineList(MedicineSearchBox.Text);
         }
 
         // ── Wizard navigation ──────────────────────────────────────────────────
         private void OnPrimaryClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
+            // Always cancel auto-close — we control closing manually
+            args.Cancel = true;
+
+            // Prevent double-clicks while saving
+            if (_isSaving) return;
+
             ValidationBar.IsOpen = false;
-            args.Cancel = true; // prevent auto-close; we manage it manually
 
             if (_currentStep == 1)
             {
                 var selected = _allMedicines.Where(m => m.Selected).ToList();
                 if (selected.Count == 0)
                 {
-                    ValidationBar.Message = "Please select at least one medicine before continuing.";
-                    ValidationBar.IsOpen = true;
+                    ShowError("Please select at least one medicine before continuing.");
                     return;
                 }
 
@@ -225,18 +238,79 @@ namespace aesth_clic.Views.Roles.Doctor.Modals
             }
             else
             {
-                _ = ConfirmAndCompleteAsync();
+                // Await properly inside the click handler via a local async method
+                ConfirmAndCompleteAsync(args);
+            }
+        }
+
+        // ── Separate async confirm so we can properly await and handle errors ──
+        private async void ConfirmAndCompleteAsync(ContentDialogButtonClickEventArgs args)
+        {
+            _isSaving = true;
+            IsPrimaryButtonEnabled = false;
+            IsSecondaryButtonEnabled = false;
+
+            try
+            {
+                if (!int.TryParse(_procedureItemId, out int procedureId))
+                    throw new InvalidOperationException(
+                        $"Invalid procedure ID: '{_procedureItemId}'. Cannot complete.");
+
+                var medicineDtos = _allMedicines
+                    .Where(m => m.Selected)
+                    .Select(m => new PrescriptionMedicineDto
+                    {
+                        MedicineId = m.MedicineId,
+                        Quantity = m.Quantity,
+                    })
+                    .ToList();
+
+                await _procedureController.CompleteProcedureAsync(procedureId, medicineDtos);
+
+                Result = new MarkDoneResult
+                {
+                    ProcedureItemId = _procedureItemId,
+                    Medicines = medicineDtos.Select(d =>
+                    {
+                        var match = _allMedicines.First(m => m.MedicineId == d.MedicineId);
+                        return new SelectedMedicineSummary
+                        {
+                            Name = match.Name,
+                            Quantity = d.Quantity,
+                        };
+                    }).ToList(),
+                };
+
+                Hide();
+            }
+            catch (Exception ex)
+            {
+                // Show the error INSIDE the modal so the user sees it
+                // instead of silently swallowing it
+                SaveError = ex;
+                ShowError($"Failed to complete procedure: {ex.Message}");
+
+                // Re-enable buttons so user can retry or go back
+                IsPrimaryButtonEnabled = true;
+                IsSecondaryButtonEnabled = true;
+                _isSaving = false;
             }
         }
 
         private void OnCancelClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
+            if (_isSaving)
+            {
+                args.Cancel = true;
+                return;
+            }
+
             if (_currentStep == 2)
             {
                 args.Cancel = true;
                 GoToStep1();
             }
-            // Step 1: let the dialog close normally (Result stays null)
+            // Step 1: let dialog close normally (Result stays null)
         }
 
         // ── Step transitions ───────────────────────────────────────────────────
@@ -247,13 +321,11 @@ namespace aesth_clic.Views.Roles.Doctor.Modals
             Step1Panel.Visibility = Visibility.Collapsed;
             Step2Panel.Visibility = Visibility.Visible;
 
-            // Activate Step 2 indicator
             Step2Circle.Style = (Style)Resources["StepCircleActiveStyle"];
             Step2Number.Foreground = new SolidColorBrush(Colors.White);
             Step2Label.Foreground = new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x5B, 0x2D, 0x8E));
             ConnectorEnd.Color = ColorHelper.FromArgb(0xFF, 0x5B, 0x2D, 0x8E);
 
-            // Populate recap header
             var parts = _patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var initials = parts.Length >= 2
                 ? $"{parts[0][0]}{parts[^1][0]}"
@@ -272,14 +344,11 @@ namespace aesth_clic.Views.Roles.Doctor.Modals
             RecapProcedureName.Text = _procedureName;
             RecapDate.Text = _appointmentDate;
 
-            // Populate summary medicine list
-            var summaries = selected.Select(m => new SelectedMedicineSummary
+            SummaryListControl.ItemsSource = selected.Select(m => new SelectedMedicineSummary
             {
                 Name = m.Name,
                 Quantity = m.Quantity,
             }).ToList();
-
-            SummaryListControl.ItemsSource = summaries;
 
             PrimaryButtonText = "Confirm & Complete";
             CloseButtonText = "← Back";
@@ -301,36 +370,12 @@ namespace aesth_clic.Views.Roles.Doctor.Modals
             CloseButtonText = "Cancel";
         }
 
-        // ── Confirm & Complete (DB wiring deferred) ────────────────────────────
-        private async System.Threading.Tasks.Task ConfirmAndCompleteAsync()
+        // ── Error helper ───────────────────────────────────────────────────────
+        private void ShowError(string message)
         {
-            try
-            {
-                var selectedMedicines = _allMedicines
-                    .Where(m => m.Selected)
-                    .Select(m => new SelectedMedicineSummary
-                    {
-                        Name = m.Name,
-                        Quantity = m.Quantity,
-                    })
-                    .ToList();
-
-                // TODO: wire to backend when ready
-                // e.g. await _procedureController.MarkProcedureDoneAsync(_procedureItemId, selectedMedicines);
-
-                Result = new MarkDoneResult
-                {
-                    ProcedureItemId = _procedureItemId,
-                    Medicines = selectedMedicines,
-                };
-
-                Hide();
-            }
-            catch (Exception ex)
-            {
-                SaveError = ex;
-                Hide();
-            }
+            ValidationBar.Severity = InfoBarSeverity.Error;
+            ValidationBar.Message = message;
+            ValidationBar.IsOpen = true;
         }
     }
 }
