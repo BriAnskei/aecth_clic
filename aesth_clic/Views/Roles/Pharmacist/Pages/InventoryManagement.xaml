@@ -35,6 +35,19 @@
             <Setter Property="TextTrimming"      Value="CharacterEllipsis" />
         </Style>
 
+        <Style x:Key="KpiLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"         Value="11" />
+            <Setter Property="FontWeight"       Value="SemiBold" />
+            <Setter Property="Foreground"       Value="#9B80C4" />
+            <Setter Property="CharacterSpacing" Value="50" />
+        </Style>
+
+        <Style x:Key="KpiSubStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="12" />
+            <Setter Property="Foreground" Value="#B0A0CC" />
+            <Setter Property="Margin"     Value="0,3,0,0" />
+        </Style>
+
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -43,36 +56,103 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- ROW 0 · Page Header -->
             <StackPanel Grid.Row="0" Spacing="2">
-                <TextBlock
-                    Text="Inventory"
-                    FontSize="26" FontWeight="Bold"
-                    Foreground="#2D1554" />
-                <TextBlock
-                    Text="Manage clinic medicine inventory and stock levels"
-                    FontSize="13" Foreground="#9B80C4" />
+                <TextBlock Text="Inventory" FontSize="26" FontWeight="Bold" Foreground="#2D1554" />
+                <TextBlock Text="Manage clinic medicine inventory and stock levels"
+                           FontSize="13" Foreground="#9B80C4" />
             </StackPanel>
 
-            <!-- ROW 1 · Search + Filter + Add -->
-            <Grid Grid.Row="1">
+            <!-- ROW 1 · Toast InfoBar -->
+            <InfoBar Grid.Row="1" x:Name="ToastBar" IsOpen="False" IsClosable="True" Margin="0,-8,0,-8" />
+
+            <!-- ROW 2 · KPI Cards -->
+            <Grid Grid.Row="2" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Medicines -->
+                <Border Grid.Column="0" Background="White" BorderBrush="#E4DAF5" BorderThickness="1" CornerRadius="12" Padding="20">
+                    <StackPanel Spacing="4">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#EDE4F9">
+                                    <FontIcon Glyph="&#xE734;" FontSize="16" Foreground="#5B2D8E" />
+                                </Border>
+                                <TextBlock Text="TOTAL MEDICINES" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" x:Name="TxtTotalMedicines" Text="0"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="#2D1554" VerticalAlignment="Center" />
+                        </Grid>
+                        <TextBlock Text="All medicine types in inventory" Style="{StaticResource KpiSubStyle}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Sufficient -->
+                <Border Grid.Column="1" Background="White" BorderBrush="#E4DAF5" BorderThickness="1" CornerRadius="12" Padding="20">
+                    <StackPanel Spacing="4">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#E8F5E9">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="16" Foreground="#2E7D32" />
+                                </Border>
+                                <TextBlock Text="SUFFICIENT" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" x:Name="TxtSufficientCount" Text="0"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="#2D1554" VerticalAlignment="Center" />
+                        </Grid>
+                        <TextBlock Text="Medicines with adequate stock" Style="{StaticResource KpiSubStyle}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Low Stock -->
+                <Border Grid.Column="2" Background="White" BorderBrush="#E4DAF5" BorderThickness="1" CornerRadius="12" Padding="20">
+                    <StackPanel Spacing="4">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="36" Height="36" CornerRadius="8" Background="#FFF3E0">
+                                    <FontIcon Glyph="&#xE7BA;" FontSize="16" Foreground="#B7580A" />
+                                </Border>
+                                <TextBlock Text="LOW STOCK" Style="{StaticResource KpiLabelStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" x:Name="TxtLowStockCount" Text="0"
+                                       FontSize="18" FontWeight="SemiBold" Foreground="#2D1554" VerticalAlignment="Center" />
+                        </Grid>
+                        <TextBlock Text="Medicines running low" Style="{StaticResource KpiSubStyle}" />
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+
+            <!-- ROW 3 · Search + Filter + Add -->
+            <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Search -->
-                <Border
-                    Grid.Column="0"
-                    Background="White"
-                    BorderBrush="#E4DAF5"
-                    BorderThickness="1"
-                    CornerRadius="12"
-                    Padding="16,12"
-                    Margin="0,0,12,0">
+                <Border Grid.Column="0" Background="White" BorderBrush="#E4DAF5" BorderThickness="1"
+                        CornerRadius="12" Padding="16,12" Margin="0,0,12,0">
                     <AutoSuggestBox
                         x:Name="SearchBox"
                         PlaceholderText="Search medicine name…"
@@ -84,16 +164,8 @@
                         TextChanged="SearchBox_TextChanged" />
                 </Border>
 
-                <!-- Status Filter -->
-                <Border
-                    Grid.Column="1"
-                    Background="White"
-                    BorderBrush="#E4DAF5"
-                    BorderThickness="1"
-                    CornerRadius="12"
-                    Padding="12,8"
-                    Margin="0,0,12,0"
-                    VerticalAlignment="Stretch">
+                <Border Grid.Column="1" Background="White" BorderBrush="#E4DAF5" BorderThickness="1"
+                        CornerRadius="12" Padding="12,8" Margin="0,0,12,0" VerticalAlignment="Stretch">
                     <ComboBox
                         x:Name="StatusFilter"
                         PlaceholderText="Filter by status"
@@ -102,14 +174,13 @@
                         Background="Transparent"
                         VerticalAlignment="Center"
                         SelectionChanged="StatusFilter_SelectionChanged">
-                        <ComboBoxItem Content="All"          Tag="All" IsSelected="True" />
-                        <ComboBoxItem Content="Sufficient"   Tag="Sufficient" />
-                        <ComboBoxItem Content="Low Stock"    Tag="Low Stock" />
-                        <ComboBoxItem Content="Restock Now"  Tag="Restock Now" />
+                        <ComboBoxItem Content="All"         Tag="All"         IsSelected="True" />
+                        <ComboBoxItem Content="Sufficient"  Tag="Sufficient" />
+                        <ComboBoxItem Content="Low Stock"   Tag="Low Stock" />
+                        <ComboBoxItem Content="Restock Now" Tag="Restock Now" />
                     </ComboBox>
                 </Border>
 
-                <!-- Add Medicine -->
                 <Button
                     Grid.Column="2"
                     Click="AddMedicine_Click"
@@ -126,14 +197,9 @@
                 </Button>
             </Grid>
 
-            <!-- ROW 2 · Inventory Table -->
-            <Border
-                Grid.Row="2"
-                Background="White"
-                BorderBrush="#E4DAF5"
-                BorderThickness="1"
-                CornerRadius="12"
-                Padding="0">
+            <!-- ROW 4 · Inventory Table -->
+            <Border Grid.Row="4" Background="White" BorderBrush="#E4DAF5" BorderThickness="1"
+                    CornerRadius="12" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -151,9 +217,14 @@
                             <TextBlock Text="Medicine Inventory" FontSize="15" FontWeight="SemiBold" Foreground="#2D1554" />
                             <TextBlock Text="All clinic medicines and current stock levels" FontSize="12" Foreground="#9B80C4" />
                         </StackPanel>
-                        <Border Grid.Column="1" Background="#EDE4F9" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtRowCount" Text="Showing 0 items" FontSize="12" Foreground="#5B2D8E" FontWeight="SemiBold" />
-                        </Border>
+                        <TextBlock
+                            Grid.Column="1"
+                            x:Name="TxtRowCount"
+                            Text="Showing 0 items"
+                            FontSize="12"
+                            Foreground="#5B2D8E"
+                            FontWeight="SemiBold"
+                            VerticalAlignment="Center" />
                     </Grid>
 
                     <!-- Column Headers -->
@@ -163,6 +234,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="130" />
                                     <ColumnDefinition Width="80" />
                                     <ColumnDefinition Width="150" />
                                     <ColumnDefinition Width="150" />
@@ -170,10 +242,11 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="MEDICINE NAME" Style="{StaticResource ColHeaderStyle}" />
                                 <TextBlock Grid.Column="1" Text="STOCK"         Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="2" Text="UNIT"          Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="3" Text="EXPIRY DATE"   Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="4" Text="STATUS"        Style="{StaticResource ColHeaderStyle}" />
-                                <TextBlock Grid.Column="5" Text="ACTIONS"       Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
+                                <TextBlock Grid.Column="2" Text="LAST STOCK IN" Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="3" Text="UNIT"          Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="4" Text="EXPIRY DATE"   Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="5" Text="STATUS"        Style="{StaticResource ColHeaderStyle}" />
+                                <TextBlock Grid.Column="6" Text="ACTIONS"       Style="{StaticResource ColHeaderStyle}" HorizontalAlignment="Center" />
                             </Grid>
                         </Border>
                         <Border Height="1" Background="#E4DAF5" VerticalAlignment="Bottom" />
@@ -190,6 +263,7 @@
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="110" />
+                                                    <ColumnDefinition Width="130" />
                                                     <ColumnDefinition Width="80" />
                                                     <ColumnDefinition Width="150" />
                                                     <ColumnDefinition Width="150" />
@@ -198,68 +272,65 @@
 
                                                 <!-- Medicine Name + ID -->
                                                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
-                                                    <TextBlock
-                                                        Text="{x:Bind MedicineName}"
-                                                        Style="{StaticResource CellTextStyle}"
-                                                        FontWeight="SemiBold" />
-                                                    <TextBlock
-                                                        Text="{x:Bind MedicineId}"
-                                                        Style="{StaticResource CellSecondaryStyle}" />
+                                                    <TextBlock Text="{x:Bind MedicineName}"
+                                                               Style="{StaticResource CellTextStyle}"
+                                                               FontWeight="SemiBold" />
+                                                    <TextBlock Text="{x:Bind MedicineId}"
+                                                               Style="{StaticResource CellSecondaryStyle}" />
                                                 </StackPanel>
 
-                                                <!-- Stock (plain number, no background) -->
-                                                <TextBlock
-                                                    Grid.Column="1"
-                                                    Text="{x:Bind StockQuantity}"
-                                                    Style="{StaticResource CellTextStyle}"
-                                                    FontWeight="SemiBold" />
+                                                <!-- Stock -->
+                                                <TextBlock Grid.Column="1" Text="{x:Bind StockQuantity}"
+                                                           Style="{StaticResource CellTextStyle}"
+                                                           FontWeight="SemiBold" />
+
+                                                <!-- Last Stock In -->
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="#9B80C4" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{x:Bind LastStockIn}"
+                                                               Style="{StaticResource CellSecondaryStyle}" />
+                                                </StackPanel>
 
                                                 <!-- Unit -->
-                                                <TextBlock
-                                                    Grid.Column="2"
-                                                    Text="{x:Bind Unit}"
-                                                    Style="{StaticResource CellTextStyle}" />
+                                                <TextBlock Grid.Column="3" Text="{x:Bind Unit}"
+                                                           Style="{StaticResource CellTextStyle}" />
 
                                                 <!-- Expiry Date -->
-                                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                                     <FontIcon Glyph="&#xE787;" FontSize="11" Foreground="#5B2D8E" VerticalAlignment="Center" />
-                                                    <TextBlock
-                                                        Text="{x:Bind ExpiryDate}"
-                                                        Style="{StaticResource CellTextStyle}" />
+                                                    <TextBlock Text="{x:Bind ExpiryDate}"
+                                                               Style="{StaticResource CellTextStyle}" />
                                                 </StackPanel>
 
-                                                <!-- Status (no background, just icon + colored text) -->
-                                                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                                    <FontIcon
-                                                        Glyph="{x:Bind StatusIcon}"
-                                                        FontSize="12"
-                                                        Foreground="{Binding StatusTextColor, Converter={StaticResource StringToBrush}}"
-                                                        VerticalAlignment="Center" />
-                                                    <TextBlock
-                                                        Text="{x:Bind StatusLabel}"
-                                                        FontSize="12" FontWeight="SemiBold"
-                                                        Foreground="{Binding StatusTextColor, Converter={StaticResource StringToBrush}}"
-                                                        VerticalAlignment="Center" />
+                                                <!-- Status -->
+                                                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <FontIcon Glyph="{x:Bind StatusIcon}"
+                                                              FontSize="12"
+                                                              Foreground="{Binding StatusTextColor, Converter={StaticResource StringToBrush}}"
+                                                              VerticalAlignment="Center" />
+                                                    <TextBlock Text="{x:Bind StatusLabel}"
+                                                               FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="{Binding StatusTextColor, Converter={StaticResource StringToBrush}}"
+                                                               VerticalAlignment="Center" />
                                                 </StackPanel>
 
                                                 <!-- Actions · Kebab -->
-                                                <StackPanel Grid.Column="5" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Button
-                                                        Tag="{x:Bind MedicineId}"
-                                                        Padding="8,6"
-                                                        Background="Transparent"
-                                                        BorderThickness="0"
-                                                        CornerRadius="6"
-                                                        ToolTipService.ToolTip="More actions">
+                                                <StackPanel Grid.Column="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Button Tag="{x:Bind MedicineId}"
+                                                            Padding="8,6"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            CornerRadius="6"
+                                                            ToolTipService.ToolTip="More actions">
                                                         <FontIcon Glyph="&#xE712;" FontSize="16" Foreground="#5B2D8E" />
                                                         <Button.Flyout>
                                                             <MenuFlyout Placement="BottomEdgeAlignedRight">
                                                                 <MenuFlyoutItem
-                                                                    Text="View Details"
+                                                                    Text="Restock"
                                                                     Tag="{x:Bind MedicineId}"
-                                                                    Click="ViewDetails_Click">
+                                                                    Click="RestockMedicine_Click">
                                                                     <MenuFlyoutItem.Icon>
-                                                                        <FontIcon Glyph="&#xE7B3;" Foreground="#2E7D32" />
+                                                                        <FontIcon Glyph="&#xE710;" Foreground="#0078D4" />
                                                                     </MenuFlyoutItem.Icon>
                                                                 </MenuFlyoutItem>
                                                                 <MenuFlyoutItem
@@ -267,7 +338,7 @@
                                                                     Tag="{x:Bind MedicineId}"
                                                                     Click="EditMedicine_Click">
                                                                     <MenuFlyoutItem.Icon>
-                                                                        <FontIcon Glyph="&#xE70F;" Foreground="#0078D4" />
+                                                                        <FontIcon Glyph="&#xE70F;" Foreground="#5B2D8E" />
                                                                     </MenuFlyoutItem.Icon>
                                                                 </MenuFlyoutItem>
                                                                 <MenuFlyoutSeparator />
@@ -278,6 +349,9 @@
                                                                     <MenuFlyoutItem.Icon>
                                                                         <FontIcon Glyph="&#xE711;" Foreground="#C0392B" />
                                                                     </MenuFlyoutItem.Icon>
+                                                                    <MenuFlyoutItem.Foreground>
+                                                                        <SolidColorBrush Color="#C0392B" />
+                                                                    </MenuFlyoutItem.Foreground>
                                                                 </MenuFlyoutItem>
                                                             </MenuFlyout>
                                                         </Button.Flyout>

@@ -17,6 +17,7 @@ namespace aesth_clic.Context
         public DbSet<PatientProcedure> PatientProcedures { get; set; }
 
 
+        public DbSet<Medicine> Medicines { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

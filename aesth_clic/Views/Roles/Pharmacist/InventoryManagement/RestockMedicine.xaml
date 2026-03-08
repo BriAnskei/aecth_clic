@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="aesth_clic.Views.Roles.Pharmacist.Modals.RestockMedicine"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Restock Medicine"
+    PrimaryButtonText="Confirm Restock"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnRestockClicked"
+    PrimaryButtonStyle="{StaticResource PurplePrimaryButtonStyle}"
+    CloseButtonStyle="{StaticResource GrayCloseButtonStyle}">
+
+    <ContentDialog.Resources>
+        <SolidColorBrush x:Key="ContentDialogBackground"                           Color="White" />
+        <SolidColorBrush x:Key="ContentDialogBorderBrush"                          Color="#E4DAF5" />
+        <SolidColorBrush x:Key="ContentDialogTopOverlayBackground"                 Color="White" />
+        <SolidColorBrush x:Key="ContentDialogButtonAreaBackground"                 Color="White" />
+        <SolidColorBrush x:Key="ContentDialogForeground"                           Color="#2D1554" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonForeground"                Color="#5B2D8E" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackground"                Color="White" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPointerOver"     Color="#EDE4F9" />
+        <SolidColorBrush x:Key="ContentDialogCloseButtonBackgroundPressed"         Color="#E4DAF5" />
+        <SolidColorBrush x:Key="TextControlForeground"                             Color="#2D1554" />
+        <SolidColorBrush x:Key="TextControlBackground"                             Color="White" />
+        <SolidColorBrush x:Key="TextControlBackgroundPointerOver"                  Color="#FAFAFA" />
+        <SolidColorBrush x:Key="TextControlBackgroundFocused"                      Color="White" />
+        <SolidColorBrush x:Key="TextControlBorderBrushFocused"                     Color="#5B2D8E" />
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#2D1554" />
+            <Setter Property="Margin"     Value="0,0,0,4" />
+        </Style>
+    </ContentDialog.Resources>
+
+    <StackPanel Spacing="16" Width="380">
+
+        <!-- Medicine info row -->
+        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+            <Border Width="40" Height="40" CornerRadius="8" Background="#EDE4F9">
+                <FontIcon Glyph="&#xE734;" FontSize="18" Foreground="#5B2D8E" />
+            </Border>
+            <StackPanel Spacing="2" VerticalAlignment="Center">
+                <TextBlock x:Name="TxtMedicineName"
+                           FontSize="14" FontWeight="SemiBold" Foreground="#2D1554" />
+                <TextBlock x:Name="TxtCurrentStock"
+                           FontSize="12" Foreground="#9B80C4" />
+            </StackPanel>
+        </StackPanel>
+
+        <Border Height="1" Background="#E4DAF5" />
+
+        <!-- Amount input -->
+        <StackPanel Spacing="4">
+            <TextBlock Text="Amount to Add" Style="{StaticResource FieldLabelStyle}" />
+            <NumberBox
+                x:Name="FieldAmount"
+                Minimum="1"
+                SpinButtonPlacementMode="Inline"
+                PlaceholderText="Enter quantity to add"
+                BorderBrush="#E4DAF5"
+                CornerRadius="6" />
+        </StackPanel>
+
+        <!-- Validation InfoBar -->
+        <InfoBar x:Name="ValidationBar" IsOpen="False" Severity="Error" IsClosable="False" />
+
+        <!-- Loading Overlay -->
+        <Border x:Name="SavingOverlay" Visibility="Collapsed"
+                Background="White" Opacity="0.90" CornerRadius="8" Padding="0,8">
+            <StackPanel Orientation="Horizontal" Spacing="10"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressRing IsActive="True" Width="20" Height="20" Foreground="#5B2D8E" />
+                <TextBlock Text="Restocking…" VerticalAlignment="Center"
+                           FontSize="13" Foreground="#9B80C4" />
+            </StackPanel>
+        </Border>
+
+    </StackPanel>
+</ContentDialog>

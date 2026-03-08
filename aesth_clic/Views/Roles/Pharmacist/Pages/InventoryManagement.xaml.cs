@@ -1,16 +1,23 @@
+using aesth_clic.Tenant.Controller;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.Pharmacist;
+using aesth_clic.Views.Roles.Pharmacist.Modals;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace aesth_clic.Views.Roles.Pharmacist.Pages
 {
+    // ── UI display model ───────────────────────────────────────────────────────────
     public class InventoryItem
     {
         public string MedicineId { get; set; } = string.Empty;
         public string MedicineName { get; set; } = string.Empty;
         public int StockQuantity { get; set; }
+        public string LastStockIn { get; set; } = string.Empty;
         public string Unit { get; set; } = string.Empty;
         public string ExpiryDate { get; set; } = string.Empty;
 
@@ -30,120 +37,179 @@ namespace aesth_clic.Views.Roles.Pharmacist.Pages
             "#2E7D32";
     }
 
+    // ── Page ───────────────────────────────────────────────────────────────────────
     public sealed partial class InventoryManagement : Page
     {
-        private List<InventoryItem> _allItems = new();
+        private readonly InventoryManagementViewModel _vm = new();
+        private readonly MedicineController _controller;
 
         public InventoryManagement()
         {
             InitializeComponent();
-            LoadSampleData();
-            Loaded += (_, _) => ApplyFilters();
-        }
 
-        private void LoadSampleData()
-        {
-            _allItems = new List<InventoryItem>
+            _controller = App.Services.GetRequiredService<MedicineController>();
+
+            InventoryListControl.ItemsSource = _vm.DisplayedItems;
+
+            _vm.PropertyChanged += (_, e) =>
             {
-                new() { MedicineId = "m01", MedicineName = "Lidocaine 2%",           StockQuantity = 150, Unit = "vial",    ExpiryDate = "Dec 2025" },
-                new() { MedicineId = "m02", MedicineName = "Hyaluronic Acid Filler", StockQuantity =  28, Unit = "syringe", ExpiryDate = "Mar 2026" },
-                new() { MedicineId = "m03", MedicineName = "Botulinum Toxin A",      StockQuantity =   8, Unit = "vial",    ExpiryDate = "Jun 2025" },
-                new() { MedicineId = "m04", MedicineName = "Amoxicillin 500mg",      StockQuantity = 200, Unit = "capsule", ExpiryDate = "Jan 2026" },
-                new() { MedicineId = "m05", MedicineName = "Clindamycin 300mg",      StockQuantity =   9, Unit = "capsule", ExpiryDate = "Sep 2025" },
-                new() { MedicineId = "m06", MedicineName = "Ibuprofen 400mg",        StockQuantity = 300, Unit = "tablet",  ExpiryDate = "Aug 2026" },
-                new() { MedicineId = "m07", MedicineName = "Tramadol 50mg",          StockQuantity =  25, Unit = "tablet",  ExpiryDate = "Nov 2025" },
-                new() { MedicineId = "m08", MedicineName = "Vitamin C 500mg",        StockQuantity = 500, Unit = "tablet",  ExpiryDate = "Jul 2026" },
-                new() { MedicineId = "m09", MedicineName = "Collagen Supplement",    StockQuantity =  22, Unit = "capsule", ExpiryDate = "Apr 2026" },
-                new() { MedicineId = "m10", MedicineName = "Prilocaine 3%",          StockQuantity =   6, Unit = "vial",    ExpiryDate = "Oct 2025" },
-                new() { MedicineId = "m11", MedicineName = "Calcium Gluconate",      StockQuantity =  30, Unit = "tablet",  ExpiryDate = "May 2026" },
-                new() { MedicineId = "m12", MedicineName = "Mefenamic Acid 500mg",   StockQuantity = 120, Unit = "capsule", ExpiryDate = "Feb 2026" },
+                if (e.PropertyName
+                    is nameof(InventoryManagementViewModel.TotalMedicines)
+                    or nameof(InventoryManagementViewModel.SufficientCount)
+                    or nameof(InventoryManagementViewModel.LowStockCount))
+                    UpdateKpiCards();
             };
+
+            _ = LoadFromDbAsync();
         }
 
-        private void ApplyFilters()
+        // ── Data loading ───────────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
-            if (InventoryListControl is null) return;
+            try
+            {
+                var medicines = await _controller.GetAllMedicinesAsync();
 
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
-            var statusFilter = (StatusFilter?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+                _vm.LoadFromDb(medicines.Select(m => (
+                    MedicineId: m.Id.ToString(),
+                    MedicineName: m.Name,
+                    StockQuantity: m.Stock,
+                    LastStockIn: m.LastStockIn.ToLocalTime().ToString("MMM yyyy"),
+                    Unit: m.Unit,
+                    ExpiryDate: m.ExpiryDate.ToLocalTime().ToString("MMM yyyy")
+                )));
 
-            var filtered = _allItems.Where(m =>
-                (string.IsNullOrEmpty(search) || m.MedicineName.ToLower().Contains(search))
-                && (statusFilter == "All" || m.StatusLabel == statusFilter)
-            ).ToList();
+                InventoryListControl.ItemsSource = null;
+                InventoryListControl.ItemsSource = _vm.DisplayedItems;
 
-            InventoryListControl.ItemsSource = filtered;
-
-            if (TxtRowCount is not null)
-                TxtRowCount.Text = $"Showing {filtered.Count} item{(filtered.Count == 1 ? "" : "s")}";
+                UpdateKpiCards();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load inventory", ex.Message);
+            }
         }
 
+        // ── KPI Cards ──────────────────────────────────────────────────────────────
+        private void UpdateKpiCards()
+        {
+            if (TxtTotalMedicines is null || TxtSufficientCount is null ||
+                TxtLowStockCount is null || TxtRowCount is null)
+                return;
+
+            TxtTotalMedicines.Text = _vm.TotalMedicines.ToString();
+            TxtSufficientCount.Text = _vm.SufficientCount.ToString();
+            TxtLowStockCount.Text = _vm.LowStockCount.ToString();
+            TxtRowCount.Text =
+                $"Showing {_vm.DisplayedItems.Count} item{(_vm.DisplayedItems.Count != 1 ? "s" : "")}";
+        }
+
+        // ── Search + Filters ───────────────────────────────────────────────────────
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-            => ApplyFilters();
+        {
+            _vm.SearchText = sender.Text ?? string.Empty;
+            UpdateKpiCards();
+        }
 
         private void StatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => ApplyFilters();
+        {
+            _vm.SelectedStatus =
+                (StatusFilter.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "All";
+            UpdateKpiCards();
+        }
 
+        // ── Add Medicine ───────────────────────────────────────────────────────────
         private async void AddMedicine_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new ContentDialog
-            {
-                Title = "Add Medicine",
-                Content = "Add medicine functionality will be implemented later.",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
+            var dialog = new AddEditMedicine(_controller) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
+
+            if (dialog.Result is null && dialog.SaveError is null) return;
+
+            if (dialog.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to add medicine", dialog.SaveError.Message);
+                return;
+            }
+
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "Medicine added",
+                $"{dialog.Result!.Name} has been added successfully.");
         }
 
-        private async void ViewDetails_Click(object sender, RoutedEventArgs e)
+        // ── Restock Medicine ───────────────────────────────────────────────────────
+        private async void RestockMedicine_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            var record = _allItems.FirstOrDefault(m => m.MedicineId == id);
+            if (sender is not MenuFlyoutItem item) return;
+            var record = _vm.FindItem(item.Tag?.ToString() ?? string.Empty);
             if (record is null) return;
 
-            var dialog = new ContentDialog
-            {
-                Title = record.MedicineName,
-                Content = "Detailed medicine information will be implemented later.",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
+            var dialog = new RestockMedicine(record, _controller) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
+
+            if (!dialog.Confirmed && dialog.SaveError is null) return;
+
+            if (dialog.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to restock", dialog.SaveError.Message);
+                return;
+            }
+
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "Restock successful",
+                $"{record.MedicineName} stock has been updated.");
         }
 
+        // ── Edit Medicine ──────────────────────────────────────────────────────────
         private async void EditMedicine_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            var record = _allItems.FirstOrDefault(m => m.MedicineId == id);
+            if (sender is not MenuFlyoutItem item) return;
+            var record = _vm.FindItem(item.Tag?.ToString() ?? string.Empty);
             if (record is null) return;
 
-            var dialog = new ContentDialog
-            {
-                Title = $"Edit — {record.MedicineName}",
-                Content = "Edit medicine functionality will be implemented later.",
-                CloseButtonText = "Close",
-                XamlRoot = XamlRoot
-            };
+            // Fetch full model from DB to get the real DateTime for ExpiryDate
+            if (!int.TryParse(record.MedicineId, out var id)) return;
+            var medicine = await _controller.GetMedicineByIdAsync(id);
+            if (medicine is null) return;
+
+            var dialog = new AddEditMedicine(_controller) { XamlRoot = XamlRoot };
+            dialog.LoadForEdit(medicine.Id, medicine.Name, medicine.Unit, medicine.ExpiryDate);
             await dialog.ShowAsync();
+
+            if (dialog.Result is null && dialog.SaveError is null) return;
+
+            if (dialog.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to update medicine", dialog.SaveError.Message);
+                return;
+            }
+
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "Medicine updated",
+                $"{dialog.Result!.Name} has been updated successfully.");
         }
 
+        // ── Delete Medicine ────────────────────────────────────────────────────────
         private async void DeleteMedicine_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            var record = _allItems.FirstOrDefault(m => m.MedicineId == id);
+            if (sender is not MenuFlyoutItem item) return;
+            var record = _vm.FindItem(item.Tag?.ToString() ?? string.Empty);
             if (record is null) return;
 
-            var dialog = new ContentDialog
-            {
-                Title = "Delete Medicine",
-                Content = $"Are you sure you want to delete {record.MedicineName}?\nThis functionality will be implemented later.",
-                PrimaryButtonText = "Delete",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = XamlRoot
-            };
+            var dialog = new DeleteMedicine(record, _controller) { XamlRoot = XamlRoot };
             await dialog.ShowAsync();
+
+            if (!dialog.Confirmed) return;
+
+            if (dialog.SaveError is not null)
+            {
+                ToastHelper.Error(ToastBar, "Failed to delete medicine", dialog.SaveError.Message);
+                return;
+            }
+
+            await LoadFromDbAsync();
+            ToastHelper.Success(ToastBar, "Medicine deleted",
+                $"{record.MedicineName} has been permanently removed.");
         }
     }
 }
