@@ -11,58 +11,65 @@
 
     <Page.Resources>
         <Style x:Key="KpiCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="20" />
+            <Setter Property="Background"       Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush"      Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness"  Value="1" />
+            <Setter Property="CornerRadius"     Value="8" />
+            <Setter Property="Padding"          Value="20" />
         </Style>
 
         <Style x:Key="ChartCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="20" />
+            <Setter Property="Background"       Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush"      Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness"  Value="1" />
+            <Setter Property="CornerRadius"     Value="8" />
+            <Setter Property="Padding"          Value="20" />
         </Style>
 
         <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="FontSize"         Value="13" />
+            <Setter Property="FontWeight"       Value="SemiBold" />
+            <Setter Property="Foreground"       Value="{ThemeResource TextFillColorSecondaryBrush}" />
             <Setter Property="CharacterSpacing" Value="50" />
         </Style>
 
         <Style x:Key="KpiValueStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontSize"   Value="28" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
         </Style>
 
         <Style x:Key="KpiLabelStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontSize"  Value="13" />
             <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-            <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="Margin"    Value="0,4,0,0" />
+        </Style>
+
+        <!-- Transparent clickable button wrapper for KPI cards -->
+        <Style x:Key="CardButtonStyle" TargetType="Button">
+            <Setter Property="Background"                 Value="Transparent" />
+            <Setter Property="BorderBrush"                Value="Transparent" />
+            <Setter Property="BorderThickness"            Value="0" />
+            <Setter Property="Padding"                    Value="0" />
+            <Setter Property="HorizontalAlignment"        Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment"   Value="Stretch" />
+            <Setter Property="CornerRadius"               Value="8" />
         </Style>
     </Page.Resources>
 
-    <!-- Root Grid fills the entire page -->
     <Grid Padding="24" RowSpacing="20">
         <Grid.RowDefinitions>
-            <!-- Page Header -->
             <RowDefinition Height="Auto" />
-            <!-- KPI Cards -->
             <RowDefinition Height="Auto" />
-            <!-- Chart — takes ALL remaining space -->
-            <RowDefinition Height="*" />
+            <RowDefinition Height="*"    />
         </Grid.RowDefinitions>
 
         <!-- Page Header -->
         <StackPanel Grid.Row="0" Spacing="2">
             <TextBlock
                 Text="Dashboard"
-                FontSize="24"
-                FontWeight="Bold"
+                FontSize="24" FontWeight="Bold"
                 Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
             <TextBlock
                 Text="Overview · Aesthetic Clinic ERP"
@@ -78,71 +85,89 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <!-- This Month's Revenue -->
-            <Border Grid.Column="0" Style="{StaticResource KpiCardStyle}">
-                <StackPanel Spacing="0">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE8A4;" FontSize="16" Foreground="#0078D4" />
-                        <TextBlock Text="THIS MONTH'S REVENUE" Style="{StaticResource SectionHeaderStyle}" />
+            <!-- This Month's Revenue → PaymentManagement -->
+            <Button Grid.Column="0"
+                    Style="{StaticResource CardButtonStyle}"
+                    Tag="PaymentManagement"
+                    Click="KpiCard_Click">
+                <Border Style="{StaticResource KpiCardStyle}">
+                    <StackPanel Spacing="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8A4;" FontSize="16" Foreground="#0078D4" />
+                            <TextBlock Text="THIS MONTH'S REVENUE" Style="{StaticResource SectionHeaderStyle}" />
+                        </StackPanel>
+                        <TextBlock x:Name="TxtMonthlyRevenue" Text="₱0.00"
+                                   Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                        <TextBlock Text="Total collected this month" Style="{StaticResource KpiLabelStyle}" />
+                        <TextBlock x:Name="TxtRevenueTrend" Text=""
+                                   FontSize="12" Foreground="#0EA47A" Margin="0,6,0,0" />
                     </StackPanel>
-                    <TextBlock x:Name="TxtMonthlyRevenue" Text="₱0.00" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
-                    <TextBlock Text="Total collected this month" Style="{StaticResource KpiLabelStyle}" />
-                    <TextBlock x:Name="TxtRevenueTrend" Text="↑ 0% vs last month"
-                               FontSize="12" Foreground="#0EA47A" Margin="0,6,0,0" />
-                </StackPanel>
-            </Border>
+                </Border>
+            </Button>
 
-            <!-- Total Users -->
-            <Border Grid.Column="1" Style="{StaticResource KpiCardStyle}">
-                <StackPanel Spacing="0">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE716;" FontSize="16" Foreground="#C239B3" />
-                        <TextBlock Text="TOTAL USERS" Style="{StaticResource SectionHeaderStyle}" />
+            <!-- Total Clinics → UserManagement -->
+            <Button Grid.Column="1"
+                    Style="{StaticResource CardButtonStyle}"
+                    Tag="UserManagement"
+                    Click="KpiCard_Click">
+                <Border Style="{StaticResource KpiCardStyle}">
+                    <StackPanel Spacing="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE716;" FontSize="16" Foreground="#C239B3" />
+                            <TextBlock Text="TOTAL CLINICS" Style="{StaticResource SectionHeaderStyle}" />
+                        </StackPanel>
+                        <TextBlock x:Name="TxtTotalUsers" Text="0"
+                                   Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                        <TextBlock Text="All registered clinics" Style="{StaticResource KpiLabelStyle}" />
+                        <TextBlock x:Name="TxtUserRoles" Text="0 clinics registered"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Margin="0,6,0,0" />
                     </StackPanel>
-                    <TextBlock x:Name="TxtTotalUsers" Text="0" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
-                    <TextBlock Text="All registered system users" Style="{StaticResource KpiLabelStyle}" />
-                    <TextBlock x:Name="TxtUserRoles" Text="0 roles in system"
-                               FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,6,0,0" />
-                </StackPanel>
-            </Border>
+                </Border>
+            </Button>
 
-            <!-- Active Users -->
-            <Border Grid.Column="2" Style="{StaticResource KpiCardStyle}">
-                <StackPanel Spacing="0">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE8FA;" FontSize="16" Foreground="#0EA47A" />
-                        <TextBlock Text="ACTIVE USERS" Style="{StaticResource SectionHeaderStyle}" />
+            <!-- Active Clinics → UserManagement -->
+            <Button Grid.Column="2"
+                    Style="{StaticResource CardButtonStyle}"
+                    Tag="UserManagement"
+                    Click="KpiCard_Click">
+                <Border Style="{StaticResource KpiCardStyle}">
+                    <StackPanel Spacing="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8FA;" FontSize="16" Foreground="#0EA47A" />
+                            <TextBlock Text="ACTIVE CLINICS" Style="{StaticResource SectionHeaderStyle}" />
+                        </StackPanel>
+                        <TextBlock x:Name="TxtActiveUsers" Text="0"
+                                   Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
+                        <TextBlock Text="Currently active clinics" Style="{StaticResource KpiLabelStyle}" />
+                        <TextBlock x:Name="TxtInactiveUsers" Text="0 inactive accounts"
+                                   FontSize="12" Foreground="#D83B01" Margin="0,6,0,0" />
                     </StackPanel>
-                    <TextBlock x:Name="TxtActiveUsers" Text="0" Style="{StaticResource KpiValueStyle}" Margin="0,10,0,0" />
-                    <TextBlock Text="Currently active accounts" Style="{StaticResource KpiLabelStyle}" />
-                    <TextBlock x:Name="TxtInactiveUsers" Text="0 inactive accounts"
-                               FontSize="12" Foreground="#D83B01" Margin="0,6,0,0" />
-                </StackPanel>
-            </Border>
+                </Border>
+            </Button>
         </Grid>
 
-        <!-- ROW 2 — Chart fills all remaining vertical space -->
+        <!-- ROW 2 — Chart -->
         <Border Grid.Row="2"
                 Style="{StaticResource ChartCardStyle}"
                 x:Name="ChartCard"
                 SizeChanged="ChartCard_SizeChanged">
             <Grid RowSpacing="12">
                 <Grid.RowDefinitions>
-                    <!-- Chart title -->
                     <RowDefinition Height="Auto" />
-                    <!-- Canvas stretches to fill card -->
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*"    />
                 </Grid.RowDefinitions>
 
-                <!-- Chart Header -->
                 <StackPanel Grid.Row="0" Spacing="2">
-                    <TextBlock Text="Monthly Appointments" FontSize="15" FontWeight="SemiBold"
+                    <TextBlock Text="New Clinics Per Month"
+                               FontSize="15" FontWeight="SemiBold"
                                Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                    <TextBlock Text="Total appointments per month · Last 12 months"
-                               FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBlock Text="Clinics registered per month · Last 12 months"
+                               FontSize="12"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
 
-                <!-- Canvas — no fixed Height, stretches with the card -->
                 <Canvas Grid.Row="1"
                         x:Name="AppointmentChartCanvas"
                         HorizontalAlignment="Stretch"

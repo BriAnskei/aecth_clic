@@ -6,7 +6,7 @@
 
         public int AccountId { get; set; } = 0;
 
-        public string Status { get; set; } = "acitve"; // default active (active, deactivated)
+        public string Status { get; set; } = "active"; // default active (active, deactivated)
 
         public User? User { get; set; }
     }

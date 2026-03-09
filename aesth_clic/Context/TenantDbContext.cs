@@ -74,14 +74,7 @@ modelBuilder.Entity<AccountStatus>()
      .OnDelete(DeleteBehavior.Cascade);
 
 
-            //// prescription
-            //modelBuilder.Entity<Prescription>()
-            //.HasOne(p => p.PatientProcedure)
-            //.WithMany()
-            //.HasForeignKey(p => p.PatientProcedureId)
-            //.OnDelete(DeleteBehavior.Cascade);
-
-
+          
             // patient medicine
             modelBuilder.Entity<PatientMedicine>()
              .HasOne(pm => pm.Medicine)

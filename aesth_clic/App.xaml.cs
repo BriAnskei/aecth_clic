@@ -74,6 +74,11 @@ namespace aesth_clic
             services.AddTransient<aesth_clic.Master.Services.AdminClientService>();
             services.AddTransient<aesth_clic.Master.Controller.AdminUserController>();
 
+            services.AddScoped<MasterDashboardService>();
+            services.AddScoped<MasterDashboardController>();
+
+
+
             // --
 
 
@@ -115,6 +120,11 @@ namespace aesth_clic
 
             services.AddTransient<ProcedurePaymentService>();
             services.AddTransient<ProcedurePaymentController>();
+
+
+
+            services.AddScoped<DashboardService>();
+            services.AddScoped<DashboardController>();
 
             // --
 

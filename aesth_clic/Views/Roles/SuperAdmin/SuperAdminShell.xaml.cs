@@ -1,4 +1,5 @@
-﻿using aesth_clic.Views.Roles.SuperAdmin.Pages;
+﻿using aesth_clic.Session;
+using aesth_clic.Views.Roles.SuperAdmin.Pages;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -42,18 +43,19 @@ namespace aesth_clic.Views.Roles
 
         private void OnLogout(object sender, TappedRoutedEventArgs e)
         {
+            // Clear the session
+            AppSession.Instance.Logout();
+
             var window = (Application.Current as App)?.MainWindow;
             if (window != null)
             {
                 var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
                 var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
                 var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
-
                 if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
                     presenter.Restore();
             }
 
-            //Frame.Navigate(typeof(RoleSelectionPage));
             Frame.Navigate(typeof(LoginPage));
         }
     }

@@ -1,7 +1,12 @@
-﻿using Microsoft.UI.Xaml;
+﻿using aesth_clic.Master.Controller;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.SuperAdmin;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
+using System;
 using System.Collections.Generic;
 using Windows.Foundation;
 using Windows.UI;
@@ -10,95 +15,100 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
 {
     public sealed partial class Dashboard : Page
     {
-        private List<string>? _chartLabels;
-        private List<int>? _chartValues;
+        private readonly SuperAdminDashboardViewModel _vm = new();
+        private readonly DashboardController _dashboardController;
 
         public Dashboard()
         {
             InitializeComponent();
+            _dashboardController = App.Services.GetRequiredService<DashboardController>();
             Loaded += OnPageLoaded;
         }
 
-        private void OnPageLoaded(object sender, RoutedEventArgs e)
+        // ── Page loaded ───────────────────────────────────────────────────────
+        private async void OnPageLoaded(object sender, RoutedEventArgs e)
         {
-            LoadKpiMetrics();
-            LoadAppointmentChart();
+            try
+            {
+                var dto = await _dashboardController.GetSuperAdminDashboardAsync();
+                _vm.LoadFromDto(dto);
+                ApplyViewModelToUi();
+                DrawLineChart(_vm.ChartLabels, _vm.ChartValues);
+            }
+            catch (Exception ex)
+            {
+                TxtMonthlyRevenue.Text = "—";
+                TxtTotalUsers.Text = "—";
+                TxtActiveUsers.Text = "—";
+                System.Diagnostics.Debug.WriteLine($"Dashboard load error: {ex}");
+            }
         }
 
-        // Redraws chart whenever the card resizes (window resize or first layout)
+        // ── Redraws chart whenever the card resizes ───────────────────────────
         private void ChartCard_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (_chartLabels != null && _chartValues != null)
-                DrawLineChart(_chartLabels, _chartValues);
+            if (_vm.ChartLabels.Count > 0 && _vm.ChartValues.Count > 0)
+                DrawLineChart(_vm.ChartLabels, _vm.ChartValues);
         }
 
-        // ─────────────────────────────────────────
-        // KPI CARDS
-        // ─────────────────────────────────────────
-        private void LoadKpiMetrics()
+        // ── Bind ViewModel → named XAML elements ──────────────────────────────
+        private void ApplyViewModelToUi()
         {
-            // TODO: SELECT SUM(amount) FROM payments
-            // WHERE status = 'paid'
-            // AND MONTH(payment_date) = MONTH(CURDATE())
-            // AND YEAR(payment_date) = YEAR(CURDATE())
-            TxtMonthlyRevenue.Text = "₱84,500.00";
-            TxtRevenueTrend.Text = "↑ 12% vs last month";
-            TxtRevenueTrend.Foreground = new SolidColorBrush(Color.FromArgb(255, 14, 164, 122));
+            TxtMonthlyRevenue.Text = _vm.MonthlyRevenue;
 
-            // TODO: SELECT COUNT(*) FROM users
-            int totalUsers = 8;
-            TxtTotalUsers.Text = totalUsers.ToString();
-            TxtUserRoles.Text = "5 roles in system";
+            TxtTotalUsers.Text = _vm.TotalClients;
+            TxtUserRoles.Text = $"{_vm.TotalClients} clinic{(_vm.TotalClients != "1" ? "s" : "")} registered";
 
-            // TODO: SELECT COUNT(*) FROM users WHERE is_active = TRUE
-            int activeUsers = 6;
-            int inactiveUsers = totalUsers - activeUsers;
-            TxtActiveUsers.Text = activeUsers.ToString();
-            TxtInactiveUsers.Text = $"{inactiveUsers} inactive account{(inactiveUsers != 1 ? "s" : "")}";
+            TxtActiveUsers.Text = _vm.ActiveClients;
+            TxtInactiveUsers.Text = _vm.InactiveClientsLabel;
+            TxtInactiveUsers.Foreground = _vm.InactiveClientsForeground;
 
-            TxtInactiveUsers.Foreground = inactiveUsers == 0
-                ? new SolidColorBrush(Color.FromArgb(255, 14, 164, 122))
-                : new SolidColorBrush(Color.FromArgb(255, 216, 59, 1));
+            TxtRevenueTrend.Visibility = Visibility.Collapsed;
         }
 
-        // ─────────────────────────────────────────
-        // MONTHLY APPOINTMENTS LINE CHART
-        // ─────────────────────────────────────────
-        private void LoadAppointmentChart()
+        // ── KPI Card click → navigate ContentFrame ────────────────────────────
+        private void KpiCard_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: SELECT MONTH(appointment_date), COUNT(*)
-            // FROM appointments
-            // WHERE appointment_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-            // GROUP BY MONTH(appointment_date)
-            // ORDER BY appointment_date ASC
+            if (sender is not Button btn) return;
 
-            _chartLabels = new List<string>
+            string tag = btn.Tag?.ToString() ?? string.Empty;
+
+            Type? targetPage = tag switch
             {
-                "Mar", "Apr", "May", "Jun",
-                "Jul", "Aug", "Sep", "Oct",
-                "Nov", "Dec", "Jan", "Feb"
+                "PaymentManagement" => typeof(PaymentManagement),
+                "UserManagement" => typeof(UserManagement),
+                _ => null
             };
 
-            _chartValues = new List<int>
-            {
-                18, 24, 30, 27,
-                35, 40, 38, 45,
-                42, 50, 47, 55
-            };
+            if (targetPage is null) return;
 
-            DrawLineChart(_chartLabels, _chartValues);
+            // Navigate the ContentFrame
+            Frame?.Navigate(targetPage);
+
+            // Sync the NavigationView sidebar highlight
+            if (Frame?.Parent is NavigationView navView)
+            {
+                foreach (var item in navView.MenuItems)
+                {
+                    if (item is NavigationViewItem nvi && nvi.Tag?.ToString() == tag)
+                    {
+                        navView.SelectedItem = nvi;
+                        break;
+                    }
+                }
+            }
         }
 
+        // ─────────────────────────────────────────
+        // MONTHLY NEW CLINICS LINE CHART
+        // ─────────────────────────────────────────
         private void DrawLineChart(List<string> labels, List<int> values)
         {
             AppointmentChartCanvas.Children.Clear();
 
-            // Read actual card size — subtract padding (20 each side = 40)
-            // Also subtract the chart header height (~52px) + RowSpacing (12)
             double canvasWidth = ChartCard.ActualWidth - 40;
             double canvasHeight = ChartCard.ActualHeight - 40 - 52 - 12;
 
-            // Guard: skip if layout hasn't happened yet
             if (canvasWidth <= 0 || canvasHeight <= 0) return;
 
             AppointmentChartCanvas.Width = canvasWidth;
@@ -113,12 +123,17 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
             double chartHeight = canvasHeight - paddingTop - paddingBottom;
 
             int count = values.Count;
+            if (count < 2) return;
+
             int maxValue = 0;
             foreach (var v in values) if (v > maxValue) maxValue = v;
-            int gridMax = (int)(System.Math.Ceiling(maxValue / 10.0) * 10) + 10;
 
-            // ── Grid lines + Y labels ──
-            int gridLines = 5;
+            int gridMax = Math.Max(
+                (int)(Math.Ceiling(maxValue / 10.0) * 10) + 10,
+                10);
+
+            // ── Grid lines + Y labels ──────────────────────────────────────────
+            const int gridLines = 5;
             for (int i = 0; i <= gridLines; i++)
             {
                 double y = paddingTop + chartHeight - (chartHeight * i / gridLines);
@@ -145,26 +160,28 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 AppointmentChartCanvas.Children.Add(yLabel);
             }
 
-            // ── Point coordinates ──
+            // ── Point coordinates ──────────────────────────────────────────────
             double stepX = chartWidth / (count - 1);
             var points = new List<Point>();
 
             for (int i = 0; i < count; i++)
             {
                 double x = paddingLeft + i * stepX;
-                double y = paddingTop + chartHeight - (chartHeight * values[i] / (double)gridMax);
+                double y = paddingTop + chartHeight
+                           - (chartHeight * values[i] / (double)gridMax);
                 points.Add(new Point(x, y));
             }
 
-            // ── Filled area under the line ──
+            // ── Filled area ────────────────────────────────────────────────────
             var areaFigure = new PathFigure
             {
                 StartPoint = new Point(points[0].X, paddingTop + chartHeight)
             };
             areaFigure.Segments.Add(new LineSegment { Point = points[0] });
-            for (int i = 1; i < points.Count; i++)
+            for (int i = 1; i < count; i++)
                 areaFigure.Segments.Add(new LineSegment { Point = points[i] });
-            areaFigure.Segments.Add(new LineSegment { Point = new Point(points[count - 1].X, paddingTop + chartHeight) });
+            areaFigure.Segments.Add(
+                new LineSegment { Point = new Point(points[count - 1].X, paddingTop + chartHeight) });
             areaFigure.IsClosed = true;
 
             AppointmentChartCanvas.Children.Add(new Path
@@ -176,13 +193,13 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                     EndPoint = new Point(0, 1),
                     GradientStops =
                     {
-                        new GradientStop { Color = Color.FromArgb(60, 0, 120, 212), Offset = 0 },
-                        new GradientStop { Color = Color.FromArgb(0,  0, 120, 212), Offset = 1 }
+                        new GradientStop { Color = Color.FromArgb(60,  0, 120, 212), Offset = 0 },
+                        new GradientStop { Color = Color.FromArgb(0,   0, 120, 212), Offset = 1 }
                     }
                 }
             });
 
-            // ── Line segments ──
+            // ── Line segments ──────────────────────────────────────────────────
             for (int i = 0; i < count - 1; i++)
             {
                 AppointmentChartCanvas.Children.Add(new Line
@@ -196,7 +213,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 });
             }
 
-            // ── Data point dots ──
+            // ── Data point dots ────────────────────────────────────────────────
             foreach (var pt in points)
             {
                 var dot = new Ellipse
@@ -212,7 +229,7 @@ namespace aesth_clic.Views.Roles.SuperAdmin.Pages
                 AppointmentChartCanvas.Children.Add(dot);
             }
 
-            // ── X-axis labels ──
+            // ── X-axis labels ──────────────────────────────────────────────────
             for (int i = 0; i < count; i++)
             {
                 var xLabel = new TextBlock
