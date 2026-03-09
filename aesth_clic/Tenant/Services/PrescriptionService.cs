@@ -62,13 +62,13 @@ namespace aesth_clic.Tenant.Services
             using var db = CreateTenantDb();
 
             return await db.Set<Prescription>()
-                .Where(p => p.Status.Equals("pending", StringComparison.OrdinalIgnoreCase)) // only pending
+                .Where(p => p.Status == "pending") 
                 .Include(p => p.PatientProcedure!)
-                    .ThenInclude(pp => pp.User)          // assigned doctor
+                    .ThenInclude(pp => pp.User)
                 .Include(p => p.PatientProcedure!)
-                    .ThenInclude(pp => pp.Patient)       // patient
-                .Include(p => p.PatientMedicines)        // medicines
-                    .ThenInclude(pm => pm.Medicine)      // actual medicine details
+                    .ThenInclude(pp => pp.Patient)
+                .Include(p => p.PatientMedicines)
+                    .ThenInclude(pm => pm.Medicine)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -96,6 +96,116 @@ namespace aesth_clic.Tenant.Services
             return prescription;
         }
 
+
+        public async Task<Prescription> UpdateAsync(
+     int patientProcedureId,
+     List<PrescriptionMedicineDto> medicines)
+        {
+            if (patientProcedureId <= 0)
+                throw new ArgumentException("Invalid PatientProcedureId.");
+
+            if (medicines == null || medicines.Count == 0)
+                throw new ArgumentException("At least one medicine must be provided.");
+
+            foreach (var m in medicines)
+            {
+                if (m.MedicineId <= 0)
+                    throw new ArgumentException("Invalid MedicineId.");
+
+                if (m.Quantity <= 0)
+                    throw new ArgumentException("Quantity must be greater than zero.");
+            }
+
+            using var db = CreateTenantDb();
+            using var transaction = await db.Database.BeginTransactionAsync();
+
+            try
+            {
+                var prescription = await db.Set<Prescription>()
+                    .Include(p => p.PatientMedicines)
+                    .FirstOrDefaultAsync(p => p.PatientProcedureId == patientProcedureId);
+
+                if (prescription == null)
+                    throw new Exception("Prescription not found.");
+
+                // 1️⃣ Delete existing medicines
+                if (prescription.PatientMedicines.Any())
+                {
+                    db.Set<PatientMedicine>().RemoveRange(prescription.PatientMedicines);
+                }
+
+                // 2️⃣ Add new medicines
+                var newMedicines = medicines.Select(m => new PatientMedicine
+                {
+                    PrescriptionId = prescription.Id,
+                    MedicineId = m.MedicineId,
+                    Quantity = m.Quantity
+                }).ToList();
+
+                await db.Set<PatientMedicine>().AddRangeAsync(newMedicines);
+
+                await db.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return prescription;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+
+        public async Task<Prescription> MarkCompletedAsync(int patientProcedureId)
+        {
+            if (patientProcedureId <= 0)
+                throw new ArgumentException("Invalid PatientProcedureId.");
+
+            using var db = CreateTenantDb();
+            using var transaction = await db.Database.BeginTransactionAsync();
+
+            try
+            {
+                var prescription = await db.Set<Prescription>()
+                    .Include(p => p.PatientMedicines)
+                        .ThenInclude(pm => pm.Medicine)
+                    .FirstOrDefaultAsync(p => p.PatientProcedureId == patientProcedureId);
+
+                if (prescription == null)
+                    throw new Exception("Prescription not found.");
+
+                if (prescription.Status.Equals("completed", StringComparison.OrdinalIgnoreCase))
+                    throw new Exception("Prescription is already completed.");
+
+                // Decrement stock
+                foreach (var pm in prescription.PatientMedicines)
+                {
+                    var medicine = pm.Medicine
+                        ?? throw new Exception($"Medicine not found for PatientMedicineId {pm.Id}");
+
+                    if (medicine.Stock < pm.Quantity)
+                        throw new Exception($"Not enough stock for medicine '{medicine.Name}'.");
+
+                    medicine.Stock -= pm.Quantity;
+                }
+
+                // Update prescription status
+                prescription.Status = "completed";
+
+                await db.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return prescription;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
 
     }
 }

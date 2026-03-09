@@ -236,6 +236,8 @@ namespace aesth_clic.Tenant.Services
         ============================================================
         */
 
+        // Receptionist module
+
         public async Task<List<PatientProcedure>> GetCurrentAppointmentsAsync()
         {
             using var tenantDb = CreateTenantDb();
@@ -271,14 +273,17 @@ namespace aesth_clic.Tenant.Services
                 throw new Exception("DoctorId is required.");
 
             var procedures = await tenantDb.PatientProcedures
-                .Include(p => p.Patient)
-                .Include(p => p.User)
-                .Include(p => p.ServiceMenu)
-                .Where(p =>
-                    p.AssignedDoctorId == doctorId &&
-                    p.ProcedureDate != null)
-                .OrderByDescending(p => p.ProcedureDate)
-                .ToListAsync();
+      .Include(p => p.Patient)
+      .Include(p => p.User)
+      .Include(p => p.ServiceMenu)
+      .Where(p =>
+          p.AssignedDoctorId == doctorId &&
+          p.AppointmentDate != null &&
+          p.ProcedureDate != null &&
+          p.Status == "scheduled"
+      )
+      .OrderByDescending(p => p.ProcedureDate)
+      .ToListAsync();
 
             return procedures;
         }

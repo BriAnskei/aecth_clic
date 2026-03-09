@@ -1,3 +1,5 @@
+using aesth_clic.Tenant.Controller;
+using aesth_clic.Tenant.Model;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,8 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace aesth_clic.Views.Roles.Pharmacist.Modals
 {
-    // ── Row view-model ────────────────────────────────────────────────────────
-
+    // ── Row view-model ─────────────────────────────────────────────────────────────
     public class PrescriptionMedicineRow : INotifyPropertyChanged
     {
         public int MedicineId { get; set; }
@@ -37,10 +38,8 @@ namespace aesth_clic.Views.Roles.Pharmacist.Modals
             }
         }
 
-        // ── Derived display props ─────────────────────────────────────────────
-
+        // ── Derived display props ──────────────────────────────────────────────────
         public string PrescribedQtyDisplay => $"x{PrescribedQty}";
-
         public string StockDisplay => $"{StockAvailable} units";
 
         public string StockStatusLabel => StockAvailable == 0
@@ -60,109 +59,103 @@ namespace aesth_clic.Views.Roles.Pharmacist.Modals
         public string RowBackground => Dispensed ? "#F4FBF4" : "Transparent";
         public double RowOpacity => Dispensed ? 0.55 : 1.0;
         public string DotColor => Dispensed ? "#2E7D32" : "#5B2D8E";
-
         public string DispensingNote => Dispensed ? "Dispensed from inventory" : string.Empty;
-        public Visibility DispensingNoteVisibility
-            => Dispensed ? Visibility.Visible : Visibility.Collapsed;
-
-        public Visibility UndispensedVisibility
-            => Dispensed ? Visibility.Collapsed : Visibility.Visible;
-        public Visibility DispensedVisibility
-            => Dispensed ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility DispensingNoteVisibility => Dispensed ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility UndispensedVisibility => Dispensed ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility DispensedVisibility => Dispensed ? Visibility.Visible : Visibility.Collapsed;
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    // ── Result returned to caller ─────────────────────────────────────────────
-
+    // ── Result returned to caller ──────────────────────────────────────────────────
     public class PrescriptionDispenseResult
     {
         public string PatientId { get; set; } = string.Empty;
         public List<PrescriptionMedicineRow> DispensedMedicines { get; set; } = new();
     }
 
-    // ── Modal ─────────────────────────────────────────────────────────────────
-
+    // ── Modal ──────────────────────────────────────────────────────────────────────
     public sealed partial class PatientPrescriptionModal : ContentDialog
     {
-        // ── Public outputs ────────────────────────────────────────────────────
+        // ── Public output ──────────────────────────────────────────────────────────
         public PrescriptionDispenseResult? Result { get; private set; }
 
-        // ── Context ───────────────────────────────────────────────────────────
-        private readonly string _patientId;
+        // ── Dependencies ───────────────────────────────────────────────────────────
+        private readonly Prescription _prescription;
+        private readonly PrescriptionController _controller;
+
+        // ── Context (display only) ─────────────────────────────────────────────────
         private readonly string _patientName;
         private readonly string _patientGender;
         private readonly string _assignedDoctor;
-        private readonly string _procedureName;
-        private readonly string _appointmentDate;
 
-        // ── Data ──────────────────────────────────────────────────────────────
+        // ── Data ───────────────────────────────────────────────────────────────────
         private List<PrescriptionMedicineRow> _medicines = new();
 
-        // ── Constructor ───────────────────────────────────────────────────────
+        // ── Constructor ────────────────────────────────────────────────────────────
         public PatientPrescriptionModal(
-            string patientId,
+            Prescription prescription,
+            PrescriptionController controller,
             string patientName,
             string patientGender,
-            string assignedDoctor,
-            string procedureName,
-            string appointmentDate)
+            string assignedDoctor)
         {
             InitializeComponent();
 
-            _patientId = patientId;
+            _prescription = prescription;
+            _controller = controller;
             _patientName = patientName;
             _patientGender = patientGender;
             _assignedDoctor = assignedDoctor;
-            _procedureName = procedureName;
-            _appointmentDate = appointmentDate;
 
             PopulateRecapHeader();
-            LoadMockPrescription();
+            LoadFromPrescription();
             RefreshList();
         }
 
-        // ── Header ────────────────────────────────────────────────────────────
+        // ── Header ─────────────────────────────────────────────────────────────────
         private void PopulateRecapHeader()
         {
-            // Avatar initials
             var parts = _patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var initials = parts.Length >= 2
                 ? $"{parts[0][0]}{parts[^1][0]}"
                 : _patientName.Length > 0 ? _patientName[0].ToString() : "?";
 
-            var avatarColor = _patientGender switch
+            var avatarColor = _patientGender.ToLower() switch
             {
-                "Female" => ColorHelper.FromArgb(0xFF, 0xC2, 0x18, 0x5B),
-                "Male" => ColorHelper.FromArgb(0xFF, 0x00, 0x78, 0xD4),
+                "female" => ColorHelper.FromArgb(0xFF, 0xC2, 0x18, 0x5B),
+                "male" => ColorHelper.FromArgb(0xFF, 0x00, 0x78, 0xD4),
                 _ => ColorHelper.FromArgb(0xFF, 0x5B, 0x2D, 0x8E)
             };
 
             RecapAvatar.Background = new SolidColorBrush(avatarColor);
             RecapInitials.Text = initials.ToUpper();
             RecapPatientName.Text = _patientName;
-            RecapProcedureName.Text = _procedureName;
-            RecapDate.Text = _appointmentDate;
             RecapDoctor.Text = _assignedDoctor;
+
+            // ProcedureName and Date are not passed in from the list page —
+            // hide them gracefully so the recap header still looks clean
+            RecapProcedureName.Text = string.Empty;
+            RecapDate.Text = string.Empty;
         }
 
-        // ── Mock data (replace with DB/controller call when ready) ────────────
-        private void LoadMockPrescription()
+        // ── Load medicines from the already-fetched Prescription object ────────────
+        private void LoadFromPrescription()
         {
-            // TODO: replace with real prescription loaded by _patientId
-            _medicines = new List<PrescriptionMedicineRow>
-            {
-                new() { MedicineId = 1, Name = "Amoxicillin 500mg",   PrescribedQty = 2, StockAvailable = 48 },
-                new() { MedicineId = 2, Name = "Ibuprofen 400mg",      PrescribedQty = 3, StockAvailable = 12 },
-                new() { MedicineId = 3, Name = "Paracetamol 500mg",    PrescribedQty = 4, StockAvailable = 2  }, // low stock — only 2 of 4 required
-                new() { MedicineId = 4, Name = "Mefenamic Acid 500mg", PrescribedQty = 2, StockAvailable = 0  }, // out of stock
-                new() { MedicineId = 5, Name = "Cetirizine 10mg",      PrescribedQty = 1, StockAvailable = 30 },
-            };
+            _medicines = _prescription.PatientMedicines
+                .Select(pm => new PrescriptionMedicineRow
+                {
+                    MedicineId = pm.MedicineId,
+                    Name = pm.Medicine?.Name ?? $"Medicine #{pm.MedicineId}",
+                    PrescribedQty = pm.Quantity,
+                    StockAvailable = pm.Medicine?.Stock ?? 0,
+                })
+                .ToList();
         }
 
-        // ── List refresh ──────────────────────────────────────────────────────
+        // ── List refresh ───────────────────────────────────────────────────────────
         private void RefreshList()
         {
             PrescriptionListControl.ItemsSource = null;
@@ -175,14 +168,11 @@ namespace aesth_clic.Views.Roles.Pharmacist.Modals
         private void UpdateDispensedCount()
         {
             var dispensed = _medicines.Count(m => m.Dispensed);
-            var total = _medicines.Count;
-            TxtDispensedCount.Text = $"{dispensed} / {total} dispensed";
+            TxtDispensedCount.Text = $"{dispensed} / {_medicines.Count} dispensed";
         }
 
         private void UpdateMarkCompleteButton()
         {
-            // Enabled only when every medicine has been dispensed.
-            // Out-of-stock and low-stock rows permanently block this until stock is resolved.
             IsPrimaryButtonEnabled = _medicines.Count > 0 && _medicines.All(m => m.Dispensed);
         }
 
@@ -192,7 +182,7 @@ namespace aesth_clic.Views.Roles.Pharmacist.Modals
             BtnDispenseAll.IsEnabled = _medicines.Any(m => !m.Dispensed && m.CanDispense);
         }
 
-        // ── Per-row dispense ──────────────────────────────────────────────────
+        // ── Per-row dispense ───────────────────────────────────────────────────────
         private void DispenseRow_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn) return;
@@ -206,7 +196,7 @@ namespace aesth_clic.Views.Roles.Pharmacist.Modals
             RefreshList();
         }
 
-        // ── Dispense All (header button) ──────────────────────────────────────
+        // ── Dispense All ───────────────────────────────────────────────────────────
         private void OnDispenseAllClicked(object sender, RoutedEventArgs e)
         {
             var skipped = _medicines.Where(m => !m.Dispensed && !m.CanDispense).ToList();
@@ -214,9 +204,7 @@ namespace aesth_clic.Views.Roles.Pharmacist.Modals
 
             if (pending.Count == 0)
             {
-                ValidationBar.Message = "Remaining medicines cannot be dispensed due to insufficient stock.";
-                ValidationBar.Severity = InfoBarSeverity.Warning;
-                ValidationBar.IsOpen = true;
+                ShowWarning("Remaining medicines cannot be dispensed due to insufficient stock.");
                 return;
             }
 
@@ -227,28 +215,55 @@ namespace aesth_clic.Views.Roles.Pharmacist.Modals
             RefreshList();
 
             if (skipped.Count > 0)
+                ShowWarning($"{skipped.Count} medicine(s) could not be dispensed due to insufficient stock.");
+        }
+
+        // ── Mark Complete ──────────────────────────────────────────────────────────
+        private async void OnMarkCompleteClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            // Defer so we can run async work before the dialog closes
+            var deferral = args.GetDeferral();
+
+            try
             {
-                ValidationBar.Message = $"{skipped.Count} medicine(s) could not be dispensed due to insufficient stock.";
-                ValidationBar.Severity = InfoBarSeverity.Warning;
-                ValidationBar.IsOpen = true;
+                IsPrimaryButtonEnabled = false;
+                ShowSavingOverlay(true);
+
+                await _controller.MarkCompletedAsync(_prescription.PatientProcedureId);
+
+                Result = new PrescriptionDispenseResult
+                {
+                    PatientId = _prescription.PatientProcedure!.Patient.Id.ToString(),
+                    DispensedMedicines = _medicines.Where(m => m.Dispensed).ToList(),
+                };
+
+                // Dialog closes normally after deferral.Complete()
+            }
+            catch (Exception ex)
+            {
+                args.Cancel = true;
+                IsPrimaryButtonEnabled = true;
+                ShowWarning($"Failed to complete prescription: {ex.Message}");
+            }
+            finally
+            {
+                ShowSavingOverlay(false);
+                deferral.Complete();
             }
         }
 
-        // ── Mark Complete (primary footer button) ─────────────────────────────
-        private void OnMarkCompleteClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        // ── Helpers ────────────────────────────────────────────────────────────────
+        private void ShowWarning(string message)
         {
-            args.Cancel = true; // manage close manually
+            ValidationBar.Severity = InfoBarSeverity.Warning;
+            ValidationBar.Message = message;
+            ValidationBar.IsOpen = true;
+        }
 
-            Result = new PrescriptionDispenseResult
-            {
-                PatientId = _patientId,
-                DispensedMedicines = _medicines.Where(m => m.Dispensed).ToList(),
-            };
-
-            // TODO: persist to backend here
-            // e.g. await _pharmacistController.CompletePrescriptionAsync(_patientId, Result.DispensedMedicines);
-
-            Hide();
+        private void ShowSavingOverlay(bool visible)
+        {
+            if (SavingOverlay is not null)
+                SavingOverlay.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

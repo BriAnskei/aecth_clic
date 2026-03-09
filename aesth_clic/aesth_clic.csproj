@@ -39,6 +39,7 @@
     <None Remove="Views\Roles\Doctor\Modal\AppointmentManagement\SetProcedureDate.xaml" />
     <None Remove="Views\Roles\Doctor\Modal\AppointmentManagement\ViewAppointmentDetials.xaml" />
     <None Remove="Views\Roles\Doctor\Modal\PatientProcedure\MarkDoneModal.xaml" />
+    <None Remove="Views\Roles\Doctor\Modal\PatientProcedure\ViewProcedureModal.xaml" />
     <None Remove="Views\Roles\Doctor\Modal\ServiceMenu\DeleteService.xaml" />
     <None Remove="Views\Roles\Doctor\Modal\ServiceMenu\SchduleProcedure.xaml" />
     <None Remove="Views\Roles\Doctor\Pages\AppointmentManagement.xaml" />
@@ -312,6 +313,11 @@
   </ItemGroup>
   <ItemGroup>
     <PRIResource Remove="Services\AdminServices\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Roles\Doctor\Modal\PatientProcedure\ViewProcedureModal.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Roles\Pharmacist\Modal\Prescription\PatientPrescriptionModal.xaml">

@@ -1,37 +1,15 @@
+using aesth_clic.Tenant.Controller;
+using aesth_clic.Utils;
+using aesth_clic.ViewModels.Pharmacist;
+using aesth_clic.Views.Roles.Pharmacist.Modals;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Windows.UI;
-using aesth_clic.Views.Roles.Pharmacist.Modals;
 
 namespace aesth_clic.Views.Roles.Pharmacist.Pages
 {
-    // ── Converter ────────────────────────────────────────────────────────────
-    public class StringToBrushConverter : Microsoft.UI.Xaml.Data.IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value is string hex)
-            {
-                hex = hex.TrimStart('#');
-                if (hex.Length == 6)
-                {
-                    byte r = System.Convert.ToByte(hex.Substring(0, 2), 16);
-                    byte g = System.Convert.ToByte(hex.Substring(2, 2), 16);
-                    byte b = System.Convert.ToByte(hex.Substring(4, 2), 16);
-                    return new SolidColorBrush(Color.FromArgb(255, r, g, b));
-                }
-            }
-            return new SolidColorBrush(Color.FromArgb(255, 91, 45, 142));
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-            => throw new NotImplementedException();
-    }
-
-    // ── Data model ───────────────────────────────────────────────────────────
+    // ── UI display model ──────────────────────────────────────────────────────────
     public class PatientMedicineItem
     {
         public string PatientId { get; set; } = string.Empty;
@@ -40,114 +18,91 @@ namespace aesth_clic.Views.Roles.Pharmacist.Pages
         public string Initials { get; set; } = string.Empty;
         public string AvatarColor { get; set; } = "#5B2D8E";
         public string AssignedDoctor { get; set; } = string.Empty;
-        public string ProcedureName { get; set; } = string.Empty;
-        public string AppointmentDate { get; set; } = string.Empty;
         public int TotalMedicine { get; set; }
-        public string TotalMedicineDisplay => $"{TotalMedicine} medicine{(TotalMedicine == 1 ? "" : "s")}";
+
+        public string TotalMedicineDisplay =>
+            $"{TotalMedicine} medicine{(TotalMedicine == 1 ? "" : "s")}";
     }
 
-    // ── Page ─────────────────────────────────────────────────────────────────
+    // ── Page ──────────────────────────────────────────────────────────────────────
     public sealed partial class PatientMedicine : Page
     {
-        private List<PatientMedicineItem> _allItems = new();
+        private readonly PatientMedicineViewModel _vm = new();
+        private readonly PrescriptionController _prescriptionController;
 
         public PatientMedicine()
         {
             InitializeComponent();
-            LoadSampleData();
-            Loaded += (_, _) => ApplyFilters();
+
+            _prescriptionController = App.Services.GetRequiredService<PrescriptionController>();
+
+            PatientMedicineListControl.ItemsSource = _vm.DisplayedItems;
+
+            _ = LoadFromDbAsync();
         }
 
-        private void LoadSampleData()
+        // ── Data loading ──────────────────────────────────────────────────────────
+        private async System.Threading.Tasks.Task LoadFromDbAsync()
         {
-            _allItems = new List<PatientMedicineItem>
+            try
             {
-                BuildItem("p1",  "Maria Santos",    "Female", "Dr. Reyes",  "Facial Rejuvenation", "Mar 01, 2025", 4),
-                BuildItem("p2",  "Jose Reyes",      "Male",   "Dr. Santos", "Botox Treatment",     "Mar 02, 2025", 2),
-                BuildItem("p3",  "Ana Cruz",        "Female", "Dr. Lim",    "Chemical Peel",       "Mar 03, 2025", 5),
-                BuildItem("p4",  "Carlo Mendoza",   "Male",   "Dr. Reyes",  "Laser Therapy",       "Mar 04, 2025", 3),
-                BuildItem("p5",  "Liza Flores",     "Female", "Dr. Garcia", "Microdermabrasion",   "Mar 05, 2025", 6),
-                BuildItem("p6",  "Ramon Garcia",    "Male",   "Dr. Santos", "HydraFacial",         "Mar 06, 2025", 1),
-                BuildItem("p7",  "Sofia Aquino",    "Female", "Dr. Lim",    "PRP Therapy",         "Mar 07, 2025", 3),
-                BuildItem("p8",  "Mark Villanueva", "Male",   "Dr. Garcia", "Acne Treatment",      "Mar 08, 2025", 2),
-                BuildItem("p9",  "Grace Tan",       "Female", "Dr. Reyes",  "Skin Brightening",    "Mar 09, 2025", 4),
-                BuildItem("p10", "Kevin Lim",       "Male",   "Dr. Santos", "Anti-Aging Facial",   "Mar 10, 2025", 3),
-            };
+                var prescriptions = await _prescriptionController.GetAllPrescriptionsAsync();
+
+                // Pass full Prescription objects — ViewModel maps them to display items
+                // and keeps them internally for FindPrescription() lookups
+                _vm.LoadFromDb(prescriptions);
+
+                PatientMedicineListControl.ItemsSource = null;
+                PatientMedicineListControl.ItemsSource = _vm.DisplayedItems;
+
+                UpdateRowCount();
+            }
+            catch (Exception ex)
+            {
+                ToastHelper.Error(ToastBar, "Failed to load patient medicines", ex.Message);
+            }
         }
 
-        private static PatientMedicineItem BuildItem(
-            string patientId, string patientName, string gender,
-            string assignedDoctor, string procedureName,
-            string appointmentDate, int totalMedicine)
+        // ── Row count label ───────────────────────────────────────────────────────
+        private void UpdateRowCount()
         {
-            var parts = patientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var initials = parts.Length >= 2
-                ? $"{parts[0][0]}{parts[^1][0]}"
-                : patientName.Length > 0 ? patientName[0].ToString() : "?";
-
-            var avatarColor = gender switch
-            {
-                "Female" => "#C2185B",
-                "Male" => "#0078D4",
-                _ => "#5B2D8E"
-            };
-
-            return new PatientMedicineItem
-            {
-                PatientId = patientId,
-                PatientName = patientName,
-                PatientGender = gender,
-                Initials = initials.ToUpper(),
-                AvatarColor = avatarColor,
-                AssignedDoctor = assignedDoctor,
-                ProcedureName = procedureName,
-                AppointmentDate = appointmentDate,
-                TotalMedicine = totalMedicine,
-            };
+            if (TxtRowCount is null) return;
+            var count = _vm.DisplayedItems.Count;
+            TxtRowCount.Text = $"Showing {count} patient{(count != 1 ? "s" : "")}";
         }
 
-        private void ApplyFilters()
-        {
-            if (PatientMedicineListControl is null) return;
-
-            var search = SearchBox?.Text?.Trim().ToLower() ?? string.Empty;
-
-            var filtered = _allItems.Where(p =>
-                string.IsNullOrEmpty(search)
-                || p.PatientName.ToLower().Contains(search)
-                || p.AssignedDoctor.ToLower().Contains(search)
-            ).ToList();
-
-            PatientMedicineListControl.ItemsSource = filtered;
-
-            if (TxtRowCount is not null)
-                TxtRowCount.Text = $"Showing {filtered.Count} patient{(filtered.Count == 1 ? "" : "s")}";
-        }
-
+        // ── Search ────────────────────────────────────────────────────────────────
         private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-            => ApplyFilters();
+        {
+            _vm.SearchText = sender.Text ?? string.Empty;
+            UpdateRowCount();
+        }
 
+        // ── View Details ──────────────────────────────────────────────────────────
         private async void ViewDetails_Click(object sender, RoutedEventArgs e)
         {
-            var id = (sender as MenuFlyoutItem)?.Tag?.ToString();
-            var record = _allItems.FirstOrDefault(p => p.PatientId == id);
-            if (record is null) return;
+            if (sender is not MenuFlyoutItem item) return;
+
+            var patientId = item.Tag?.ToString() ?? string.Empty;
+            var record = _vm.FindItem(patientId);
+            var prescription = _vm.FindPrescription(patientId);
+
+            if (record is null || prescription is null) return;
 
             var modal = new PatientPrescriptionModal(
-                patientId: record.PatientId,
+                prescription: prescription,
+                controller: _prescriptionController,
                 patientName: record.PatientName,
                 patientGender: record.PatientGender,
-                assignedDoctor: record.AssignedDoctor,
-                procedureName: record.ProcedureName,
-                appointmentDate: record.AppointmentDate)
+                assignedDoctor: record.AssignedDoctor)
             {
                 XamlRoot = XamlRoot
             };
 
             await modal.ShowAsync();
 
-            // TODO: handle modal.Result when backend is wired
-            // e.g. if (modal.Result is not null) RefreshPatientList();
+            // Reload so completed prescriptions disappear from the list
+            await LoadFromDbAsync();
         }
     }
 }
