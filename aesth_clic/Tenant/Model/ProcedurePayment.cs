@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace aesth_clic.Tenant.Model
 {
-    public class ProcedurePayement
+    public class ProcedurePayment
     {
         public int Id { get; set; }
 

@@ -27,6 +27,8 @@ namespace aesth_clic.Tenant.Model
 
         public Patient Patient { get; set; } = null!; // patient details
 
+        public Prescription? Prescription { get; set; } // associated prescription
+
 
         public void ValidateForInsert()
         {

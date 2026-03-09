@@ -22,18 +22,21 @@ namespace aesth_clic.Context
         public DbSet<Medicine> Medicines { get; set; }
 
         public DbSet<PatientMedicine> PatientMedicines { get; set; }
-        public DbSet<ProcedurePayement> ProcedurePayments { get; set; }
+        public DbSet<ProcedurePayment> ProcedurePayments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<AccountStatus>()
-                .HasOne(a => a.User)
-                .WithOne(u => u.AccountStatus)
-                .HasForeignKey<AccountStatus>(a => a.AccountId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<AccountStatus>()
+    .HasOne(a => a.User)
+    .WithOne(u => u.AccountStatus)
+    .HasForeignKey<AccountStatus>(a => a.AccountId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+modelBuilder.Entity<AccountStatus>()
+    .HasIndex(a => a.AccountId)
+    .IsUnique();
 
 
             // service -> docter
@@ -63,14 +66,20 @@ namespace aesth_clic.Context
                 .HasForeignKey(p => p.PatientId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<PatientProcedure>()
+     .HasOne(p => p.Prescription)
+     .WithOne(pr => pr.PatientProcedure)
+     .HasForeignKey<Prescription>(pr => pr.PatientProcedureId)
+     .IsRequired()   // cannot be optional
+     .OnDelete(DeleteBehavior.Cascade);
 
 
-            // prescription
-            modelBuilder.Entity<Prescription>()
-            .HasOne(p => p.PatientProcedure)
-            .WithMany()
-            .HasForeignKey(p => p.PatientProcedureId)
-            .OnDelete(DeleteBehavior.Cascade);
+            //// prescription
+            //modelBuilder.Entity<Prescription>()
+            //.HasOne(p => p.PatientProcedure)
+            //.WithMany()
+            //.HasForeignKey(p => p.PatientProcedureId)
+            //.OnDelete(DeleteBehavior.Cascade);
 
 
             // patient medicine
@@ -90,13 +99,13 @@ namespace aesth_clic.Context
 
 
             // prrocedure payments
-            modelBuilder.Entity<ProcedurePayement>()
+            modelBuilder.Entity<ProcedurePayment>()
                 .HasOne(pp => pp.PatientProcedure)
                 .WithMany() // no navigation property
                 .HasForeignKey(pp => pp.PatientProcedureId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<ProcedurePayement>()
+            modelBuilder.Entity<ProcedurePayment>()
                 .HasOne(pp => pp.ServiceMenu)
                 .WithMany() // no navigation property
                 .HasForeignKey(pp => pp.ServiceMenuId)

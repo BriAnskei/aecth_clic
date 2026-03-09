@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 
 namespace aesth_clic.Tenant.Services
 {
-    public sealed class PatientProcedureService(TenantDbContextFactory tenantFactory, PrescriptionService prescriptionService) : TenantServiceBase
+    public sealed class PatientProcedureService(TenantDbContextFactory tenantFactory, PrescriptionService prescriptionService, ProcedurePaymentService procedurePaymentService) : TenantServiceBase
     {
         private readonly TenantDbContextFactory _tenantFactory = tenantFactory;
 
         private readonly PrescriptionService _prescriptionService = prescriptionService;
+
+        private readonly ProcedurePaymentService _procedurePaymentService = procedurePaymentService;
 
         /*
         ============================================================
@@ -143,8 +145,10 @@ namespace aesth_clic.Tenant.Services
 
                 await db.SaveChangesAsync();
 
-                // PASS SAME CONTEXT
+             
                 await _prescriptionService.CreateAsync(db, patientProcedureId, medicines);
+
+                await _procedurePaymentService.CreateAsync(db, patientProcedureId, procedure.ProcedureId);
 
                 await transaction.CommitAsync();
             }

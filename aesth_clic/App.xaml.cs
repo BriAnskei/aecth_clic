@@ -113,6 +113,9 @@ namespace aesth_clic
             services.AddTransient<MedicineService>();
             services.AddTransient<MedicineController>();
 
+            services.AddTransient<ProcedurePaymentService>();
+            services.AddTransient<ProcedurePaymentController>();
+
             // --
 
             // Infrastructure

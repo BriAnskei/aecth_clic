@@ -69,8 +69,9 @@ namespace aesth_clic.Tenant.Services
         {
             using var tenantDb = CreateTenantDb();
 
-            var assignedDoctorIds = await tenantDb.PatientProcedures
-                .Where(p => p.AssignedDoctorId != null)
+            // Doctors that currently have ACTIVE procedures (not completed)
+            var busyDoctorIds = await tenantDb.PatientProcedures
+                .Where(p => p.AssignedDoctorId != null && p.Status != "Completed")
                 .Select(p => p.AssignedDoctorId!.Value)
                 .Distinct()
                 .ToListAsync();
@@ -87,12 +88,11 @@ namespace aesth_clic.Tenant.Services
                 FullName = d.FullName,
                 Email = d.Email,
                 Role = d.Role,
-                AvailabilityStatus = assignedDoctorIds.Contains(d.Id) ? "busy" : "available"
+                AvailabilityStatus = busyDoctorIds.Contains(d.Id) ? "busy" : "available"
             }).ToList();
 
             return result;
         }
-
 
         public async Task<List<User>> GetAvailableDoctorsAsync()
         {
@@ -104,7 +104,7 @@ namespace aesth_clic.Tenant.Services
                 .Where(u => u.Role.ToLower() == "doctor")
                 .Where(u => u.AccountStatus != null && u.AccountStatus.Status == "Active")
                 .Where(u => !tenantDb.PatientProcedures
-                    .Any(p => p.AssignedDoctorId == u.Id))
+                    .Any(p => p.AssignedDoctorId == u.Id && p.Status != "completed"))
                 .ToListAsync();
 
             return availableDoctors;

@@ -62,7 +62,7 @@ namespace aesth_clic.Tenant.Services
             using var db = CreateTenantDb();
 
             return await db.Set<Prescription>()
-                .Where(p => p.Status == "pending") 
+                .Where(p => p.Status == "pending") // ✅ fixed
                 .Include(p => p.PatientProcedure!)
                     .ThenInclude(pp => pp.User)
                 .Include(p => p.PatientProcedure!)
